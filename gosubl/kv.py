@@ -3,7 +3,7 @@ import threading
 import traceback
 
 class M(object):
-	def __init__():
+	def __init__(self):
 		self.lck = threading.Lock()
 		self.d = {}
 
