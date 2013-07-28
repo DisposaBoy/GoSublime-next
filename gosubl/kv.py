@@ -7,7 +7,7 @@ class M(object):
 		self.lck = threading.Lock()
 		self.d = {}
 
-	def _get(k, df):
+	def _get(self, k, df):
 		# not passing d as default because the stored value can, itself, be `None`
 		v = self.d.get(k, None)
 
@@ -22,21 +22,21 @@ class M(object):
 
 		return v
 
-	def get(k, df=None):
+	def get(self, k, df=None):
 		with self.lck:
 			return copy.copy(self._get(k, df))
 
-	def ref(k, df=None):
+	def ref(self, k, df=None):
 		with self.lck:
 			return self._get(k, df)
 
-	def put(k, v):
+	def put(self, k, v):
 		with self.lck:
 			old_v = self._get(k, None)
 			self.d[k] = v
 			return old_v
 
-	def delete(k):
+	def delete(self, k):
 		with self.lck:
 			old_v = self._get(k, None)
 
@@ -50,13 +50,13 @@ class M(object):
 	def _df_zero(self):
 		return (0, False)
 
-	def incr(k, i=1):
+	def incr(self, k, i=1):
 		with self.lck:
 			old_v = self._get(k, self._df_zero)
 			self.d[k] = old_v + i
 			return old_v
 
-	def decr(k, i=1):
+	def decr(self, k, i=1):
 		with self.lck:
 			old_v = self._get(k, self._df_zero)
 			self.d[k] = old_v - i
