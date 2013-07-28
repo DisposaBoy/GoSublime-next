@@ -141,7 +141,7 @@
 	},
 	{
 		"keys": ["ctrl+9"],
-		"command": "gs9o_open"
+		"command": "gs9o_win_open"
 	},
 	{
 		"keys": ["ctrl+space"],

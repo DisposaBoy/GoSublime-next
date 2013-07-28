@@ -141,7 +141,7 @@
 	},
 	{
 		"keys": ["super+9"],
-		"command": "gs9o_open"
+		"command": "gs9o_win_open"
 	},
 	{
 		"keys": ["super+space"],
