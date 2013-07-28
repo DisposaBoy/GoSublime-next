@@ -218,13 +218,18 @@ class Gs9oInitCommand(sublime_plugin.TextCommand):
 
 		os.chdir(wd)
 
-class Gs9oOpenV(sublime_plugin.TextCommand):
-	def run(self, edit, wd=None, run=[], save_hist=False, focus_view=True):
-		self.view.run_command('gs9o_open', {'wd': wd, 'run': run, 'save_hist': save_hist, 'focus_view': focus_view})
-
 class Gs9oOpenCommand(sublime_plugin.TextCommand):
 	def run(self, edit, wd=None, run=[], save_hist=False, focus_view=True):
-		win = self.view.window()
+		self.view.window().run_command('gs9o_win_open', {
+			'wd': wd,
+			'run': run,
+			'save_hist': save_hist,
+			'focus_view': focus_view,
+		})
+
+class Gs9oWinOpenCommand(sublime_plugin.WindowCommand):
+	def run(self, wd=None, run=[], save_hist=False, focus_view=True):
+		win = self.window
 		wid = win.id()
 		if not wd:
 			wd = active_wd(win=win)
@@ -244,11 +249,15 @@ class Gs9oOpenCommand(sublime_plugin.TextCommand):
 		v.run_command('gs9o_init', {'wd': wd})
 
 		if run:
-			cmd = ' '.join(run)
-			v.insert(edit, v.line(v.size()-1).end(), cmd)
-			v.sel().clear()
-			v.sel().add(v.line(v.size()-1).end())
-			v.run_command('gs9o_exec', {'save_hist': save_hist})
+			v.run_command('gs9o_paste_exec', {'cmd': ' '.join(run), 'save_hist': save_hist})
+
+class Gs9oPasteExecCommand(sublime_plugin.TextCommand):
+	def run(self, edit, cmd, save_hist=False):
+		view = self.view
+		view.insert(edit, view.line(view.size()-1).end(), cmd)
+		view.sel().clear()
+		view.sel().add(view.line(view.size()-1).end())
+		view.run_command('gs9o_exec', {'save_hist': save_hist})
 
 class Gs9oOpenSelectionCommand(sublime_plugin.TextCommand):
 	def is_enabled(self):
