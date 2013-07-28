@@ -26,6 +26,10 @@ class M(object):
 		with self.lck:
 			return copy.copy(self._get(k, df))
 
+	def ref(k, df=None):
+		with self.lck:
+			return self._get(k, df)
+
 	def put(k, v):
 		with self.lck:
 			old_v = self._get(k, None)
