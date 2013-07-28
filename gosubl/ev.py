@@ -80,3 +80,5 @@ class Signal(Event):
 
 debug = Event()
 init = Event()
+modified = Event()
+line_changed = Event()
