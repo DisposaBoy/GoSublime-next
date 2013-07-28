@@ -1,4 +1,3 @@
-import copy
 import threading
 import traceback
 
@@ -23,10 +22,6 @@ class M(object):
 		return v
 
 	def get(self, k, df=None):
-		with self.lck:
-			return copy.copy(self._get(k, df))
-
-	def ref(self, k, df=None):
 		with self.lck:
 			return self._get(k, df)
 
