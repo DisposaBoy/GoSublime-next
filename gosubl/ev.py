@@ -1,3 +1,5 @@
+from . import gs
+from . import kv
 import sublime
 import threading
 import time
@@ -78,7 +80,41 @@ class Signal(Event):
 		else:
 			self._sched(ms)
 
+
+kvs = kv.M()
+
+def kvm(k):
+	return kvs.get(k, lambda: (kv.M(), True))
+
+def df_mod_sig(view):
+	def f():
+		sublime.set_timeout(lambda: view_updated(view), 0)
+
+	sig = Signal(500)
+	sig += f
+	return (sig, True)
+
+def sig_mod(view):
+	sig = kvm(view.id()).get('mod-sig', lambda: df_mod_sig(view))
+	sig()
+
+def df_lc_sig(view):
+	def f():
+		sublime.set_timeout(lambda: line_changed(view), 0)
+
+	sig = Signal(500)
+	sig += f
+	return (sig, True)
+
+def sig_lc(view):
+	m = kvm(view.id())
+	sel = gs.sel(view).begin()
+	row, _ = view.rowcol(sel)
+	if m.put('last-row', row) != row:
+		sig = m.get('lc-sig', lambda: df_lc_sig(view))
+		sig()
+
 debug = Event()
 init = Event()
-modified = Event()
+view_updated = Event()
 line_changed = Event()
