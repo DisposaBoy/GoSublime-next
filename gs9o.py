@@ -91,7 +91,10 @@ class EV(sublime_plugin.EventListener):
 		cl.update((k, k+' ') for k in builtins())
 		cl.update(DEFAULT_CL)
 
-		return ([e for e in sorted(cl)], AC_OPTS)
+		return ([cl_esc(e) for e in sorted(cl)], AC_OPTS)
+
+def cl_esc(e):
+	return (e[0], e[1].replace('$', '\\$'))
 
 class Gs9oBuildCommand(sublime_plugin.WindowCommand):
 	def is_enabled(self):
