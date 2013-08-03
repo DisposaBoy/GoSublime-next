@@ -60,7 +60,7 @@ func walk(root string, ch chan string, dir string) {
 	}
 }
 
-func pkgPaths(srcDir string, exclude []string) map[string]string {
+func pkgPaths(srcDir string, exclude []string, wantPkgName bool) map[string]string {
 	paths := map[string]string{}
 	done := make(chan struct{})
 	ch := make(chan string, 100)
@@ -88,24 +88,27 @@ func pkgPaths(srcDir string, exclude []string) map[string]string {
 			return
 		}
 
-		af, _ := parser.ParseFile(fset, fn, nil, parser.ImportsOnly|parser.ParseComments)
-		if af == nil || af.Name == nil {
-			return
-		}
+		name := ""
 
-		name := af.Name.String()
+		if wantPkgName {
+			af, _ := parser.ParseFile(fset, fn, nil, parser.ImportsOnly|parser.ParseComments)
+			if af == nil || af.Name == nil {
+				return
+			}
+			name = af.Name.String()
 
-		for _, cg := range af.Comments {
-			for _, c := range cg.List {
-				if buildIgnore.MatchString(c.Text) {
-					return
+			for _, cg := range af.Comments {
+				for _, c := range cg.List {
+					if buildIgnore.MatchString(c.Text) {
+						return
+					}
 				}
 			}
-		}
 
-		if _, skip := excluded[name]; skip {
-			seen[p] = void{}
-			return
+			if _, skip := excluded[name]; skip {
+				seen[p] = void{}
+				return
+			}
 		}
 
 		paths[p] = name
