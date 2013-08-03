@@ -6,12 +6,13 @@ import (
 )
 
 type mPkgPaths struct {
-	Env     map[string]string
-	Exclude []string
+	Env          map[string]string
+	Exclude      []string
+	WantPkgNames bool
 }
 
 func (m *mPkgPaths) Call() (interface{}, string) {
-	return mPkgPathsRes(m.Env, m.Exclude), ""
+	return mPkgPathsRes(m.Env, m.Exclude, m.WantPkgNames), ""
 }
 
 func init() {
@@ -20,9 +21,10 @@ func init() {
 	})
 }
 
-func mPkgPathsRes(env map[string]string, exclude []string) map[string]map[string]string {
+func mPkgPathsRes(env map[string]string, exclude []string, wantPkgNames bool) map[string]map[string]string {
 	lck := sync.Mutex{}
 	goroot, gopaths := envRootList(env)
+
 	res := map[string]map[string]string{}
 
 	wg := sync.WaitGroup{}
@@ -31,7 +33,7 @@ func mPkgPathsRes(env map[string]string, exclude []string) map[string]map[string
 		go func() {
 			defer wg.Done()
 
-			paths := pkgPaths(srcDir, exclude)
+			paths := pkgPaths(srcDir, exclude, wantPkgNames)
 			if len(paths) > 0 {
 				lck.Lock()
 				res[srcDir] = paths
