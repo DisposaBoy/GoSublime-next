@@ -322,6 +322,7 @@ def import_paths(fn, src, f):
 		'src': src or '',
 		'env': sh.env(),
 		'WantPkgNames': gs.setting('use_named_imports'),
+		'UseLegacyImports': gs.setting('use_legacy_imports'),
 	}, cb)
 
 def pkg_name(fn, src):
