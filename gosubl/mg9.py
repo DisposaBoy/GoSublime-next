@@ -321,6 +321,7 @@ def import_paths(fn, src, f):
 		'fn': fn or '',
 		'src': src or '',
 		'env': sh.env(),
+		'WantPkgNames': gs.setting('use_named_imports'),
 	}, cb)
 
 def pkg_name(fn, src):
@@ -354,6 +355,7 @@ def a_pkgpaths(exclude, f):
 			'_pathsep': m.get('_pathsep'),
 		},
 		'exclude': exclude,
+		'WantPkgNames': gs.setting('use_named_imports'),
 	}, cb)
 
 def declarations(fn, src, pkg_dir, f):
