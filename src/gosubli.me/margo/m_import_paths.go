@@ -11,9 +11,11 @@ import (
 )
 
 type mImportPaths struct {
-	Fn  string
-	Src string
-	Env map[string]string
+	Fn               string
+	Src              string
+	Env              map[string]string
+	UseLegacyImports bool
+	WantPkgNames     bool
 }
 
 type mImportPathsDecl struct {
@@ -47,9 +49,18 @@ func (m *mImportPaths) Call() (interface{}, string) {
 	}
 
 	paths := map[string]string{}
-	l, _ := importPaths(m.Env)
-	for _, p := range l {
-		paths[p] = ""
+
+	if m.UseLegacyImports {
+		l, _ := importPaths(m.Env)
+		for _, p := range l {
+			paths[p] = ""
+		}
+	} else {
+		for _, m := range mPkgPathsRes(m.Env, []string{"main"}, m.WantPkgNames) {
+			for p, nm := range m {
+				paths[p] = nm
+			}
+		}
 	}
 
 	res := M{
