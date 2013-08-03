@@ -177,6 +177,10 @@
 	//     )
 	"use_named_imports": false,
 
+	// whether or not to import `.a` files ...
+	// the alternative is to search your $GOROOT/src/pkg and $GOPATH*/src for packages
+	"use_legacy_imports": true,
+
 	// whether or not MarGo may automatically run `go install` for packages that are missing
 	// when you `import`, or `autocomplete` them
 	"autoinst": true,

@@ -83,6 +83,7 @@ _default_settings = {
 	"autoinst": False,
 	"use_gs_gopath": False,
 	"use_named_imports": False,
+	"use_legacy_imports": True,
 }
 _settings = copy.copy(_default_settings)
 
