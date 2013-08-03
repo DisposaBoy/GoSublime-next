@@ -25,13 +25,6 @@ class EV(sublime_plugin.EventListener):
 	def on_load(self, view):
 		sublime.set_timeout(lambda: do_set_gohtml_syntax(view), 0)
 
-	def on_modified(self, view):
-		if gs.is_go_source_view(view):
-			sublime.set_timeout(lambda: ev.sig_mod(view), 0)
-
-	def on_selection_modified(self, view):
-		sublime.set_timeout(lambda: ev.sig_lc(view), 0)
-
 
 class GsOnLeftClick(sublime_plugin.TextCommand):
 	def run(self, edit):
