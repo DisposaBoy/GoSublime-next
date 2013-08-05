@@ -118,7 +118,7 @@ def sig_mov(view, reset_last_row=False):
 	m = kvm(view.id())
 
 	if reset_last_row:
-		m.remove('last-row')
+		m.delete('last-row')
 
 	sig = m.get('mov-sig', lambda: df_mov_sig(view))
 	sig()
