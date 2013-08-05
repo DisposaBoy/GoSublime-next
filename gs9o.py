@@ -182,6 +182,7 @@ class Gs9oInitCommand(sublime_plugin.TextCommand):
 		v.sel().clear()
 		n = v.size()-1
 		v.sel().add(sublime.Region(n, n))
+		vs.set("9o", True)
 		vs.set("9o.wd", wd)
 		vs.set("rulers", [])
 		vs.set("fold_buttons", True)
