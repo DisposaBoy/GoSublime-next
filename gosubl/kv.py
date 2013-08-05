@@ -51,6 +51,10 @@ class M(object):
 			self.d[k] = old_v - i
 			return old_v
 
+	def values():
+		with self.lck:
+			return self.d.copy()
+
 	def clear(self, m={}):
 		with self.lck:
 			self.d = m
