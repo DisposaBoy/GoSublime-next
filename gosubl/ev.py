@@ -98,9 +98,6 @@ def sig_mod(view):
 	sig = kvm(view.id()).get('mod-sig', lambda: df_mod_sig(view))
 	sig()
 
-def lc_reset(view):
-	kvm(view.id()).remove('last-row')
-
 def lc(view):
 	m = kvm(view.id())
 	sel = gs.sel(view).begin()
@@ -117,8 +114,13 @@ def df_mov_sig(view):
 	sig += f
 	return (sig, True)
 
-def sig_mov(view):
-	sig = kvm(view.id()).get('mov-sig', lambda: df_mov_sig(view))
+def sig_mov(view, reset_last_row=False):
+	m = kvm(view.id())
+
+	if reset_last_row:
+		m.remove('last-row')
+
+	sig = m.get('mov-sig', lambda: df_mov_sig(view))
 	sig()
 
 debug = Event()
