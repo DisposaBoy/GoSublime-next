@@ -98,23 +98,28 @@ def sig_mod(view):
 	sig = kvm(view.id()).get('mod-sig', lambda: df_mod_sig(view))
 	sig()
 
-def df_lc_sig(view):
-	def f():
+def lc(view):
+	m = kvm(view.id())
+	sel = gs.sel(view).begin()
+	row, _ = view.rowcol(sel)
+	if m.put('last-row', row) != row:
 		sublime.set_timeout(lambda: line_changed(view), 0)
+
+def df_mov_sig(view):
+	def f():
+		sublime.set_timeout(lambda: cursor_moved(view), 0)
+		sublime.set_timeout(lambda: lc(view), 0)
 
 	sig = Signal(500)
 	sig += f
 	return (sig, True)
 
-def sig_lc(view):
-	m = kvm(view.id())
-	sel = gs.sel(view).begin()
-	row, _ = view.rowcol(sel)
-	if m.put('last-row', row) != row:
-		sig = m.get('lc-sig', lambda: df_lc_sig(view))
-		sig()
+def sig_mov(view):
+	sig = kvm(view.id()).get('mov-sig', lambda: df_mov_sig(view))
+	sig()
 
 debug = Event()
 init = Event()
 view_updated = Event()
 line_changed = Event()
+cursor_moved = Event()
