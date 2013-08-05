@@ -26,6 +26,7 @@ def plugin_loaded():
 	from gosubl import ev
 	from gosubl import gs
 	from gosubl import mg9
+	from gosubl import lint
 
 	if VERSION != about.VERSION:
 		gs.show_output('GoSublime-main', '\n'.join([
@@ -48,6 +49,7 @@ def plugin_loaded():
 		('gs', gs),
 		('sh', sh),
 		('mg9', mg9),
+		('lint', lint),
 	]
 
 	gs.set_attr('about.version', VERSION)
