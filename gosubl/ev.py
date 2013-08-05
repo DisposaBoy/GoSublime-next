@@ -131,7 +131,7 @@ def sig_mov(view, reset_last_row=False):
 
 def ignore_view(view):
 	vs = view.settings()
-	return vs.get('is_widget')
+	return vs.get('is_widget') or vs.get('9o')
 
 
 debug = Event()
