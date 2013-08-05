@@ -50,3 +50,7 @@ class M(object):
 			old_v = self.d.get(k, 0)
 			self.d[k] = old_v - i
 			return old_v
+
+	def clear(self, m={}):
+		with self.lck:
+			self.d = m
