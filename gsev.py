@@ -22,29 +22,26 @@ class EV(sublime_plugin.EventListener):
 
 		sublime.set_timeout(lambda: do_set_gohtml_syntax(view), 0)
 
-		if view.settings().get('is_widget') is not True:
-			try:
-				ev.sig_mov(view, True)
-			except AttributeError:
-				pass
+		try:
+			ev.sig_mov(view, True)
+		except AttributeError:
+			pass
 
 
 	def on_load(self, view):
 		sublime.set_timeout(lambda: do_set_gohtml_syntax(view), 0)
 
 	def on_modified(self, view):
-		if view.settings().get('is_widget') is not True:
-			try:
-				ev.sig_mod(view)
-			except AttributeError:
-				pass
+		try:
+			ev.sig_mod(view)
+		except AttributeError:
+			pass
 
 	def on_selection_modified(self, view):
-		if view.settings().get('is_widget') is not True:
-			try:
-				ev.sig_mov(view)
-			except AttributeError:
-				pass
+		try:
+			ev.sig_mov(view)
+		except AttributeError:
+			pass
 
 
 class GsOnLeftClick(sublime_plugin.TextCommand):

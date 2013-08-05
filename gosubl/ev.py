@@ -95,6 +95,9 @@ def df_mod_sig(view):
 	return (sig, True)
 
 def sig_mod(view):
+	if ignore_view(view):
+		return
+
 	sig = kvm(view.id()).get('mod-sig', lambda: df_mod_sig(view))
 	sig()
 
@@ -115,6 +118,9 @@ def df_mov_sig(view):
 	return (sig, True)
 
 def sig_mov(view, reset_last_row=False):
+	if ignore_view(view):
+		return
+
 	m = kvm(view.id())
 
 	if reset_last_row:
@@ -122,6 +128,11 @@ def sig_mov(view, reset_last_row=False):
 
 	sig = m.get('mov-sig', lambda: df_mov_sig(view))
 	sig()
+
+def ignore_view(view):
+	vs = view.settings()
+	return vs.get('is_widget')
+
 
 debug = Event()
 init = Event()
