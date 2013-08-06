@@ -61,7 +61,7 @@ class M(object):
 
 	def filter(self, f):
 		with self.lck:
-			for k in self.d.keys():
+			for k in list(self.d.keys()):
 				v = f(k, self.d[k])
 				if v:
 					self.d[k] = v
