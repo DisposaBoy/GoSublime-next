@@ -58,3 +58,9 @@ class M(object):
 	def clear(self, m={}):
 		with self.lck:
 			self.d = m
+
+	def filter(self, f):
+		with self.lck:
+			for k in self.d.keys():
+				if not f(k, self.d[k]):
+					del self.d[k]
