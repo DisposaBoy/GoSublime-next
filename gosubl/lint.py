@@ -53,11 +53,9 @@ def lc(view):
 	s = ''
 	l = len(m)
 	if l > 0:
-		n = None
 		ns = m.get(row)
 		if ns:
-			for v in ns:
-				n = v
+			for n in ns:
 				if n:
 					s = ' %s: %s' % (n.ctx, n.message)
 					break
