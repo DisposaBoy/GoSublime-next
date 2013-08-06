@@ -64,3 +64,7 @@ class M(object):
 			for k in self.d.keys():
 				if not f(k, self.d[k]):
 					del self.d[k]
+
+	def __len__(self):
+		with self.lck:
+			return len(self.d)
