@@ -62,7 +62,10 @@ class M(object):
 	def filter(self, f):
 		with self.lck:
 			for k in self.d.keys():
-				if not f(k, self.d[k]):
+				v = f(k, self.d[k])
+				if v:
+					self.d[k] = v
+				else:
 					del self.d[k]
 
 	def __len__(self):
