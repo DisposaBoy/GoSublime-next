@@ -1,9 +1,16 @@
 from . import ev
 from . import gs
 from . import kv
+import sublime
 
 DOMAIN = 'GoSublime: Lint'
 STATUS_DOMAIN = 'gs-lint-status'
+REGION_DOMAIN_NORM = 'gs-lint-region-norm'
+REGION_DOMAIN_EMPTY = 'gs-lint-region-empty'
+REGION_DOMAINS = {
+	REGION_DOMAIN_NORM: sublime.DRAW_EMPTY_AS_OVERWRITE,
+	REGION_DOMAIN_EMPTY: sublime.HIDDEN,
+}
 
 kvs = kv.M()
 
@@ -28,34 +35,73 @@ def notes(view):
 	return kvm(view).values()
 
 def row_notes(view, row):
-	return kvm(view).get(row, df_note_set)
+	return kvm(view).get(row, df_note_list)
 
-def add_note(view, n):
-	# todo: fix this race? does it actually matter?
-	kvm(view).get(n.pos.row, df_note_set).add(n)
-	lc(view)
+def _update_regions(view, m):
+	show_icon = False
+	seen = {}
+	regions = {
+		REGION_DOMAIN_NORM: [],
+		REGION_DOMAIN_EMPTY: [],
+	}
 
-def df_note_set():
-	return (set(), True)
+	for nl in m.dict().values():
+		if nl:
+			show_icon = True
+
+			p = nl[0].pos
+			if p.row not in seen:
+				line = view.line(view.text_point(p.row, 0))
+				sp = line.begin()
+				ep = line.end()
+				pt = sp
+
+				# get the first non-whitespace column (putting a marker on tabs is ugly)
+				s = view.substr(line)
+				nc = len(s) - len(s.lstrip())
+
+				if nc <= p.col:
+					pt = sp + p.col
+
+				if pt <= sp or pt > ep:
+					regions[REGION_DOMAIN_EMPTY].append(sublime.Region(sp, sp))
+				else:
+					regions[REGION_DOMAIN_NORM].append(sublime.Region(pt, pt))
+
+	for k, rl in regions.items():
+		view.add_regions(k, rl, 'error', 'dot', REGION_DOMAINS[k])
+
+	lc(view, show_icon)
+
+def add_notes(view, nl):
+	m = kvm(view)
+
+	for n in nl:
+		m.get(n.pos.row, df_note_list).append(n)
+
+	_update_regions(view, m)
+
+def df_note_list():
+	return ([], True)
 
 def clear_notes(view, ctx):
-	kvm(view).filter(lambda _, ns: set((n for n in ns if n.ctx != ctx)))
-	lc(view)
+	m = kvm(view)
+	m.filter(lambda _, nl: [n for n in nl if n.ctx != ctx])
+	_update_regions(view, m)
 
 def gs_init(m={}):
 	pass
 
-def lc(view):
+def lc(view, show_icon=False):
 	sel = gs.sel(view)
 	row, _ = view.rowcol(sel.begin())
 	m = kvm(view)
-
 	s = ''
-	l = len(m)
-	if l > 0:
-		ns = m.get(row)
-		if ns:
-			for n in ns:
+
+	if show_icon or len(m) > 0:
+		nl = m.get(row)
+		if nl:
+			for n in nl:
 				if n:
 					s = ' %s: %s' % (n.ctx, n.message)
 					break
