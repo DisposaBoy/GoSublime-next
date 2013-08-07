@@ -69,7 +69,7 @@ def _update_regions(view, m):
 					regions[REGION_DOMAIN_NORM].append(sublime.Region(pt, pt))
 
 	for k, rl in regions.items():
-		view.add_regions(k, rl, 'error', 'dot', REGION_DOMAINS[k])
+		view.add_regions(k, rl, 'lint error invalid', 'dot', REGION_DOMAINS[k])
 
 	lc(view, show_icon)
 
