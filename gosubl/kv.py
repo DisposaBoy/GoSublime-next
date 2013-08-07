@@ -51,7 +51,7 @@ class M(object):
 			self.d[k] = old_v - i
 			return old_v
 
-	def values(self):
+	def dict(self):
 		with self.lck:
 			return self.d.copy()
 
