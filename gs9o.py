@@ -475,7 +475,7 @@ def builtins():
 	g = globals()
 	for k, v in g.items():
 		if k.startswith('cmd_'):
-			k = k[4:]
+			k = k[4:].replace('_', '-')
 			if k and k not in m:
 				m[k] = v
 
