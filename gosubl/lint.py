@@ -84,10 +84,12 @@ def add_notes(view, nl):
 def df_note_list():
 	return ([], True)
 
-def clear_notes(view, ctx):
+def clear_notes(view, cl, update=True):
 	m = kvm(view)
-	m.filter(lambda _, nl: [n for n in nl if n.ctx != ctx])
-	_update_regions(view, m)
+	m.filter(lambda _, nl: [n for n in nl if n.ctx not in cl])
+
+	if update:
+		_update_regions(view, m)
 
 def gs_init(m={}):
 	pass
