@@ -227,7 +227,7 @@ func (b *Broker) Loop(decorate bool, wait bool) {
 			Token: "margo.bye-ni",
 			Data: M{
 				"served": b.served.val(),
-				"uptime": time.Now().Sub(b.start).String(),
+				"uptime": msDur(b.start).String(),
 			},
 		})
 	}

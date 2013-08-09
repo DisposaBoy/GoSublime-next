@@ -76,7 +76,7 @@ func (m *mPlay) Call() (interface{}, string) {
 			"fn":    m.Fn,
 			"out":   jData(stdOut.Bytes()),
 			"err":   jData(stdErr.Bytes()),
-			"dur":   time.Now().Sub(start).String(),
+			"dur":   msDur(start).String(),
 		}
 
 		return res, err

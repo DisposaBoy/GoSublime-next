@@ -13,6 +13,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"time"
 	"unicode/utf8"
 )
 
@@ -283,4 +284,10 @@ func envRootList(env map[string]string) (string, []string) {
 		return "", []string{}
 	}
 	return env["GOROOT"], pathList(env["GOPATH"], env["_pathsep"])
+}
+
+func msDur(start time.Time) time.Duration {
+	dur := time.Now().Sub(start)
+	dur -= dur % time.Millisecond
+	return dur
 }
