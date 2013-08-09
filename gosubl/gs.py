@@ -691,6 +691,12 @@ def dval(v, d):
 
 	return d
 
+def abspath(fn, dir=''):
+	if os.path.isabs(fn):
+		return fn
+
+	return os.path.normpath(os.path.join((dir or getwd()), fn))
+
 def tm_path(name):
 	d = {
 		'9o': 'syntax/GoSublime-9o.tmLanguage',
