@@ -178,6 +178,8 @@ def _cmd(cmd_str, e):
 def gs_init(_={}):
 	global _env_ext
 	global GO_VERSION
+	global VDIR_NAME
+	global init_done
 
 	start = time.time()
 
@@ -227,6 +229,7 @@ def gs_init(_={}):
 	m = about.GO_VERSION_OUTPUT_PAT.search(cr_go_out)
 	if m:
 		GO_VERSION = about.GO_VERSION_NORM_PAT.sub('', m.group(1))
+		VDIR_NAME = '%s_%s' % (about.VERSION, GO_VERSION)
 
 	dur = (time.time() - start)
 
@@ -250,6 +253,8 @@ def gs_init(_={}):
 		(GO_VERSION if GO_VERSION != about.DEFAULT_GO_VERSION else cr_go),
 		dur,
 	))
+
+	init_done = True
 
 def _print(s):
 	print('GoSblime %s sh: %s' % (about.VERSION, s))
@@ -309,7 +314,7 @@ def env(m={}):
 	# will go into the "bin" dir of the corresponding GOPATH path.
 	# Therefore, make sure these paths are included in PATH.
 
-	add_path = [gs.home_dir_path('bin')]
+	add_path = [bin_dir()]
 
 	for s in gs.lst(e.get('GOROOT', ''), e.get('GOPATH', '').split(os.pathsep)):
 		if s:
@@ -416,5 +421,21 @@ def go(cmd_lst):
 	out = cr.out.strip() + '\n' + cr.err.strip()
 	return out.strip()
 
+def vdir():
+	return gs.home_dir_path(VDIR_NAME)
+
+def bin_dir():
+	if not init_done:
+		# bootstrapping issue:
+		#	* gs_init useds ShellCommand to run the go command in order to init GO_VERSION
+		#	* ShellCommand calls env()
+		#	* env() calls bin_dir()
+		#	* we(bin_dir()) use GO_VERSION
+		return ''
+
+	return gs.home_dir_path(VDIR_NAME, 'bin')
+
+init_done = False
 GO_VERSION = about.DEFAULT_GO_VERSION
+VDIR_NAME = '%s_%s' % (about.VERSION, GO_VERSION)
 _env_ext = {}
