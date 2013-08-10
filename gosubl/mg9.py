@@ -24,7 +24,7 @@ INSTALL_VERSION = about.VERSION
 
 def gs_init(m={}):
 	atexit.register(killSrv)
-	gsq.do('GoSublime', lambda: install(False), msg='Installing MarGo', set_status=False)
+	gsq.do('GoSublime', install, msg='Installing MarGo', set_status=False)
 
 class Request(object):
 	def __init__(self, f, method='', token=''):
@@ -111,39 +111,35 @@ def _bins_exist():
 	return bool(sh.which('margo'))
 
 def maybe_install():
-	if _inst_state() == '' and not _bins_exist():
-		install(True)
+	if not _bins_exist():
+		install()
 
-def install(force_install):
+def install():
 	if _inst_state() != "":
-		gs.notify(DOMAIN, 'Installation aborted. Install command already called for GoSublime %s.' % INSTALL_VERSION)
 		return
 
-	is_update = about.VERSION != INSTALL_VERSION
-
+	start = time.time()
 	gs.set_attr(_inst_name(), 'busy')
+	gs.notify('GoSublime', 'Installing MarGo')
 
-	init_start = time.time()
+	cmd = sh.Command(['go', 'install', '-v', '-x', 'gosubli.me/margo'])
+	cmd.wd = sh.bin_dir()
+	cmd.env = {
+		'GOBIN': cmd.wd,
+		'GOPATH': gs.dist_path(),
+	}
 
-	if not is_update and not force_install and _bins_exist():
-		m_out = 'no'
+	ev.debug('%s.build' % DOMAIN, {
+		'cmd': cmd.cmd_lst,
+		'cwd': cmd.wd,
+	})
+
+	cr = cmd.run()
+
+	if cr.ok and _bins_exist():
+		gs.notify('GoSublime', 'ready')
+		m_out = 'ok'
 	else:
-		gs.notify('GoSublime', 'Installing MarGo')
-		start = time.time()
-
-		cmd = sh.Command(['go', 'install', '-v', '-x', 'gosubli.me/margo'])
-		cmd.wd = gs.home_dir_path('bin')
-		cmd.env = {
-			'GOBIN': sh.bin_dir(),
-			'GOPATH': gs.dist_path(),
-		}
-
-		ev.debug('%s.build' % DOMAIN, {
-			'cmd': cmd.cmd_lst,
-			'cwd': cmd.wd,
-		})
-
-		cr = cmd.run()
 		m_out = 'cmd: `%s`\nstdout: `%s`\nstderr: `%s`\nexception: `%s`' % (
 			cr.cmd_lst,
 			cr.out.strip(),
@@ -151,84 +147,61 @@ def install(force_install):
 			cr.exc,
 		)
 
-		if cr.ok and _bins_exist():
-			def f():
-				gs.aso().set('install_version', INSTALL_VERSION)
-				gs.save_aso()
+		err_prefix = 'MarGo build failed'
+		gs.error(DOMAIN, '%s\n%s' % (err_prefix, m_out))
 
-			sublime.set_timeout(f, 0)
-		else:
-			err_prefix = 'MarGo build failed'
-			gs.error(DOMAIN, '%s\n%s' % (err_prefix, m_out))
-
-			sl = [
-				('GoSublime error', '\n'.join((
-					err_prefix,
-					'This is possibly a bug or miss-configuration of your environment.',
-					'For more help, please file an issue with the following build output',
-					'at: https://github.com/DisposaBoy/GoSublime/issues/new',
-					'or alternatively, you may send an email to: gosublime@dby.me',
-					'\n',
-					m_out,
-				)))
-			]
-			sl.extend(sanity_check({}, False))
-			gs.show_output('GoSublime', '\n'.join(sanity_check_sl(sl)))
+		sl = [
+			('GoSublime error', '\n'.join((
+				err_prefix,
+				'This is possibly a bug or miss-configuration of your environment.',
+				'For more help, please file an issue with the following build output',
+				'at: https://github.com/DisposaBoy/GoSublime/issues/new',
+				'or alternatively, you may send an email to: gosublime@dby.me',
+				'\n',
+				m_out,
+			)))
+		]
+		sl.extend(sanity_check({}, False))
+		gs.show_output('GoSublime', '\n'.join(sanity_check_sl(sl)))
 
 	gs.set_attr(_inst_name(), 'done')
 
-	if is_update:
-		gs.show_output('GoSublime-source', '\n'.join([
-			'GoSublime source has been updated.',
-			'New version: `%s`, current version: `%s`' % (INSTALL_VERSION, about.VERSION),
-			'Please restart Sublime Text to complete the update.',
-		]))
-	else:
-		e = sh.env()
-		a = [
-			'GoSublime init %s (%0.3fs)' % (INSTALL_VERSION, time.time() - init_start),
-		]
+	e = sh.env()
+	a = [
+		'GoSublime init %s (%0.3fs)' % (INSTALL_VERSION, time.time() - start),
+	]
 
-		sl = [('install margo', m_out)]
-		sl.extend(sanity_check(e))
-		a.extend(sanity_check_sl(sl))
-		gs.println(*a)
+	sl = [('install margo', m_out)]
+	sl.extend(sanity_check(e))
+	a.extend(sanity_check_sl(sl))
+	gs.println(*a)
 
-		missing = [k for k in ('GOROOT', 'GOPATH') if not e.get(k)]
-		if missing:
-			missing_message = '\n'.join([
-				'Missing required environment variables: %s' % ' '.join(missing),
-				'See the `Quirks` section of USAGE.md for info',
-			])
+	missing = [k for k in ('GOROOT', 'GOPATH') if not e.get(k)]
+	if missing:
+		missing_message = '\n'.join([
+			'Missing required environment variables: %s' % ' '.join(missing),
+			'See the `Quirks` section of USAGE.md for info',
+		])
 
-			cb = lambda ok: gs.show_output(DOMAIN, missing_message, merge_domain=True, print_output=False)
-			gs.error(DOMAIN, missing_message)
-			gs.focus(gs.dist_path('USAGE.md'), focus_pat='^Quirks', cb=cb)
+		cb = lambda ok: gs.show_output(DOMAIN, missing_message, merge_domain=True, print_output=False)
+		gs.error(DOMAIN, missing_message)
+		gs.focus(gs.dist_path('USAGE.md'), focus_pat='^Quirks', cb=cb)
 
-		killSrv()
+	killSrv()
 
-		start = time.time()
-		# acall('ping', {}, lambda res, err: gs.println('MarGo Ready %0.3fs' % (time.time() - start)))
+	try:
+		vdir, vnm = os.path.split(sh.vdir())
+		for nm in os.listdir(vdir):
+			fn = os.path.join(vdir, nm)
+			if nm != vnm and os.path.isdir(fn):
+				try:
+					gs.println("GoSublime: removing old directory: `%s'" % fn)
+					shutil.rmtree(fn)
+				except Exception:
+					pass
 
-		l = []
-		try:
-			vdir, vnm = os.path.split(sh.vdir())
-			for nm in os.listdir(vdir):
-				fn = os.path.join(vdir, nm)
-				if nm != vnm and os.path.isdir(fn):
-					l.append(fn)
-
-			print(['??', vdir, vnm, l])
-
-		except Exception:
-			pass
-
-		for fn in l:
-			try:
-				gs.println("GoSublime: removing old directory: `%s'" % fn)
-				shutil.rmtree(fn)
-			except Exception:
-				pass
+	except Exception:
+		pass
 
 
 def completion_options(m={}):
