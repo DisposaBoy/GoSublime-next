@@ -73,10 +73,7 @@ def plugin_loaded():
 
 	def cb():
 		aso = gs.aso()
-		old_version = aso.get('version', '')
-		old_ann = aso.get('ann', '')
-		if about.VERSION > old_version or about.ANN > old_ann:
-			aso.set('version', about.VERSION)
+		if about.ANN != aso.get('ann', ''):
 			aso.set('ann', about.ANN)
 			gs.save_aso()
 			gs.focus(gs.dist_path('CHANGELOG.md'))
