@@ -27,8 +27,12 @@ class EV(sublime_plugin.EventListener):
 		except AttributeError:
 			pass
 
-
 	def on_load(self, view):
+		try:
+			ev.sig_mod(view)
+		except AttributeError:
+			pass
+
 		sublime.set_timeout(lambda: do_set_gohtml_syntax(view), 0)
 
 	def on_modified(self, view):
