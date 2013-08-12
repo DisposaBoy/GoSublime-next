@@ -9,7 +9,6 @@ sys.path.insert(0, dist_dir)
 
 ANN = ''
 VERSION = ''
-MARGO_EXE = ''
 fn = os.path.join(dist_dir, 'gosubl', 'about.py')
 execErr = ''
 try:
@@ -62,7 +61,6 @@ def plugin_loaded():
 			mod.gs_init({
 				'version': VERSION,
 				'ann': ANN,
-				'margo_exe': MARGO_EXE,
 			})
 		except TypeError:
 			# old versions didn't take an arg
