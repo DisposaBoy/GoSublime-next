@@ -54,19 +54,22 @@ def _update_regions(view, m):
 				line = view.line(view.text_point(p.row, 0))
 				sp = line.begin()
 				ep = line.end()
-				pt = sp
 
 				# get the first non-whitespace column (putting a marker on tabs is ugly)
 				s = view.substr(line)
 				nc = len(s) - len(s.lstrip())
 
-				if nc <= p.col:
-					pt = sp + p.col
+				# always try to place a marker
+				# if p.col is on indentation, we move to the first non-white position
+				# this means we don't depend on being able to show an icon in the gutter
+				# (our icon can be overridden by other regions/plugins)
+				pt = sp + max(nc, p.col)
+				r = sublime.Region(pt, pt)
 
-				if pt <= sp or pt > ep:
-					regions[REGION_DOMAIN_EMPTY].append(sublime.Region(sp, sp))
+				if pt < sp or pt > ep:
+					regions[REGION_DOMAIN_EMPTY].append(r)
 				else:
-					regions[REGION_DOMAIN_NORM].append(sublime.Region(pt, pt))
+					regions[REGION_DOMAIN_NORM].append(r)
 
 	for k, rl in regions.items():
 		view.add_regions(k, rl, 'lint error invalid', 'dot', REGION_DOMAINS[k])
