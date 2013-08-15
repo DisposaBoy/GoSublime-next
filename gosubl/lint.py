@@ -1,6 +1,7 @@
 from . import ev
 from . import gs
 from . import kv
+from collections import namedtuple
 import sublime
 
 DOMAIN = 'GoSublime: Lint'
@@ -14,16 +15,7 @@ REGION_DOMAINS = {
 
 kvs = kv.M()
 
-class Pos(object):
-	def __init__(self, row, col):
-		self.row = row
-		self.col = col
-
-class Note(object):
-	def __init__(self, ctx, pos, message):
-		self.ctx = ctx
-		self.pos = pos
-		self.message = message
+Note = namedtuple('Note', 'ctx row col kind message')
 
 def df_kvm():
 	return (kv.M(), True)
@@ -49,9 +41,9 @@ def _update_regions(view, m):
 		if nl:
 			show_icon = True
 
-			p = nl[0].pos
-			if p.row not in seen:
-				line = view.line(view.text_point(p.row, 0))
+			n = nl[0]
+			if n.row not in seen:
+				line = view.line(view.text_point(n.row, 0))
 				sp = line.begin()
 				ep = line.end()
 
@@ -60,10 +52,10 @@ def _update_regions(view, m):
 				nc = len(s) - len(s.lstrip())
 
 				# always try to place a marker
-				# if p.col is on indentation, we move to the first non-white position
+				# if n.col is on indentation, we move to the first non-white position
 				# this means we don't depend on being able to show an icon in the gutter
 				# (our icon can be overridden by other regions/plugins)
-				pt = sp + max(nc, p.col)
+				pt = sp + max(nc, n.col)
 				r = sublime.Region(pt, pt)
 
 				if pt < sp or pt > ep:
@@ -80,7 +72,7 @@ def add_notes(view, nl):
 	m = kvm(view)
 
 	for n in nl:
-		m.get(n.pos.row, df_note_list).append(n)
+		m.get(n.row, df_note_list).append(n)
 
 	_update_regions(view, m)
 
