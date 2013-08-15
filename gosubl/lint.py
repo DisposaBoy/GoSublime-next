@@ -100,7 +100,11 @@ def lc(view, show_icon=False):
 		if nl:
 			for n in nl:
 				if n:
-					s = ' %s: %s' % (n.ctx, n.message)
+					if n.kind:
+						s = ' %s: %s' % (n.kind, n.message)
+					else:
+						s = ' %s' % (n.message)
+
 					break
 
 		s = u'\u2622%s' % s
