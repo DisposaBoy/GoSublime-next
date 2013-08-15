@@ -623,15 +623,18 @@ def cmd_sh(view, edit, args, wd, rkey):
 def cmd_note_x(view, edit, args, wd, rkey):
 	pats = []
 	ctx = ''
+	kind = ''
 
 	if '--' in args:
 		i = args.index('--')
 		a = args[:i]
 		args = args[i+1:]
 
-		if a:
+		if len(a) > 2:
 			ctx = a[0]
-			for pat in a[1:]:
+			kind = a[1]
+
+			for pat in a[2:]:
 				try:
 					pats.append(re.compile(pat))
 				except Exception as e:
@@ -639,7 +642,7 @@ def cmd_note_x(view, edit, args, wd, rkey):
 					return
 
 	if not ctx or not pats or not args:
-		push_output(view, rkey, 'usage: note-x <ctx> <pattern1> [pattern2...] <--> <command> [args...]')
+		push_output(view, rkey, 'usage: note-x <ctx> <kind> <pattern1> [pattern2...] <--> <command> [args...]')
 		return
 
 	cid, cb = _9_begin_call('sh', view, edit, args, wd, rkey, '')
@@ -682,7 +685,7 @@ def cmd_note_x(view, edit, args, wd, rkey):
 				except:
 					col = 0
 
-				nd.setdefault(vfn, []).append(lint.Note(ctx, lint.Pos(row, col), message))
+				nd.setdefault(vfn, []).append(lint.Note(ctx=ctx, row=row, col=col, kind=kind, message=message))
 
 		def f2():
 			views = {}
