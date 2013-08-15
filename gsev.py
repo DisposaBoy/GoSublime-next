@@ -82,7 +82,7 @@ def do_post_save(view):
 
 def do_sync_active_view(view):
 	fn = view.file_name() or ''
-	vfn = gs.view_fn(fn)
+	vfn = gs.view_fn(view)
 	gs.set_attr('active_fn', fn)
 	gs.set_attr('active_vfn', vfn)
 
