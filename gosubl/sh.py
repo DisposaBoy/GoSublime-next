@@ -363,6 +363,7 @@ def env(m={}):
 		'PWD': wd,
 		'_wd': wd,
 		'_fn': fn,
+		'_vfn': gs.attr('active_vfn', ''),
 		'_nm': fn.replace('\\', '/').split('/')[-1],
 		'_pathsep': psep,
 	})
