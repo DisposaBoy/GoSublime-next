@@ -125,6 +125,7 @@ def install():
 	cmd = sh.Command(['go', 'install', '-v', '-x', 'gosubli.me/margo'])
 	cmd.wd = sh.bin_dir()
 	cmd.env = {
+		'CGO_ENABLED': '0',
 		'GOBIN': cmd.wd,
 		'GOPATH': gs.dist_path(),
 	}
