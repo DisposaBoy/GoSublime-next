@@ -133,9 +133,26 @@ def ignore_view(view):
 	vs = view.settings()
 	return vs.get('is_widget') or vs.get('9o')
 
+def df_sav_sig(view):
+	def f():
+		sublime.set_timeout(lambda: file_saved(view), 0)
+
+	sig = Signal(100)
+	sig += f
+	return (sig, True)
+
+def sig_sav(view):
+	if ignore_view(view):
+		return
+
+	m = kvm(view.id())
+
+	sig = m.get('sav-sig', lambda: df_sav_sig(view))
+	sig()
 
 debug = Event()
 init = Event()
 view_updated = Event()
+file_saved = Event()
 line_changed = Event()
 cursor_moved = Event()

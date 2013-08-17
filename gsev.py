@@ -11,6 +11,11 @@ class EV(sublime_plugin.EventListener):
 		sublime.set_timeout(lambda: do_set_gohtml_syntax(view), 0)
 
 	def on_post_save(self, view):
+		try:
+			ev.sig_sav(view)
+		except AttributeError:
+			pass
+
 		sublime.set_timeout(lambda: do_post_save(view), 0)
 
 	def on_activated(self, view):
