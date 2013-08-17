@@ -84,6 +84,7 @@ _default_settings = {
 	"use_gs_gopath": False,
 	"use_named_imports": False,
 	"use_legacy_imports": True,
+	"hooks": {},
 }
 _settings = copy.copy(_default_settings)
 
