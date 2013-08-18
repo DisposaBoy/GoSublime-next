@@ -232,7 +232,7 @@ def complete(fn, src, pos):
 	return res, err
 
 def _complete_opts(fn, src, pos):
-	home = gs.home_path()
+	home = sh.vdir()
 	builtins = (gs.setting('autocomplete_builtins') is True or gs.setting('complete_builtins') is True)
 	return {
 		'Dir': gs.basedir_or_cwd(fn),
@@ -458,7 +458,7 @@ def _send():
 					c.stderr = gs.LOGFILE
 					c.env = {
 						'GOGC': 10,
-						'XDG_CONFIG_HOME': gs.home_path(),
+						'XDG_CONFIG_HOME': sh.vdir(),
 					}
 
 					pr = c.proc()
