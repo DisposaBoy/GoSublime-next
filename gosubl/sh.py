@@ -436,6 +436,12 @@ def bin_dir():
 
 	return gs.home_dir_path(VDIR_NAME, 'bin')
 
+def exe(nm):
+	if gs.os_is_windows():
+		nm = '%s.exe' % nm
+
+	return os.path.join(bin_dir(), nm)
+
 init_done = False
 GO_VERSION = about.DEFAULT_GO_VERSION
 VDIR_NAME = '%s_%s' % (about.VERSION, GO_VERSION)
