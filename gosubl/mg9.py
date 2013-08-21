@@ -24,7 +24,7 @@ INSTALL_VERSION = about.VERSION
 
 def gs_init(m={}):
 	atexit.register(killSrv)
-	gsq.do('GoSublime', install, msg='Installing MarGo', set_status=False)
+	gsq.do('GoSublime', _install, msg='Installing MarGo', set_status=False)
 
 class Request(object):
 	def __init__(self, f, method='', token=''):
@@ -107,65 +107,87 @@ def _sb(s):
 def _tp(s):
 	return (_sb(s), ('ok' if os.path.exists(s) else 'missing'))
 
-def _bins_exist():
+def _mg_exists():
 	return bool(sh.which('margo'))
 
-def maybe_install():
-	if not _bins_exist():
-		install()
+def _build_mg():
+	if gs.setting('_rebuild'):
+		print('GoSublime: `_rebuild` is set')
+	elif _mg_exists():
+		return 'ok'
 
-def install():
+	gs.notify('GoSublime', 'Installing MarGo')
+
+	gobin = sh.bin_dir()
+	gopath = gs.dist_path()
+	wd = gobin
+	env = {
+		'CGO_ENABLED': '0',
+		'GOBIN': gobin,
+		'GOPATH': gopath,
+	}
+
+	# do a cleanup just-in-case there are old packages lying around... we don't really care if it fails
+	clean = sh.Command(['go', 'clean', '-i', 'gosubli.me/...'])
+	clean.wd = wd
+	clean.env = env
+	clean.run()
+
+	build = sh.Command(['go', 'build', '-v', '-x', '-o', sh.exe('margo'), 'gosubli.me/margo'])
+	build.wd = wd
+	build.env = env
+
+	ev.debug('%s.build' % DOMAIN, {
+		'cmd': build.cmd_lst,
+		'cwd': build.wd,
+	})
+
+	cr = build.run()
+
+	if cr.ok and _mg_exists():
+		return 'ok'
+
+	m_out = 'cmd: `%s`\nstdout: `%s`\nstderr: `%s`\nexception: `%s`' % (
+		cr.cmd_lst,
+		cr.out.strip(),
+		cr.err.strip(),
+		cr.exc,
+	)
+
+	err_prefix = 'MarGo build failed'
+	gs.error(DOMAIN, '%s\n%s' % (err_prefix, m_out))
+
+	sl = [
+		('GoSublime error', '\n'.join((
+			err_prefix,
+			'This is possibly a bug or miss-configuration of your environment.',
+			'For more help, please file an issue with the following build output',
+			'at: https://github.com/DisposaBoy/GoSublime/issues/new',
+			'or alternatively, you may send an email to: gosublime@dby.me',
+			'\n',
+			m_out,
+		)))
+	]
+	sl.extend(sanity_check({}, False))
+	gs.show_output('GoSublime', '\n'.join(sanity_check_sl(sl)))
+
+	return m_out
+
+def _install(maybe=False):
 	if _inst_state() != "":
 		return
 
 	start = time.time()
+
 	gs.set_attr(_inst_name(), 'busy')
-	gs.notify('GoSublime', 'Installing MarGo')
-
-	cmd = sh.Command(['go', 'install', '-v', '-x', 'gosubli.me/margo'])
-	cmd.wd = sh.bin_dir()
-	cmd.env = {
-		'CGO_ENABLED': '0',
-		'GOBIN': cmd.wd,
-		'GOPATH': gs.dist_path(),
-	}
-
-	ev.debug('%s.build' % DOMAIN, {
-		'cmd': cmd.cmd_lst,
-		'cwd': cmd.wd,
-	})
-
-	cr = cmd.run()
-
-	if cr.ok and _bins_exist():
-		gs.notify('GoSublime', 'ready')
-		m_out = 'ok'
-	else:
-		m_out = 'cmd: `%s`\nstdout: `%s`\nstderr: `%s`\nexception: `%s`' % (
-			cr.cmd_lst,
-			cr.out.strip(),
-			cr.err.strip(),
-			cr.exc,
-		)
-
-		err_prefix = 'MarGo build failed'
-		gs.error(DOMAIN, '%s\n%s' % (err_prefix, m_out))
-
-		sl = [
-			('GoSublime error', '\n'.join((
-				err_prefix,
-				'This is possibly a bug or miss-configuration of your environment.',
-				'For more help, please file an issue with the following build output',
-				'at: https://github.com/DisposaBoy/GoSublime/issues/new',
-				'or alternatively, you may send an email to: gosublime@dby.me',
-				'\n',
-				m_out,
-			)))
-		]
-		sl.extend(sanity_check({}, False))
-		gs.show_output('GoSublime', '\n'.join(sanity_check_sl(sl)))
-
+	m_out = _build_mg()
 	gs.set_attr(_inst_name(), 'done')
+
+	if m_out == 'ok':
+		gs.notify('GoSublime', 'ready')
+
+		if maybe:
+			return
 
 	e = sh.env()
 	a = [
@@ -177,6 +199,11 @@ def install():
 	a.extend(sanity_check_sl(sl))
 	gs.println(*a)
 
+	_check_env(e)
+	killSrv()
+	_cleanup()
+
+def _check_env(e):
 	missing = [k for k in ('GOROOT', 'GOPATH') if not e.get(k)]
 	if missing:
 		missing_message = '\n'.join([
@@ -188,8 +215,7 @@ def install():
 		gs.error(DOMAIN, missing_message)
 		gs.focus(gs.dist_path('USAGE.md'), focus_pat='^Quirks', cb=cb)
 
-	killSrv()
-
+def _cleanup():
 	try:
 		vdir, vnm = os.path.split(sh.vdir())
 		for nm in os.listdir(vdir):
@@ -203,7 +229,6 @@ def install():
 
 	except Exception:
 		pass
-
 
 def completion_options(m={}):
 	res, err = bcall('gocode_options', {})
@@ -441,8 +466,7 @@ def _send():
 				if not proc or proc.poll() is not None:
 					killSrv()
 
-					if _inst_state() != "busy":
-						maybe_install()
+					_install(True)
 
 					while _inst_state() == "busy":
 						time.sleep(0.100)
