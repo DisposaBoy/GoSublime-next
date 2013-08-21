@@ -110,8 +110,8 @@ def _tp(s):
 def _mg_exists():
 	return bool(sh.which('margo'))
 
-def _build_mg():
-	if gs.setting('_rebuild'):
+def build_mg(force=False):
+	if force or gs.setting('_rebuild'):
 		print('GoSublime: `_rebuild` is set')
 	elif _mg_exists():
 		return 'ok'
@@ -180,7 +180,7 @@ def _install(maybe=False):
 	start = time.time()
 
 	gs.set_attr(_inst_name(), 'busy')
-	m_out = _build_mg()
+	m_out = build_mg()
 	gs.set_attr(_inst_name(), 'done')
 
 	if m_out == 'ok':
