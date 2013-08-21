@@ -111,7 +111,9 @@ def _mg_exists():
 	return bool(sh.which('margo'))
 
 def build_mg(force=False):
-	if force or gs.setting('_rebuild'):
+	if force:
+		pass
+	elif gs.setting('_rebuild'):
 		print('GoSublime: `_rebuild` is set')
 	elif _mg_exists():
 		return 'ok'
