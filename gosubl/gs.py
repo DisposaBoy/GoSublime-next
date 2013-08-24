@@ -1,7 +1,8 @@
 # Sublime modelines - https://github.com/SublimeText/Modelines
 # sublime: translate_tabs_to_spaces false; rulers [100,120]
 
-from gosubl import about
+from . import about
+from . import kv
 from subprocess import Popen, PIPE
 import copy
 import datetime
@@ -15,7 +16,6 @@ import sys
 import tempfile
 import threading
 import traceback as tbck
-import uuid
 
 try:
 	import Queue as queue
@@ -32,6 +32,8 @@ except (AttributeError):
 	STARTUP_INFO = None
 
 NAME = 'GoSublime'
+
+_uid = kv.Counter()
 
 mg9_send_q = queue.Queue()
 mg9_recv_q = queue.Queue()
@@ -826,6 +828,8 @@ def which(cmd):
 
 	return ''
 
+def uid():
+	return 'gs#%x' % _uid.next()
 
 try:
 	st2_status_message
