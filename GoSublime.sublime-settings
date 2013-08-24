@@ -303,6 +303,12 @@
 	//
 	"commands": {
 		"": {
+			// all cancellable command (excuted via margo) are uniquely identified
+			// setting cid to a fixed value means that if you run the same command more than once
+			// any previous un-finished instance will be killed before starting a new one
+			// e.g. `"srv": {"cid": "my-id", "name": "web-srv"}` will kill the old server before starting a new one
+			"cid": "",
+
 			// whether or not the command should be hidden from the ui, e.g. not autocompleted
 			"hidden": false,
 
