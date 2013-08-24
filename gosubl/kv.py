@@ -75,3 +75,13 @@ class M(object):
 class O(object):
 	def __init__(self, **kw):
 		self.__dict__.update(kw)
+
+class Counter(object):
+	def __init__(self):
+		self.n = 0
+		self.lck = threading.Lock()
+
+	def next(self):
+		with self.lck:
+			self.n += 1
+			return self.n
