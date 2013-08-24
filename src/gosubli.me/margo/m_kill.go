@@ -1,8 +1,10 @@
 package main
 
 import (
+	"os"
 	"os/exec"
 	"sync"
+	"time"
 )
 
 var (
@@ -59,14 +61,24 @@ func killCmd(id string) bool {
 	cmdWatchLck.Lock()
 	defer cmdWatchLck.Unlock()
 
-	if c, ok := cmdWatchlist[id]; ok {
-		// the primary use-case for these functions are remote requests to cancel the proces
-		// so we won't remove it from the map
-		c.Process.Kill()
-		// neither wait nor release are called because the cmd owner should be waiting on it
-		return true
+	c, ok := cmdWatchlist[id]
+	if !ok {
+		return false
 	}
-	return false
+
+	// the primary use-case for these functions are remote requests to cancel the process
+	// so we won't remove it from the map
+
+	c.Process.Signal(os.Interrupt)
+
+	for i := 0; i < 10 && c.ProcessState == nil; i++ {
+		time.Sleep(10 * time.Millisecond)
+	}
+
+	c.Process.Kill()
+
+	// neither wait nor release are called because the cmd owner should be waiting on it
+	return true
 }
 
 func init() {
