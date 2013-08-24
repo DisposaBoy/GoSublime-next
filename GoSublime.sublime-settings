@@ -370,7 +370,7 @@
 				}
 			],
 
-			// in both name and args env vars e.g. $HOME or and ~/ are expanded using `env` (above)
+			// in both name and args, env vars e.g. $HOME and $_wd are expanded using `env` (above)
 
 			// the name (or abs paths of) the command to run
 			"name": "",
