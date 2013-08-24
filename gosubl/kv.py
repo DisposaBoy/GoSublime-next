@@ -71,3 +71,7 @@ class M(object):
 	def __len__(self):
 		with self.lck:
 			return len(self.d)
+
+class O(object):
+	def __init__(self, **kw):
+		self.__dict__.update(kw)
