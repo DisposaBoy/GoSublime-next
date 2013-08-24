@@ -299,6 +299,77 @@
 	//
 	"9o_aliases": {},
 
+	// commands is a mapping of 9o command names to objects describing the command (below)
+	//
+	"commands": {
+		"": {
+			// whether or not the command should be hidden from the ui, e.g. not autocompleted
+			"hidden": false,
+
+			// the name of another command (inside the `commands` map) to use as base.
+			// entries in this object will (unconditionally) replace those in the base command
+			"extend": "",
+
+			// a list of attr mappings to passed to the command
+			"attrs": [],
+
+			// write this string to the command's stdin
+			// if it's set to the boolean `true`, the contents of the current view will be used instead.
+			"input": "",
+
+			// whether or not to discard output on stdout and/or stderr
+			// please note: from the 9o POV, each command has only 1 output stream (stdout and stderr are combined)
+			"discard_stdout": false,
+			"discard_stderr": false,
+
+			// whether or not to save all files in the wd before running the command (below)
+			"save": false,
+
+			// run the command from this directory. by default it's the current 9o working directory
+			"wd": "",
+
+			// a map of string values. these are layered on top of the command environment variables
+			// overwriting any conflicting keys
+			"env": {},
+
+			// match each line of output (both stdout and stderr) with the following list of patterns
+			// in a switch/case-like fashion
+			// each case is checked in order until one matches
+			"switch": [
+				{
+					// the pattern to match. an empty pattern always matches and can thus be used as
+					// a type of `default` case which is useful for e.g. keeping matches lines
+					// and discarding everything else
+					"case": "",
+
+					// a map of string values
+					// if not empty, this object is added to the list of `out-attrs` that is returned by the command.
+					// named groups within the pattern above are extracted and layered on top
+					// for conflicting keys, if the pattern's value is not empty it will overwrite
+					// the value in this object allow it to act as map of default values
+					"attr": {},
+
+					// whether or not to do a negative match
+					"negative": false,
+
+					// whether or not to discard the line that matched
+					"discard": false,
+
+					// whether or not to continue to the next case
+					"fallthrough": false
+				}
+			],
+
+			// in both name and args env vars e.g. $HOME or and ~/ are expanded using `env` (above)
+
+			// the name (or abs paths of) the command to run
+			"name": "",
+
+			// the args to pass to the command
+			"args": []
+		}
+	},
+
 	// what 9o command to run when (super or )ctrl+dot,ctrl+b us pressed
 	// e.g. ["go", "build"]
 	// the 9o command ^1 recalls the last command you ran manually
