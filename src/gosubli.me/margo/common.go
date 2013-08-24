@@ -61,6 +61,10 @@ func (d jData) MarshalJSON() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
+func uid() string {
+	return "mg#" + numbers.nextString()
+}
+
 func errStr(err error) string {
 	if err != nil {
 		return err.Error()
