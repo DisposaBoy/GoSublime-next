@@ -331,6 +331,10 @@
 			// whether or not to save all files in the wd before running the command (below)
 			"save": false,
 
+			// `and` and `or` specifies command to run if this command success or fails, respectively
+			"and": {},
+			"or": {},
+
 			// run the command from this directory. by default it's the current 9o working directory
 			"wd": "",
 
