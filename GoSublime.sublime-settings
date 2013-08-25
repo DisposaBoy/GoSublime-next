@@ -299,8 +299,8 @@
 	//
 	"9o_aliases": {},
 
+	// N/I
 	// commands is a mapping of 9o command names to objects describing the command (below)
-	//
 	"commands": {
 		"": {
 			// all cancellable command (excuted via margo) are uniquely identified
