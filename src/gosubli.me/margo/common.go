@@ -12,6 +12,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -62,7 +63,7 @@ func (d jData) MarshalJSON() ([]byte, error) {
 }
 
 func uid() string {
-	return "mg#" + numbers.nextString()
+	return "mg#" + strconv.FormatUint(numbers.next(), 16)
 }
 
 func errStr(err error) string {
