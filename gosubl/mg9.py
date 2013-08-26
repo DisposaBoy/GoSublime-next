@@ -14,7 +14,6 @@ import sublime
 import subprocess
 import threading
 import time
-import uuid
 
 DOMAIN = 'MarGo'
 REQUEST_PREFIX = '%s.rqst.' % DOMAIN
@@ -34,7 +33,7 @@ class Request(object):
 		if token:
 			self.token = token
 		else:
-			self.token = 'mg9.autoken.%s' % uuid.uuid4()
+			self.token = gs.uid()
 
 	def header(self):
 		return {
