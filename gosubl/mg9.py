@@ -134,7 +134,13 @@ def build_mg(force=False):
 	clean.env = env
 	clean.run()
 
-	build = sh.Command(['go', 'build', '-v', '-x', '-o', sh.exe('margo'), 'gosubli.me/margo'])
+	args = ['go', 'build', '-v', '-x', '-o', sh.exe('margo')]
+	if gs.setting('_race') is True:
+		args.append('-race')
+
+	args.append('gosubli.me/margo')
+
+	build = sh.Command(args)
 	build.wd = wd
 	build.env = env
 
