@@ -414,6 +414,8 @@
 
 			// in both cmd and args, env vars e.g. $HOME and $_wd are expanded using `env` (above)
 
+			// todo: it would be usefull to be able to implement `git add-ci`
+
 			// the name (or abs paths of) the command to run
 			//
 			// command extension:
