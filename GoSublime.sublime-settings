@@ -370,12 +370,17 @@
 					// column: the column on the line
 					// message: message shown the in the status bar
 					"highlight": {
-						// the context in which is highliting is being done. all previous highlights
-						// withing the same context are cleared before applying this
+						// the context in which the highliting is being done. all previous highlights
+						// within the same context are cleared before applying this one
 						"ctx": "",
 
 						// the Sublime Text scope to use. default `lint error invalid`
 						"scope": "",
+
+						// if true, do not highlight the line, only show the icon
+						// this can be used to e.g. match `+` and `-` lines in the output of gitt
+						// then add an appropriate icon in the gutter to mark lines as added or deleted
+						"icon_only": false,
 
 						// the Icon to place in the gutter. default `dot`
 						"icon": ""
