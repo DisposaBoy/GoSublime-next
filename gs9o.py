@@ -1,7 +1,7 @@
 from gosubl import about
 from gosubl import gs
 from gosubl import gsshell
-from gosubl import lint
+from gosubl import hl
 from gosubl import mg9
 from gosubl import sh
 import datetime
@@ -183,7 +183,7 @@ class Gs9oInitCommand(sublime_plugin.TextCommand):
 		v.sel().clear()
 		n = v.size()-1
 		v.sel().add(sublime.Region(n, n))
-		
+
 		opts = {
 			"rulers": [],
 			"fold_buttons": True,
@@ -205,7 +205,6 @@ class Gs9oInitCommand(sublime_plugin.TextCommand):
 			"indent_guide_options": ["draw_normal", "draw_active"],
 			"word_separators": "./\\()\"'-:,.;<>~!@#$%&*|+=[]{}`~?",
 		}
-		
 		opts.update(gs.setting('9o_settings'))
 
 		for opt in opts:
@@ -213,7 +212,7 @@ class Gs9oInitCommand(sublime_plugin.TextCommand):
 
 		vs.set("9o", True)
 		vs.set("9o.wd", wd)
-		
+
 		color_scheme = gs.setting("9o_color_scheme", "")
 		if color_scheme:
 			if color_scheme == "default":
@@ -694,20 +693,20 @@ def cmd_note_x(view, edit, args, wd, rkey):
 				except:
 					col = 0
 
-				nd.setdefault(vfn, []).append(lint.Note(ctx=ctx, row=row, col=col, kind=kind, message=message))
+				nd.setdefault(vfn, []).append(hl.Note(ctx=ctx, row=row, col=col, kind=kind, message=message))
 
 		def f2():
 			views = {}
 			for win in sublime.windows():
 				for view in win.views():
-					lint.clear_notes(view, [ctx])
+					hl.clear_notes(view, [ctx])
 
 					vfn = gs.view_fn(view)
 					if vfn in nd:
 						views[vfn] = view
 
 			for vfn in views:
-				lint.add_notes(views[vfn], nd[vfn])
+				hl.add_notes(views[vfn], nd[vfn])
 
 			cb(res, err)
 

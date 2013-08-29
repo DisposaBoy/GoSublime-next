@@ -4,10 +4,10 @@ from . import kv
 from collections import namedtuple
 import sublime
 
-DOMAIN = 'GoSublime: Lint'
-STATUS_DOMAIN = 'gs-lint-status'
-REGION_DOMAIN_NORM = 'gs-lint-region-norm'
-REGION_DOMAIN_EMPTY = 'gs-lint-region-empty'
+DOMAIN = 'GoSublime: Highlights'
+STATUS_DOMAIN = 'gs-hl-status'
+REGION_DOMAIN_NORM = 'gs-hl-region-norm'
+REGION_DOMAIN_EMPTY = 'gs-hl-region-empty'
 REGION_DOMAINS = {
 	REGION_DOMAIN_NORM: sublime.DRAW_EMPTY_AS_OVERWRITE,
 	REGION_DOMAIN_EMPTY: sublime.HIDDEN,
