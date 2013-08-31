@@ -34,7 +34,6 @@ class Session(object):
 		self.wr = wr
 		self.wd = wd or gs.basedir_or_cwd(fn)
 		self.input = ''
-		self.uid = gs.uid()
 
 	def mk(self, cn):
 		return self._mk(gs.setting('commands', {}), {}, '', cn)
@@ -75,7 +74,6 @@ class Session(object):
 		self.c_wd(c)
 		self.c_cmd(c)
 		self.c_args(c)
-		self.c_cid(c)
 		self.c_switch(c)
 		self.c_discard(c)
 
@@ -149,10 +147,6 @@ class Session(object):
 	def c_input(self, c):
 		s = c.get('input') or ''
 		c['input'] = self.input if s is True else s
-
-	def c_cid(self, c):
-		if not c.get('cid'):
-			c['cid'] = self.uid
 
 	def c_wd(self, c):
 		if c.get('wd'):
@@ -247,12 +241,15 @@ class Session(object):
 			c['cmd'] = l[0]
 			c['args'] = l[1:]
 
+		uid = gs.uid()
+		c['stream'] = '%s.stream' % uid
+		mg9.on(c['stream'], lambda res, err: self.write(res.get('line')))
+
+		if not c.get('cid'):
+			c['cid'] = uid
+
 		self.c_save(c)
 		self.c_input(c)
-
-		c['stream'] = '%s.stream' % self.uid
-
-		mg9.on(c['stream'], lambda res, err: self.write(res.get('line')))
 
 		def f(res, err):
 			if err:
