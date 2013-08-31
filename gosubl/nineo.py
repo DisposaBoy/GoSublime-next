@@ -224,7 +224,7 @@ class Session(object):
 
 		def f(res, err):
 			try:
-				sublime.set_timeout(lambda: cb(res, err), 0)
+				gs.do(DOMAIN, lambda: cb(res, err))
 			except Exception:
 				gs.println(gs.traceback())
 			finally:
@@ -271,7 +271,7 @@ class Session(object):
 			if andor:
 				self.start(andor, cb2)
 			else:
-				sublime.set_timeout(lambda: cb2(res, err), 0)
+				gs.do(DOMAIN, lambda: cb2(res, err))
 
 		b = self.c_can_use_builtin(c)
 		if b:
