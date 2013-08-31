@@ -23,6 +23,8 @@ except ImportError:
 	import queue
 
 PY3K = (sys.version_info[0] == 3)
+ST3 = sublime.version().startswith('3')
+ST2 = sublime.version().startswith('2')
 
 try:
 	STARTUP_INFO = subprocess.STARTUPINFO()
