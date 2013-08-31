@@ -51,14 +51,11 @@ func (p *ProcTable) repl(cid string, cmd *exec.Cmd) {
 			p.sleep()
 		}
 
-		a := time.Now()
-
 		for c != cmd {
 			c.Process.Kill()
 			p.sleep()
 			c = p.set(cid, cmd)
 		}
-		postMessage("repl %s, %s", cid, msDur(a).String())
 	}
 }
 
