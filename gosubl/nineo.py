@@ -242,8 +242,6 @@ class Session(object):
 			c['args'] = l[1:]
 
 		uid = gs.uid()
-		c['stream'] = '%s.stream' % uid
-		mg9.on(c['stream'], lambda res, err: self.write(res.get('line')))
 
 		if not c.get('cid'):
 			c['cid'] = uid
@@ -274,6 +272,16 @@ class Session(object):
 		if b:
 			gs.do(DOMAIN, lambda: b(self, c, f))
 		else:
+			def stream(res, err):
+				ln = res.get('line')
+				if ln is not None:
+					self.write(ln)
+
+				return not res.get('eof')
+
+			c['stream'] = '%s.stream' % uid
+			mg9.on(c['stream'], stream)
+
 			self.exec_c(c, f)
 
 def builtin(nm, f=None):
