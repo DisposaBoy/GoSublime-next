@@ -41,21 +41,23 @@ func (p *ProcTable) Cancel(cid string) {
 
 func (p *ProcTable) repl(cid string, cmd *exec.Cmd) {
 	c := p.set(cid, cmd)
-	if c != cmd {
-		for i := 0; i < 2; i++ {
-			c = p.set(cid, cmd)
-			if c == cmd {
-				break
-			}
-			c.Process.Signal(os.Interrupt)
-			p.sleep()
-		}
+	if c == cmd {
+		return
+	}
 
-		for c != cmd {
-			c.Process.Kill()
-			p.sleep()
-			c = p.set(cid, cmd)
+	for i := 0; i < 2; i++ {
+		c = p.set(cid, cmd)
+		if c == cmd {
+			break
 		}
+		c.Process.Signal(os.Interrupt)
+		p.sleep()
+	}
+
+	for c != cmd {
+		c.Process.Kill()
+		p.sleep()
+		c = p.set(cid, cmd)
 	}
 }
 
