@@ -209,6 +209,19 @@ def callable(f):
 
 	return None
 
+def do(domain, f, timeout=0):
+	if callable(f):
+		def cb():
+			try:
+				f()
+			except Exception:
+				error_traceback(domain)
+
+		if ST3:
+			sublime.set_timeout_async(cb, timeout)
+		else:
+			sublime.set_timeout(cb, timeout)
+
 def is_a(v, base):
 	return isinstance(v, type(base))
 
