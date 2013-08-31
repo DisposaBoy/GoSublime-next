@@ -458,9 +458,9 @@ def _recv():
 					else:
 						ev.debug(DOMAIN, 'Ignoring margo: token: %s' % token)
 			except Exception:
-				gs.println(gs.traceback())
+				gs.print_traceback()
 		except Exception:
-			gs.println(gs.traceback())
+			gs.print_traceback()
 			break
 
 def _send():
@@ -535,13 +535,13 @@ def _send():
 				except Exception as ex:
 					_cb_err(cb, 'Cannot talk to MarGo: %s' % err)
 					killSrv()
-					gs.println(gs.traceback())
+					gs.print_traceback()
 
 			except Exception:
 				killSrv()
-				gs.println(gs.traceback())
+				gs.print_traceback()
 		except Exception:
-			gs.println(gs.traceback())
+			gs.print_traceback()
 			break
 
 def _call(cb, res, err):
@@ -564,7 +564,7 @@ def _read_stdout(proc):
 
 			gs.mg9_recv_q.put(gs.ustr(ln))
 	except Exception:
-		gs.println(gs.traceback())
+		gs.print_traceback()
 
 		proc.stdout.close()
 		proc.wait()
