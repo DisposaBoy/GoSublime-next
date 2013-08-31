@@ -1,3 +1,4 @@
+from . import about
 from . import gs
 from . import kv
 from . import mg9
@@ -59,7 +60,7 @@ class Session(object):
 		if c:
 			return self._mk_c(cmds, seen, cn, c)
 
-		return ('', {'os': True, 'cmd': cn}, '')
+		return ('', {'builtin': True, 'cmd': cn}, '')
 
 	def _mk(self, cmds, seen, base_nm, cn):
 		nm, c, err = self._mk_c(cmds, seen, base_nm, cn)
@@ -79,7 +80,7 @@ class Session(object):
 		self.c_discard(c)
 
 		nx = c['cmd']
-		if nx != nm and c.get('os') is not True  and c.get('sh') is not True and nx in cmds:
+		if self.c_can_expand(c, cmds, nm, nx):
 			c['cmd'] = ''
 
 			x, err = self._mk(cmds, seen, nm, nx)
@@ -159,6 +160,24 @@ class Session(object):
 		else:
 			c['wd'] = self.wd
 
+	def c_can_use_builtin(self, c):
+		if c.get('os') or c.get('sh'):
+			return None
+
+		return builtin(c['cmd'])
+
+	def c_can_expand(self, c, cmds, nm, nx):
+		if nm == nx:
+			return False
+
+		if c.get('builtin'):
+			return False
+
+		if c.get('os') or c.get('sh'):
+			return False
+
+		return nx in cmds
+
 	def c_cmd(self, c):
 		s = c.get('cmd') or ''
 		c['cmd'] = self.expand(s, c['env'])
@@ -228,8 +247,6 @@ class Session(object):
 			c['cmd'] = l[0]
 			c['args'] = l[1:]
 
-		# todo: impl builtin commands
-
 		self.c_save(c)
 		self.c_input(c)
 
@@ -256,15 +273,28 @@ class Session(object):
 			else:
 				sublime.set_timeout(lambda: cb2(res, err), 0)
 
-		self.exec_c(c, f)
+		b = self.c_can_use_builtin(c)
+		if b:
+			gs.do(DOMAIN, lambda: b(self, c, f))
+		else:
+			self.exec_c(c, f)
 
 def builtin(nm, f=None):
-	if f and hasattr(f, '__call__'):
+	f = gs.callable(f)
+	if f:
 		_builtins[nm] = f
 
-	return _builtins.get(nm, None)
+	return _builtins.get(nm)
 
 def gs_init(_={}):
-	pass
+	g = globals()
+	for nm in list(g.keys()):
+		if nm.startswith('_builtin_'):
+			builtin('gs.%s' % nm[9:].replace('_', '-'), g[nm])
 
+def _ret(f, res, err):
+	gs.do(DOMAIN, lambda: f(res, err))
 
+def _builtin_version(ss, c, f):
+	ss.writeln(about.VERSION)
+	_ret(f, {}, '')
