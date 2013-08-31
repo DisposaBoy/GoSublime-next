@@ -295,6 +295,9 @@ def error(domain, txt):
 	log(txt)
 	status_message(txt)
 
+def print_traceback(domain='GoSublime'):
+	gs.println(gs.traceback(domain))
+
 def error_traceback(domain, status_txt=''):
 	tb = traceback().strip()
 	if status_txt:
