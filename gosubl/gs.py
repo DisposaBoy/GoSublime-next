@@ -203,6 +203,12 @@ def popen(args, stdout=PIPE, stderr=PIPE, shell=False, environ={}, cwd=None, buf
 	return Popen(args, stdout=stdout, stderr=stderr, stdin=PIPE, startupinfo=STARTUP_INFO,
 		shell=shell, env=ev, cwd=cwd, preexec_fn=setsid, bufsize=bufsize)
 
+def callable(f):
+	if hasattr(f, '__call__'):
+		return f
+
+	return None
+
 def is_a(v, base):
 	return isinstance(v, type(base))
 
