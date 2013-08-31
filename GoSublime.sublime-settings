@@ -357,33 +357,45 @@
 					// and discarding everything else
 					"case": "",
 
-					// a map of string values
 					// if not empty, this object is added to the list of `out-attrs` that is returned by the command.
 					// named groups within the pattern above are extracted and layered on top
 					// for conflicting keys, if the pattern's value is not empty it will overwrite
 					// the value in this object allow it to act as map of default values
-					"attr": {},
+					//
+					"attr": {
+						// if the entry `gs.highlight` is set, the attr will be used to do highlighting
+						// that is, lines may be marked with an icon in the gutter and e.g. an error
+						// message in the status bar when the cursor is on a particular line
+						"gs.highlight": {
+							// the context in which the highliting is being done. all previous highlights
+							// within the same context from a previous command invocation are cleared
+							// before applying highlights from this invocation
+							"ctx": "",
 
-					// if set, the following entries inside `attr` will be used to highlighted matched lines
-					// fn: the filename
-					// line: the line within the file
-					// column: the column on the line
-					// message: message shown the in the status bar
-					"highlight": {
-						// the context in which the highliting is being done. all previous highlights
-						// within the same context are cleared before applying this one
-						"ctx": "",
+							// the Sublime Text scope to use. default `lint error invalid`
+							"scope": "",
 
-						// the Sublime Text scope to use. default `lint error invalid`
-						"scope": "",
+							// the Sublime Text icon to place in the gutter. default `dot`
+							"icon": ""
+						},
 
-						// if true, do not highlight the line, only show the icon
-						// this can be used to e.g. match `+` and `-` lines in the output of gitt
-						// then add an appropriate icon in the gutter to mark lines as added or deleted
-						"icon_only": false,
+						// the following entries are usually matched by a pattern instead of being
+						// hard-coded, but they will also be used for highlighting
 
-						// the Icon to place in the gutter. default `dot`
-						"icon": ""
+						// the name of the. ideally this should be an absolute path,
+						// but that's not required as relative paths will resolved relative to `wd` (above).
+						// if not set, the highlighting will be done against the view that was
+						// active at the time of command execution
+						"fn": "",
+
+						// the line that should be highlighted
+						"line": 1,
+
+						// the column on `line` that should be highlighted, if any
+						"column": 1,
+
+						// the message that should be added to status bar when the cursor is on `line`
+						"message": ""
 					},
 
 					// whether or not to do a negative match
