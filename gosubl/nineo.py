@@ -273,9 +273,9 @@ class Session(object):
 			gs.do(DOMAIN, lambda: b(self, c, f))
 		else:
 			def stream(res, err):
-				ln = res.get('line')
-				if ln is not None:
-					self.write(ln)
+				out = res.get('out')
+				if out is not None:
+					self.write(out)
 
 				return not res.get('eof')
 
