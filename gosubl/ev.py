@@ -3,7 +3,8 @@ from . import kv
 import sublime
 import threading
 import time
-import traceback
+
+DOMAIN = 'gs.ev'
 
 class Event(object):
 	def __init__(self):
@@ -19,7 +20,7 @@ class Event(object):
 			try:
 				f(*args, **kwargs)
 			except Exception:
-				print(traceback.format_exc())
+				gs.print_traceback()
 
 		return self
 
@@ -31,7 +32,7 @@ class Event(object):
 			try:
 				self.post_add(self, f)
 			except Exception:
-				print(traceback.format_exc())
+				gs.print_traceback()
 
 		return self
 
@@ -67,7 +68,7 @@ class Signal(Event):
 					ms = self.delay
 
 				self.running = True
-				sublime.set_timeout(self._timedout, ms)
+				gs.do(DOMAIN, self._timedout, ms)
 
 	def _timedout(self):
 		with self.lck:
@@ -88,7 +89,7 @@ def kvm(k):
 
 def df_mod_sig(view):
 	def f():
-		sublime.set_timeout(lambda: view_updated(view), 0)
+		gs.do(DOMAIN, lambda: view_updated(view))
 
 	sig = Signal(500)
 	sig += f
@@ -106,12 +107,12 @@ def lc(view):
 	sel = gs.sel(view).begin()
 	row, _ = view.rowcol(sel)
 	if m.put('last-row', row) != row:
-		sublime.set_timeout(lambda: line_changed(view), 0)
+		gs.do(DOMAIN, lambda: line_changed(view))
 
 def df_mov_sig(view):
 	def f():
-		sublime.set_timeout(lambda: cursor_moved(view), 0)
-		sublime.set_timeout(lambda: lc(view), 0)
+		gs.do(DOMAIN, lambda: cursor_moved(view))
+		gs.do(DOMAIN, lambda: lc(view))
 
 	sig = Signal(500)
 	sig += f
@@ -135,7 +136,7 @@ def ignore_view(view):
 
 def df_sav_sig(view):
 	def f():
-		sublime.set_timeout(lambda: file_saved(view), 0)
+		gs.do(DOMAIN, lambda: file_saved(view))
 
 	sig = Signal(100)
 	sig += f
