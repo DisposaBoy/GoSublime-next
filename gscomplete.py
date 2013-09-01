@@ -1,5 +1,6 @@
 from gosubl import gs
 from gosubl import mg9
+from gosubl import ev
 from os.path import basename
 from os.path import dirname
 import json
@@ -266,17 +267,14 @@ def declex(s):
 		ret = s[ep:].strip() if ep < lp else ''
 	return (params, ret)
 
-def _ct_poller():
-	try:
-		view = sublime.active_window().active_view()
-		if gs.setting('autocomplete_live_hint', False) is True:
-			view.run_command('gs_show_call_tip', {'set_status': True})
-		else:
-			view.erase_status(HINT_KEY)
-	except Exception:
-		pass
+def _ct(view):
+	if not gs.is_go_source_view(view):
+		return
 
-	sublime.set_timeout(_ct_poller, 1000)
+	if gs.setting('autocomplete_live_hint', False) is True:
+		view.run_command('gs_show_call_tip', {'set_status': True})
+	else:
+		view.erase_status(HINT_KEY)
 
 class GsShowCallTip(sublime_plugin.TextCommand):
 	def is_enabled(self):
@@ -313,5 +311,5 @@ class GsShowCallTip(sublime_plugin.TextCommand):
 		mg9.calltip(fn, src, pos, set_status, f)
 
 
-if not gs.checked(DOMAIN, '_ct_poller'):
-	_ct_poller()
+if not gs.checked(DOMAIN, '_ct'):
+	ev.cursor_moved += _ct
