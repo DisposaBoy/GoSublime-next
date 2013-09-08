@@ -19,13 +19,11 @@ class EV(sublime_plugin.EventListener):
 
 		sublime.set_timeout(lambda: do_post_save(view), 0)
 
-	def on_activated(self, view):
-		win = view.window()
-		if win is not None:
-			active_view = win.active_view()
-			if active_view is not None:
-				sublime.set_timeout(lambda: do_sync_active_view(active_view), 0)
+	def on_close(self, view):
+		sublime.set_timeout(do_sync_active_view, 0)
 
+	def on_activated(self, view):
+		sublime.set_timeout(do_sync_active_view, 0)
 		sublime.set_timeout(lambda: do_set_gohtml_syntax(view), 0)
 
 		try:
@@ -33,7 +31,12 @@ class EV(sublime_plugin.EventListener):
 		except AttributeError:
 			pass
 
+	def on_new(self, view):
+		sublime.set_timeout(do_sync_active_view, 0)
+
 	def on_load(self, view):
+		sublime.set_timeout(do_sync_active_view, 0)
+
 		try:
 			ev.sig_mod(view)
 		except AttributeError:
@@ -86,7 +89,12 @@ def do_post_save(view):
 		finally:
 			gs.end(tid)
 
-def do_sync_active_view(view):
+def do_sync_active_view():
+	try:
+		view = sublime.active_window().active_view()
+	except Exception:
+		return
+
 	fn = view.file_name() or ''
 	vfn = gs.view_fn(view)
 	gs.set_attr('active_fn', fn)
