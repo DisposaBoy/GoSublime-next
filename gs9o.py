@@ -269,7 +269,7 @@ class Gs9oPasteExecCommand(sublime_plugin.TextCommand):
 		view.insert(edit, view.line(view.size()-1).end(), cmd)
 		view.sel().clear()
 		view.sel().add(view.line(view.size()-1).end())
-		view.run_command('gs9o_exec', {'save_hist': save_hist})
+		_exec(view, edit, save_hist)
 
 class Gs9oOpenSelectionCommand(sublime_plugin.TextCommand):
 	def is_enabled(self):
@@ -357,97 +357,99 @@ class Gs9oExecCommand(sublime_plugin.TextCommand):
 		return self.view.score_selector(pos, 'text.9o') > 0
 
 	def run(self, edit, save_hist=False):
-		view = self.view
-		pos = gs.sel(view).begin()
-		line = view.line(pos)
-		wd = view.settings().get('9o.wd')
+		_exec(self.view, edit, save_hist)
 
-		try:
-			os.chdir(wd)
-		except Exception:
-			gs.error_traceback(DOMAIN)
+def _exec(view, edit, save_hist=False):
+	pos = gs.sel(view).begin()
+	line = view.line(pos)
+	wd = view.settings().get('9o.wd')
 
-		ln = view.substr(line).split('#', 1)
-		if len(ln) == 2:
-			cmd = ln[1].strip()
-			if cmd:
-				vs = view.settings()
-				aso = gs.aso()
-				hkey = _hkey(wd)
-				hist = gs.dval(aso.get(hkey), [])
+	try:
+		os.chdir(wd)
+	except Exception:
+		gs.error_traceback(DOMAIN)
 
-				m = HIST_EXPAND_PAT.match(cmd)
-				if m:
-					pfx = m.group(1)
-					hl = len(hist)
-					idx = hl - int(m.group(2))
-					cmd = ''
-					if idx >= 0 and idx < hl:
-						cmd = hist[idx]
+	ln = view.substr(line).split('#', 1)
+	if len(ln) == 2:
+		cmd = ln[1].strip()
+		if cmd:
+			vs = view.settings()
+			aso = gs.aso()
+			hkey = _hkey(wd)
+			hist = gs.dval(aso.get(hkey), [])
 
-					if pfx == '^' or not cmd:
-						view.replace(edit, line, ('%s# %s' % (ln[0], cmd)))
-						return
-				elif save_hist:
-					try:
-						hist.remove(cmd)
-					except ValueError:
-						pass
-					hist.append(cmd)
-					aso.set(hkey, hist)
-					gs.save_aso()
+			m = HIST_EXPAND_PAT.match(cmd)
+			if m:
+				pfx = m.group(1)
+				hl = len(hist)
+				idx = hl - int(m.group(2))
+				cmd = ''
+				if idx >= 0 and idx < hl:
+					cmd = hist[idx]
 
-			if not cmd:
-				view.run_command('gs9o_init')
+				if pfx == '^' or not cmd:
+					view.replace(edit, line, ('%s# %s' % (ln[0], cmd)))
+					return
+			elif save_hist:
+				try:
+					hist.remove(cmd)
+				except ValueError:
+					pass
+				hist.append(cmd)
+				aso.set(hkey, hist)
+				gs.save_aso()
+
+		if not cmd:
+			view.run_command('gs9o_init')
+			return
+
+		view.replace(edit, line, (u'[ `%s` %s ]' % (cmd, HOURGLASS)))
+		rkey = '9o.exec.%s' % uuid.uuid4()
+		view.add_regions(rkey, [sublime.Region(line.begin(), view.size())], '')
+		view.run_command('gs9o_init')
+
+		nv = sh.env()
+		anv = nv.copy()
+		seen = {}
+		am = aliases()
+		while True:
+			cli = cmd.split(' ', 1)
+			nm = cli[0]
+			if not nm:
+				break
+
+			ag = cli[1].strip() if len(cli) == 2 else ''
+
+			alias = am.get(nm, '')
+			if not alias:
+				break
+
+			if alias in seen:
+				gs.error(DOMAIN, 'recursive alias detected: `%s`' % alias)
+				break
+
+			seen[alias] = True
+			anv['_args'] = ag
+			cmd = string.Template(alias).safe_substitute(anv)
+
+		if nm != 'sh':
+			f = builtins().get(nm)
+			if f:
+				args = []
+				if ag:
+					args = [_exparg(s, nv) for s in shlex.split(gs.astr(ag))]
+
+				f(view, edit, args, wd, rkey)
 				return
 
-			view.replace(edit, line, (u'[ `%s` %s ]' % (cmd, HOURGLASS)))
-			rkey = '9o.exec.%s' % uuid.uuid4()
-			view.add_regions(rkey, [sublime.Region(line.begin(), view.size())], '')
-			view.run_command('gs9o_init')
-
-			nv = sh.env()
-			anv = nv.copy()
-			seen = {}
-			am = aliases()
-			while True:
-				cli = cmd.split(' ', 1)
-				nm = cli[0]
-				if not nm:
-					break
-
-				ag = cli[1].strip() if len(cli) == 2 else ''
-
-				alias = am.get(nm, '')
-				if not alias:
-					break
-
-				if alias in seen:
-					gs.error(DOMAIN, 'recursive alias detected: `%s`' % alias)
-					break
-
-				seen[alias] = True
-				anv['_args'] = ag
-				cmd = string.Template(alias).safe_substitute(anv)
-
-			if nm != 'sh':
-				f = builtins().get(nm)
-				if f:
-					args = []
-					if ag:
-						args = [_exparg(s, nv) for s in shlex.split(gs.astr(ag))]
-
-					f(view, edit, args, wd, rkey)
-					return
-
-			if nm == 'sh':
-				args = sh.cmd(ag)
-			else:
-				args = sh.cmd(cmd)
-
-			cmd_sh(view, edit, args, wd, rkey)
+		if nm == 'sh':
+			args = sh.cmd(ag)
 		else:
-			view.insert(edit, gs.sel(view).begin(), '\n')
+			args = sh.cmd(cmd)
+
+		cmd_sh(view, edit, args, wd, rkey)
+	else:
+		view.insert(edit, gs.sel(view).begin(), '\n')
 
 class Gs9oPushOutput(sublime_plugin.TextCommand):
 	def run(self, edit, rkey, output, hourglass_repl=''):
