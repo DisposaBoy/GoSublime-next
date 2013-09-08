@@ -5,12 +5,17 @@ import (
 )
 
 type mPing struct {
-	Delay time.Duration `json:"delay"`
+	Delay string
 }
 
 func (m *mPing) Call() (interface{}, string) {
 	start := time.Now()
-	time.Sleep(m.Delay * time.Millisecond)
+
+	if m.Delay != "" {
+		d, _ := time.ParseDuration(m.Delay)
+		time.Sleep(d)
+	}
+
 	return M{
 		"start": start.String(),
 		"end":   time.Now().String(),
