@@ -663,6 +663,15 @@ def cmd_9(view, edit, args, wd, rkey):
 	cid = ''
 	if subcmd == 'replay':
 		cid = '9replay-%s' % wd
+
+	av = None
+	win = view.window()
+	if win is not None:
+		av = win.active_view()
+
+		if av is not None and not av.file_name():
+			cid = '9replayv-%s' % av.id()
+
 	cid, cb = _9_begin_call(subcmd, view, edit, args, wd, rkey, cid)
 
 	a = {
@@ -673,17 +682,14 @@ def cmd_9(view, edit, args, wd, rkey):
 		'build_only': (subcmd == 'build'),
 	}
 
-	win = view.window()
-	if win is not None:
-		av = win.active_view()
-		if av is not None:
-			fn = av.file_name()
-			if fn:
-				_save_all(win, wd)
-			else:
-				if gs.is_go_source_view(av, False):
-					a['fn'] = gs.view_fn(av)
-					a['src'] = av.substr(sublime.Region(0, av.size()))
+	if av is not None:
+		fn = av.file_name()
+		if fn:
+			_save_all(win, wd)
+		else:
+			if gs.is_go_source_view(av, False):
+				a['fn'] = gs.view_fn(av)
+				a['src'] = av.substr(sublime.Region(0, av.size()))
 
 	sublime.set_timeout(lambda: mg9.acall('play', a, cb), 0)
 
