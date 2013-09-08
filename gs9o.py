@@ -1,7 +1,6 @@
 from gosubl import about
 from gosubl import gs
 from gosubl import gsshell
-from gosubl import hl
 from gosubl import mg9
 from gosubl import sh
 import datetime
@@ -627,92 +626,6 @@ def cmd_sh(view, edit, args, wd, rkey):
 		}
 	}
 	sublime.set_timeout(lambda: mg9.acall('sh', a, cb), 0)
-
-def cmd_note_x(view, edit, args, wd, rkey):
-	pats = []
-	ctx = ''
-	kind = ''
-
-	if '--' in args:
-		i = args.index('--')
-		a = args[:i]
-		args = args[i+1:]
-
-		if len(a) > 2:
-			ctx = a[0]
-			kind = a[1]
-
-			for pat in a[2:]:
-				try:
-					pats.append(re.compile(pat))
-				except Exception as e:
-					push_output(view, rkey, 'pattern compilation failed: for `%s`: %s' % (pat, e))
-					return
-
-	if not ctx or not pats or not args:
-		push_output(view, rkey, 'usage: note-x <ctx> <kind> <pattern1> [pattern2...] <--> <command> [args...]')
-		return
-
-	cid, cb = _9_begin_call('sh', view, edit, args, wd, rkey, '')
-	a = {
-		'cid': cid,
-		'env': sh.env(),
-		'cwd': wd,
-		'cmd': {
-			'name': args[0],
-			'args': args[1:],
-		}
-	}
-
-	def f(res, err):
-		nd = {}
-
-		for pat in pats:
-			for m in pat.finditer(res.get('out') + res.get('err')):
-				d = m.groupdict()
-
-				vfn = d.get('fn', '')
-				if not vfn:
-					continue
-
-				vfn = gs.abspath(vfn)
-
-				message = d.get('message', '')
-				if not message:
-					continue
-
-				line = d.get('line', '')
-				try:
-					row = int(line)-1
-				except:
-					row = 0
-
-				column = d.get('column', '')
-				try:
-					col = int(column)-1
-				except:
-					col = 0
-
-				nd.setdefault(vfn, []).append(hl.Note(ctx=ctx, row=row, col=col, kind=kind, message=message))
-
-		def f2():
-			views = {}
-			for win in sublime.windows():
-				for view in win.views():
-					hl.clear_notes(view, [ctx])
-
-					vfn = gs.view_fn(view)
-					if vfn in nd:
-						views[vfn] = view
-
-			for vfn in views:
-				hl.add_notes(views[vfn], nd[vfn])
-
-			cb(res, err)
-
-		sublime.set_timeout(f2, 0)
-
-	sublime.set_timeout(lambda: mg9.acall('sh', a, f), 0)
 
 def cmd_share(view, edit, args, wd, rkey):
 	av = gs.active_valid_go_view(win=view.window())
