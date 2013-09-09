@@ -366,21 +366,16 @@
 						// if the entry `gs.highlight` is set, the attr will be used to do highlighting
 						// that is, lines may be marked with an icon in the gutter and e.g. an error
 						// message in the status bar when the cursor is on a particular line
-						"gs.highlight": {
-							// the context in which the highliting is being done. all previous highlights
-							// within the same context from a previous command invocation are cleared
-							// before applying highlights from this invocation
-							"ctx": "",
-
-							// the Sublime Text scope to use. default `lint error invalid`
-							"scope": "",
-
-							// the Sublime Text icon to place in the gutter. default `dot`
-							"icon": ""
-						},
+						//
+						// the value is the context in which the highliting is being done.
+						// all previous highlights within the same context from previous command invocations
+						// are cleared before applying highlights from this invocation
+						"gs.highlight": "",
 
 						// the following entries are usually matched by a pattern instead of being
 						// hard-coded, but they will also be used for highlighting
+						//
+						// a sample `case` that provides these values is `(?P<fn>\\S+\\.go):(?P<pos>[\\d:]+)(?P<message>.+)`
 
 						// the name of the. ideally this should be an absolute path,
 						// but that's not required as relative paths will resolved relative to `wd` (above).
@@ -388,11 +383,13 @@
 						// active at the time of command execution
 						"fn": "",
 
-						// the line that should be highlighted
-						"line": 1,
-
-						// the column on `line` that should be highlighted, if any
-						"column": 1,
+						// the position that should be highlighted
+						// it may be `line` (13) or `line:column` (13:4) . the string is interpreted in the following way
+						// * split the string by non-numeric characters, ignoring empty matches (e.g. pat `([0-9]+)`)
+						// * if there are any matches, the first will become the `line` to highlight
+						// * if there are more than one match, the second will become the `column` to match
+						// * all other matches are ignored
+						"pos": "",
 
 						// the message that should be added to status bar when the cursor is on `line`
 						"message": ""
