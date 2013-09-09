@@ -86,7 +86,7 @@ _default_settings = {
 	"9o_settings": {},
 	"9o_aliases": {},
 	"9o_show_end": False,
-	"gohtml_extensions": [],
+	"set_extension_syntax": {},
 	"autoinst": False,
 	"use_gs_gopath": False,
 	"use_named_imports": False,
