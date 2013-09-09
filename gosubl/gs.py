@@ -736,13 +736,6 @@ def tm_path(name):
 		'gohtml': 'syntax/GoSublime-HTML.tmLanguage',
 	}
 
-	try:
-		so = sublime.load_settings('GoSublime-next.sublime-settings')
-		if 'go' in so.get('extensions', []):
-			d['go'] = 'GoSublime-next.tmLanguage'
-	except Exception:
-		pass
-
 	if name in d:
 		return 'Packages/GoSublime/%s' % d[name]
 
