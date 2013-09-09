@@ -296,7 +296,7 @@ def error(domain, txt):
 	status_message(txt)
 
 def print_traceback():
-	gs.println(gs.traceback(NAME))
+	println(traceback(NAME))
 
 def error_traceback(domain, status_txt=''):
 	tb = traceback().strip()
@@ -519,7 +519,7 @@ def win_view(vfn=None, win=None):
 						view = v
 						break
 			except Exception:
-				gs.error_traceback(NAME)
+				error_traceback(NAME)
 		elif not vfn or vfn == "<stdin>":
 			view = win.active_view()
 		else:
