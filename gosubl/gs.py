@@ -743,7 +743,10 @@ def tm_path(name):
 	except Exception:
 		pass
 
-	return 'Packages/GoSublime/%s' % d[name]
+	if name in d:
+		return 'Packages/GoSublime/%s' % d[name]
+
+	return ''
 
 def packages_dir():
 	fn = attr('gs.packages_dir')
