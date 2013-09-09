@@ -9,7 +9,7 @@ DOMAIN = 'GsEV'
 class EV(sublime_plugin.EventListener):
 	def on_pre_save(self, view):
 		view.run_command('gs_fmt')
-		sublime.set_timeout(lambda: do_set_gohtml_syntax(view), 0)
+		sublime.set_timeout(lambda: do_set_syntax(view), 0)
 
 	def on_post_save(self, view):
 		try:
@@ -24,7 +24,7 @@ class EV(sublime_plugin.EventListener):
 
 	def on_activated(self, view):
 		sublime.set_timeout(do_sync_active_view, 0)
-		sublime.set_timeout(lambda: do_set_gohtml_syntax(view), 0)
+		sublime.set_timeout(lambda: do_set_syntax(view), 0)
 
 		try:
 			ev.sig_mov(view, True)
@@ -42,7 +42,7 @@ class EV(sublime_plugin.EventListener):
 		except AttributeError:
 			pass
 
-		sublime.set_timeout(lambda: do_set_gohtml_syntax(view), 0)
+		sublime.set_timeout(lambda: do_set_syntax(view), 0)
 
 	def on_modified(self, view):
 		try:
@@ -112,9 +112,21 @@ def do_sync_active_view():
 			m = gs.mirror_settings(psettings)
 		gs.set_attr('last_active_project_settings', gs.dval(m, {}))
 
-def do_set_gohtml_syntax(view):
+def do_set_syntax(view):
 	fn = view.file_name()
-	xl = gs.setting('gohtml_extensions', [])
-	if xl and fn and fn.lower().endswith(tuple(xl)):
-		view.set_syntax_file(gs.tm_path('gohtml'))
+	if not fn:
+		return
+
+	xm = gs.setting('set_extension_syntax', {})
+	xl = list(xm.keys())
+	xl.sort()
+	xl.sort(key=lambda k: -len(k))
+
+	fn = fn.lower()
+	for k in xl:
+		if fn.endswith(k):
+			v = xm[k]
+			v = gs.tm_path(v) or v
+			if v:
+				view.set_syntax_file(v)
 
