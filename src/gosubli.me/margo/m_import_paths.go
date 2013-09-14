@@ -102,7 +102,6 @@ func importPaths(environ map[string]string) ([]string, error) {
 	seen := map[string]bool{}
 	pfx := strings.HasPrefix
 	sfx := strings.HasSuffix
-	osArch := runtime.GOOS + "_" + runtime.GOARCH
 	for root, _ := range paths {
 		root = filepath.Join(root, "pkg", osArch)
 		walkF := func(p string, info os.FileInfo, err error) error {

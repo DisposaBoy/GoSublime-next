@@ -3,7 +3,6 @@ package main
 import (
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 )
 
@@ -56,7 +55,6 @@ func (m *mEnv) Call() (interface{}, string) {
 	if addLibPath {
 		p := []string{}
 		sep := string(os.PathListSeparator)
-		osArch := runtime.GOOS + "_" + runtime.GOARCH
 		gpath := m.Gopath
 		if gpath == "" {
 			gpath = mEnvGetEnv("GOPATH")

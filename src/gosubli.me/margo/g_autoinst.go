@@ -6,7 +6,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"runtime"
 	"strings"
 )
 
@@ -51,7 +50,6 @@ func (a *AutoInstOptions) install() {
 		a.Env = map[string]string{}
 	}
 
-	osArch := runtime.GOOS + "_" + runtime.GOARCH
 	roots := []string{}
 
 	if p := a.Env["GOROOT"]; p != "" {

@@ -20,6 +20,7 @@ import (
 
 var (
 	sRuneError = eRune()
+	osArch     = runtime.GOOS + "_" + runtime.GOARCH
 )
 
 type void struct{}
