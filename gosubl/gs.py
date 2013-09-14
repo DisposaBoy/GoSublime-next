@@ -51,7 +51,7 @@ _env_lck = threading.Lock()
 _default_settings = {
 	"margo_oom": 0,
 	"_debug": False,
-	"_race": False,
+	"_build_flags": [],
 	"_rebuild": False,
 	"env": {},
 	"gscomplete_enabled": False,
