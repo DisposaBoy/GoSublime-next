@@ -182,19 +182,6 @@ def basedir_or_cwd(fn):
 		return os.path.dirname(fn)
 	return getwd()
 
-def popen(args, stdout=PIPE, stderr=PIPE, shell=False, environ={}, cwd=None, bufsize=0):
-	ev = env()
-	for k,v in environ.items():
-		ev[astr(k)] = astr(v)
-
-	try:
-		setsid = os.setsid
-	except Exception:
-		setsid = None
-
-	return Popen(args, stdout=stdout, stderr=stderr, stdin=PIPE, startupinfo=STARTUP_INFO,
-		shell=shell, env=ev, cwd=cwd, preexec_fn=setsid, bufsize=bufsize)
-
 def callable(f):
 	if hasattr(f, '__call__'):
 		return f
@@ -366,100 +353,6 @@ def rowcol(view):
 
 def os_is_windows():
 	return os.name == "nt"
-
-def getenv(name, default='', m={}):
-	return env(m).get(name, default)
-
-def env(m={}):
-	"""
-	Assemble environment information needed for correct operation. In particular,
-	ensure that directories containing binaries are included in PATH.
-	"""
-	e = os.environ.copy()
-	e.update(environ9)
-	e.update(m)
-
-	roots = lst(e.get('GOPATH', '').split(os.pathsep), e.get('GOROOT', ''))
-	lfn = attr('last_active_go_fn', '')
-	comps = lfn.split(os.sep)
-	gs_gopath = []
-	for i, s in enumerate(comps):
-		if s.lower() == "src":
-			p = os.sep.join(comps[:i])
-			if p not in roots:
-				gs_gopath.append(p)
-	gs_gopath.reverse()
-	e['GS_GOPATH'] = os.pathsep.join(gs_gopath)
-
-	uenv = setting('env', {})
-	for k in uenv:
-		try:
-			uenv[k] = string.Template(uenv[k]).safe_substitute(e)
-		except Exception as ex:
-			println('%s: Cannot expand env var `%s`: %s' % (NAME, k, ex))
-
-	e.update(uenv)
-	e.update(m)
-
-	# For custom values of GOPATH, installed binaries via go install
-	# will go into the "bin" dir of the corresponding GOPATH path.
-	# Therefore, make sure these paths are included in PATH.
-
-	add_path = [home_dir_path('bin')]
-
-	for s in lst(e.get('GOROOT', ''), e.get('GOPATH', '').split(os.pathsep)):
-		if s:
-			s = os.path.join(s, 'bin')
-			if s not in add_path:
-				add_path.append(s)
-
-	gobin = e.get('GOBIN', '')
-	if gobin and gobin not in add_path:
-		add_path.append(gobin)
-
-	if os_is_windows():
-		l = [
-			'~\\bin',
-			'~\\go\\bin',
-			'C:\\Go\\bin',
-		]
-	else:
-		l = [
-			'~/bin',
-			'~/go/bin',
-			'/usr/local/go/bin',
-			'/usr/local/opt/go/bin',
-			'/usr/local/bin',
-			'/usr/bin',
-		]
-
-	for s in l:
-		s = os.path.expanduser(s)
-		if s not in add_path:
-			add_path.append(s)
-
-	for s in e.get('PATH', '').split(os.pathsep):
-		if s and s not in add_path:
-			add_path.append(s)
-
-
-	e['PATH'] = os.pathsep.join(add_path)
-
-	# Ensure no unicode objects leak through. The reason is twofold:
-	# 	* On Windows, Python 2.6 (used by Sublime Text) subprocess.Popen
-	# 	  can only take bytestrings as environment variables in the
-	#	  "env"	parameter. Reference:
-	# 	  https://github.com/DisposaBoy/GoSublime/issues/112
-	# 	  http://stackoverflow.com/q/12253014/1670
-	#   * Avoids issues with networking too.
-	clean_env = {}
-	for k, v in e.items():
-		try:
-			clean_env[astr(k)] = astr(v)
-		except Exception as ex:
-			println('%s: Bad env: %s' % (NAME, ex))
-
-	return clean_env
 
 def mirror_settings(so):
 	m = {}
@@ -635,10 +528,6 @@ def show_quick_panel(items, cb=None):
 		if win:
 			win.show_quick_panel(items, (lambda i: cb(i, win)) if cb else (lambda i: None))
 	sublime.set_timeout(f, 0)
-
-def go_env_goroot():
-	out, _, _ = runcmd(['go env GOROOT'], shell=True)
-	return out.strip().encode('utf-8')
 
 def list_dir_tree(dirname, filter, exclude_prefix=('.', '_')):
 	lst = []
@@ -818,30 +707,6 @@ def sel(view, i=0):
 		pass
 
 	return sublime.Region(0, 0)
-
-def which_ok(fn):
-	try:
-		return os.path.isfile(fn) and os.access(fn, os.X_OK)
-	except Exception:
-		return False
-
-def which(cmd):
-	if os.path.isabs(cmd):
-		return cmd if which_ok(cmd) else ''
-
-	# not supporting PATHEXT. period.
-	if os_is_windows():
-		cmd = '%s.exe' % cmd
-
-	seen = {}
-	for p in getenv('PATH', '').split(os.pathsep):
-		p = os.path.join(p, cmd)
-		if p not in seen and which_ok(p):
-			return p
-
-		seen[p] = True
-
-	return ''
 
 def uid():
 	return 'gs#%x' % _uid.next()
