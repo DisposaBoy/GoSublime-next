@@ -1,6 +1,5 @@
 from gosubl import about
 from gosubl import gs
-from gosubl import gsshell
 from gosubl import mg9
 from gosubl import sh
 import datetime
