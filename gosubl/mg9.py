@@ -246,7 +246,7 @@ def calltip(fn, src, pos, quiet, f):
 		if tid:
 			gs.end(tid)
 
-		res = gs.dval(res.get('calltips'), [])
+		res = gs.dval(res.get('Candidates'), [])
 		f(res, err)
 
 	return acall('gocode_calltip', _complete_opts(fn, src, pos, True), cb)
@@ -254,7 +254,7 @@ def calltip(fn, src, pos, quiet, f):
 def complete(fn, src, pos):
 	builtins = (gs.setting('autocomplete_builtins') is True or gs.setting('complete_builtins') is True)
 	res, err = bcall('gocode_complete', _complete_opts(fn, src, pos, builtins))
-	res = gs.dval(res.get('completions'), [])
+	res = gs.dval(res.get('Candidates'), [])
 	return res, err
 
 def _complete_opts(fn, src, pos, builtins):

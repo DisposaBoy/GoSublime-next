@@ -44,9 +44,6 @@ func (v *calltipVisitor) Visit(node ast.Node) (w ast.Visitor) {
 }
 
 func (m *mGocode) Call() (interface{}, string) {
-	e := ""
-	res := M{}
-
 	if m.Src == "" {
 		// this is here for testing, the client should always send the src
 		s, _ := ioutil.ReadFile(m.Fn)
@@ -54,7 +51,7 @@ func (m *mGocode) Call() (interface{}, string) {
 	}
 
 	if m.Src == "" {
-		return res, "No source"
+		return nil, "No source"
 	}
 
 	pos := 0
@@ -72,21 +69,24 @@ func (m *mGocode) Call() (interface{}, string) {
 		fn = filepath.Join(orString(m.Dir, m.Home), orString(fn, "_.go"))
 	}
 
-	if m.calltip {
-		res["calltips"] = m.calltips(src, fn, pos)
-	} else {
-		l := m.completions(src, fn, pos)
-		res["completions"] = l
+	res := struct {
+		Candidates []gocode.MargoCandidate
+	}{}
 
-		if m.Autoinst && len(l) == 0 {
-			autoInstall(AutoInstOptions{
-				Src: m.Src,
-				Env: m.Env,
-			})
-		}
+	if m.calltip {
+		res.Candidates = m.calltips(src, fn, pos)
+	} else {
+		res.Candidates = m.completions(src, fn, pos)
 	}
 
-	return res, e
+	if m.Autoinst && len(res.Candidates) == 0 {
+		autoInstall(AutoInstOptions{
+			Src: m.Src,
+			Env: m.Env,
+		})
+	}
+
+	return res, ""
 }
 
 func (g *mGocode) completions(src []byte, fn string, pos int) []gocode.MargoCandidate {
