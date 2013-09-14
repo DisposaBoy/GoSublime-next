@@ -60,7 +60,7 @@ _default_settings = {
 	"fmt_enabled": False,
 	"fmt_tab_indent": True,
 	"fmt_tab_width": 8,
-	"autocomplete_live_hint": False,
+	"calltips": True,
 	"autocomplete_snippets": False,
 	"autocomplete_tests": False,
 	"autocomplete_closures": False,
@@ -372,6 +372,7 @@ def mirror_settings(so):
 				ok = True
 
 			m[k] = copy.copy(v)
+
 	return m
 
 def sync_settings():

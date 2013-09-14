@@ -271,7 +271,7 @@ def _ct(view):
 	if not gs.is_go_source_view(view):
 		return
 
-	if gs.setting('autocomplete_live_hint', False) is True:
+	if gs.setting('calltips') is True:
 		view.run_command('gs_show_call_tip', {'set_status': True})
 	else:
 		view.erase_status(HINT_KEY)

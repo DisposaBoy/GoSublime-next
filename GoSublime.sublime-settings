@@ -69,9 +69,9 @@
 	// note: this feature only comes into effect when autocomplete was triggered after a dot, e.g. `fmt.|`
 	"autocomplete_suggest_imports": false,
 
-	// whether or not to show function call tip in the status bar as you type
+	// whether or not to show function call tip in the status bar
 	// the same can be achieved ctrl+dot,ctrl+space using an output panel
-	"autocomplete_live_hint": false,
+	"calltips": true,
 
 	// whether or not to use named imports when the basename of the import path doesn't match the pkg name
 	// e.g. gosubli.me/go-foo would be imported as:
