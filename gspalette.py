@@ -2,7 +2,6 @@ from gosubl import gs
 from gosubl import gspatch
 from gosubl import mg9
 from os.path import dirname, basename, relpath
-import gslint
 import re
 import sublime
 import sublime_plugin
@@ -28,7 +27,6 @@ class GsPaletteCommand(sublime_plugin.WindowCommand):
 			self.palettes = {
 				'declarations': self.palette_declarations,
 				'imports': self.palette_imports,
-				'errors': self.palette_errors,
 			}
 
 		if palette == 'jump_back':
@@ -82,11 +80,6 @@ class GsPaletteCommand(sublime_plugin.WindowCommand):
 				if k:
 					if k != palette:
 						ttl = '@' + k.title()
-						if k == 'errors':
-							fr = gslint.ref(view.file_name())
-							if not fr or len(fr.reports) == 0:
-								continue
-							ttl = '%s (%d)' % (ttl, len(fr.reports))
 						itm = ttl
 						self.add_item(itm, self.show_palette, k)
 
@@ -147,36 +140,6 @@ class GsPaletteCommand(sublime_plugin.WindowCommand):
 	def jump_back(self, _=None):
 		if len(self.bookmarks) > 0:
 			self.goto(self.bookmarks.pop())
-
-	def palette_errors(self, view, direct=False):
-		indent = '' if direct else '    '
-		reps = {}
-		fr = gslint.ref(view.file_name())
-		if fr:
-			reps = fr.reports.copy()
-		keys = sorted(reps.keys())
-		if keys:
-			for k in keys:
-				r = reps[k]
-				loc = Loc(view.file_name(), r.row, r.col)
-				m = []
-				m.append("%sline %d:" % (indent, r.row+1))
-				lc = 0
-				for ln in r.msg.split('\n'):
-					if ln:
-						lc += 1
-						if len(ln) > 50:
-							m.append('\t%d: %s -' % (lc, ln[:50]))
-							m.append('\t  %s' % ln[50:])
-						else:
-							m.append('\t%d: %s' % (lc, ln))
-
-				self.add_item(m, self.jump_to, (view, loc))
-		else:
-			self.add_item(['', 'No errors to report'])
-
-		self.do_show_panel()
-
 
 	def palette_imports(self, view, direct=False):
 		indent = '' if direct else '    '

@@ -44,103 +44,6 @@
 	// the assumed width of the tab character (or number of spaces to indent with)
 	"fmt_tab_width": 8,
 
-	// Whether or not gslint is enabled
-	"gslint_enabled": true,
-
-	// filter the kinds of lint checks that are done. supported kinds:
-	//
-	// gs.syntax - parser/syntax errors - it makes no sense to filter this as it will simply
-	//             manifest itself in other checks (which will likely not be done if there are syntax errors)
-	// gs.flag.parse - check for possibly missing calls to flag.Parse()
-	// gs.types - do a typecheck using the go/types package(like the old gotype)
-	//            disabled by default until it's ready(copied from tip)
-	"lint_filter": [
-		"gs.types"
-	],
-
-	// Whether or not comp lint is enabled (this might conflict with gslint)
-	"comp_lint_enabled": false,
-
-	// The list of commands that comp-lint will run (in the order specified)
-	// each entry contains a map of:
-	//    cmd: a list containing the command and its args
-	//    shell: whether or not use the $shell to run this command
-	//        if you don't need $shell features then don't set this.
-	//    global: whether or not commands like go install should affect the system globally
-	//        by default the environment variable GOBIN is set to ($TEMPDIR/GoSublime/bin
-	//        which in the installation of commands via comp-lint going there instead of into
-	//        one of your GOPATHs.
-	//        setting this to true, you can e.g automate the actual installation of your commands
-	// additionally, for `shell` and `global` if the value is not `true` then it's assumed to be false
-	"comp_lint_commands": [
-		{"cmd": ["go", "install"]}
-	],
-
-	// how long to wait after the last keystroke before the gslint_cmd command is run (in milliseconds)
-	"gslint_timeout": 100,
-
-	// Not Implemented
-	// Whether or not gslint is enabled
-	"lint_enabled": true,
-
-	// Not Implemented
-	// list of linters to run
-	// note: before the linters are run, the builtin gs.syntax linter is run
-	//       * its purpose is to do a basic syntax check on the active file.
-	//       * by design, it cannot be disabled
-	//       * if there is a syntax error, no user-defined linters will be run
-	//
-	// each linter is an object of the form:
-	//
-	// {
-	// 	"ctx": "", // the context in which this linter runs, e.g. "live"
-	// 	           // default: "live", builtin contexts:
-	//             //      live: the linters are being called while you're editing the file
-	//             //      save: the linters are being called after saving.
-	//             //            this can be used to e.g. rebuild or install the pkg
-	//
-	// 	"pat": "", // a regexp pattern that will define the following named variables:
-	// 	           // fn: the filename
-	// 	           // line: the line number (starting from 1)
-	// 	           // column: the column number (starting from 1)
-	// 	           //         (this can be considered optional because the error message is still useful without it)
-	// 	           // message: the error message
-	// 	           //
-	// 	           // the default pat will be defined[1] such that it matches `main.go:1:2 error` resulting in:
-	// 	           //     fn: main.go
-	// 	           //     line: 1
-	// 	           //     column: 2
-	// 	           //     message: error
-	//	           //
-	//	           //  The following regexp is a copy of the one used in MarGo (it might be out-of-sync)
-	//	           //      `(?P<fn>\S+\.go):(?P<line>\d+)?(?:[:](?P<column>\d+))?[:]*(?P<message>.+)`
-	// 	           //
-	// 	           // it will also allow `line` and `column` to be missing. this should be sufficient
-	// 	           // for the output of the go tools (go vet, compilers, etc.)
-	//
-	// 	"env": "", // an object mapping keys to string values that will be added to the default env
-	// 	           // you could, e.g. set {"GOBIN": "/tmp"} in order to avoid installing potentially
-	// 	           // broken commands into your GOPATH*/bin
-	//
-	// 	"kind": "", // a string that identifies the linter, e.g. `go.vet'
-	// 	            // this is useful to be able to identify what kind of error you're seeing,
-	// 	            // but is otherwise optional
-	//
-	// 	"cmd": [], // the command to run, e.g. ["go", "vet"]
-	// }
-	//
-	// the minimal linter is thus: {"cmd": ["go", "vet"]}
-	//
-	// builtin linters:
-	//    {"cmd": ["gs.flag.parse"]}: try to report calls to e.g. flag.Int(),flag.String()
-	//                                for which there is no call to flag.Parse()
-	//
-	//    {"cmd": ["gs.types"]}: this is essentially `gotype`, it will do a full typecheck of the pkg
-	//                           similar to the compilers. it's faster than doing a full `go build`
-	//                           however, it can lead to false-positive errors, especially on cgo
-	//                           and other non-pure-go pkgs
-	"linters": [],
-
 	// whether or not to include snippets in the auto-completion list
 	"autocomplete_snippets": true,
 
@@ -187,8 +90,6 @@
 	"autoinst": true,
 
 	// commands to run on (post) save - list of objects of the form {"cmd": "...", "args": {...}}
-	// Any TextCommand may be run. Supported GS commands include:
-	//     gs_comp_lint - compile the pkg and report any errors
 	"on_save": [],
 
 	// as an alternative to Sublime Text's snippet system you may add snippets to GoSublime's
