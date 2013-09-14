@@ -236,10 +236,6 @@ def _cleanup():
 
 	except Exception:
 		pass
-def completion_options(m={}):
-	res, err = bcall('gocode_options', {})
-	res = gs.dval(res.get('options'), {})
-	return res, err
 
 def calltip(fn, src, pos, quiet, f):
 	tid = ''
