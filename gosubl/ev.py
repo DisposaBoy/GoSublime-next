@@ -91,7 +91,7 @@ def df_mod_sig(view):
 	def f():
 		gs.do(DOMAIN, lambda: view_updated(view))
 
-	sig = Signal(500)
+	sig = Signal(1000)
 	sig += f
 	return (sig, True)
 
@@ -157,3 +157,5 @@ view_updated = Event()
 file_saved = Event()
 line_changed = Event()
 cursor_moved = Event()
+
+file_saved += lambda view: sig_mod(view)
