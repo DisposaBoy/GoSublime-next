@@ -236,7 +236,6 @@ def _cleanup():
 
 	except Exception:
 		pass
-
 def completion_options(m={}):
 	res, err = bcall('gocode_options', {})
 	res = gs.dval(res.get('options'), {})
@@ -254,18 +253,18 @@ def calltip(fn, src, pos, quiet, f):
 		res = gs.dval(res.get('calltips'), [])
 		f(res, err)
 
-	return acall('gocode_calltip', _complete_opts(fn, src, pos), cb)
+	return acall('gocode_calltip', _complete_opts(fn, src, pos, True), cb)
 
 
 
 def complete(fn, src, pos):
-	res, err = bcall('gocode_complete', _complete_opts(fn, src, pos))
+	builtins = (gs.setting('autocomplete_builtins') is True or gs.setting('complete_builtins') is True)
+	res, err = bcall('gocode_complete', _complete_opts(fn, src, pos, builtins))
 	res = gs.dval(res.get('completions'), [])
 	return res, err
 
-def _complete_opts(fn, src, pos):
+def _complete_opts(fn, src, pos, builtins):
 	home = sh.vdir()
-	builtins = (gs.setting('autocomplete_builtins') is True or gs.setting('complete_builtins') is True)
 	return {
 		'Dir': gs.basedir_or_cwd(fn),
 		'Builtins': builtins,
