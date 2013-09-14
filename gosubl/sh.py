@@ -18,6 +18,7 @@ except (AttributeError):
 
 Proc = namedtuple('Proc', 'p input orig_cmd cmd_lst env wd ok exc')
 Result = namedtuple('Result', 'out cmd_lst err ok exc')
+psep = os.pathsep
 
 class _command(object):
 	def __init__(self):
@@ -259,12 +260,6 @@ def gs_init(_={}):
 def _print(s):
 	print('GoSblime %s sh: %s' % (about.VERSION, s))
 
-def _shell_pathsep():
-	return gs.setting('shell_pathsep') or os.pathsep
-
-def _sj_path(p):
-	return _shell_pathsep().join(p.split(os.pathsep))
-
 def getenv(name, default='', m={}):
 	return env(m).get(name, default)
 
@@ -277,7 +272,7 @@ def gs_gopath(fn, roots=[]):
 			if p not in roots:
 				l.append(p)
 	l.reverse()
-	return os.pathsep.join(l)
+	return psep.join(l)
 
 def env(m={}):
 	"""
@@ -285,16 +280,10 @@ def env(m={}):
 	ensure that directories containing binaries are included in PATH.
 	"""
 	e = os.environ.copy()
-
-	# the system's env may be compatible with the shell
-	# so try to fix the env vars that depend on shell_pathsep
-	e['PATH'] = _sj_path(e.get('PATH', ''))
-	e['GOPATH'] = _sj_path(e.get('GOPATH', ''))
-
 	e.update(_env_ext)
 	e.update(m)
 
-	roots = [os.path.normpath(s) for s in gs.lst(e.get('GOPATH', '').split(os.pathsep), e.get('GOROOT', ''))]
+	roots = [os.path.normpath(s) for s in gs.lst(e.get('GOPATH', '').split(psep), e.get('GOROOT', ''))]
 	e['GS_GOPATH'] = gs_gopath(gs.getwd(), roots) or gs_gopath(gs.attr('last_active_go_fn', ''), roots)
 
 	uenv = gs.setting('env', {})
@@ -316,7 +305,7 @@ def env(m={}):
 
 	add_path = [bin_dir()]
 
-	for s in gs.lst(e.get('GOROOT', ''), e.get('GOPATH', '').split(os.pathsep)):
+	for s in gs.lst(e.get('GOROOT', ''), e.get('GOPATH', '').split(psep)):
 		if s:
 			s = os.path.join(s, 'bin')
 			if s not in add_path:
@@ -347,8 +336,6 @@ def env(m={}):
 		if s not in add_path:
 			add_path.append(s)
 
-	psep = _shell_pathsep()
-
 	for s in e.get('PATH', '').split(psep):
 		if s and s not in add_path:
 			add_path.append(s)
@@ -365,7 +352,6 @@ def env(m={}):
 		'_fn': fn,
 		'_vfn': gs.attr('active_vfn', ''),
 		'_nm': fn.replace('\\', '/').split('/')[-1],
-		'_pathsep': psep,
 	})
 
 	# Ensure no unicode objects leak through. The reason is twofold:
@@ -402,7 +388,7 @@ def _which(cmd, env_path):
 		cmd = '%s.exe' % cmd
 
 	seen = {}
-	for p in env_path.split(_shell_pathsep()):
+	for p in env_path.split(psep):
 		p = os.path.join(p, cmd)
 		if p not in seen and which_ok(p):
 			return p

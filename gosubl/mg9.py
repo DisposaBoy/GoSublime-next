@@ -323,7 +323,6 @@ def a_pkgpaths(exclude, f):
 		'env': {
 			'GOPATH': m.get('GOPATH'),
 			'GOROOT': m.get('GOROOT'),
-			'_pathsep': m.get('_pathsep'),
 		},
 		'exclude': exclude,
 		'WantPkgNames': gs.setting('use_named_imports'),

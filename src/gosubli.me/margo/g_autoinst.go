@@ -58,15 +58,8 @@ func (a *AutoInstOptions) install() {
 		roots = append(roots, filepath.Join(p, "pkg", osArch))
 	}
 
-	psep := string(filepath.ListSeparator)
-	if s := a.Env["_pathsep"]; s != "" {
-		psep = s
-	}
-
-	for _, p := range strings.Split(a.Env["GOPATH"], psep) {
-		if p != "" {
-			roots = append(roots, filepath.Join(p, "pkg", osArch))
-		}
+	for _, p := range pathList(a.Env["GOPATH"]) {
+		roots = append(roots, filepath.Join(p, "pkg", osArch))
 	}
 
 	if len(roots) == 0 {
