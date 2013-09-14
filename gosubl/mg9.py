@@ -598,3 +598,4 @@ def on_mg_msg(res, err):
 	return True
 
 on('margo.message', on_mg_msg)
+on('margo.poll', lambda res, err: True)
