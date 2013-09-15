@@ -125,21 +125,6 @@ for s in GOOSES:
 
 GOOSARCHES_PAT = re.compile(r'^(.+?)(?:_(%s))?(?:_(%s))?\.go$' % ('|'.join(GOOSES), '|'.join(GOARCHES)))
 
-IGNORED_SCOPES = frozenset([
-	'string.quoted.double.go',
-	'string.quoted.single.go',
-	'string.quoted.raw.go',
-	'comment.line.double-slash.go',
-	'comment.block.go',
-
-	# gs-next
-	'comment.block.go',
-	'comment.line.double-slash.go',
-	'string.quoted.double.go',
-	'string.quoted.raw.go',
-	'constant.other.rune.go',
-])
-
 VFN_ID_PAT = re.compile(r'^(?:gs\.)?view://(\d+)(.*?)$', re.IGNORECASE)
 ROWCOL_PAT = re.compile(r'^[:]*(\d+)(?:[:](\d+))?[:]*$')
 

@@ -20,6 +20,21 @@ SNIPPET_VAR_PAT = re.compile(r'\$\{([a-zA-Z]\w*)\}')
 
 HINT_KEY = '%s.completion-hint' % DOMAIN
 
+IGNORED_SCOPES = frozenset([
+	'string.quoted.double.go',
+	'string.quoted.single.go',
+	'string.quoted.raw.go',
+	'comment.line.double-slash.go',
+	'comment.block.go',
+
+	# gs-next
+	'comment.block.go',
+	'comment.line.double-slash.go',
+	'string.quoted.double.go',
+	'string.quoted.raw.go',
+	'constant.other.rune.go',
+])
+
 def snippet_match(ctx, m):
 	try:
 		for k,p in m.get('match', {}).items():
@@ -88,7 +103,7 @@ class GoSublime(sublime_plugin.EventListener):
 		if ('source.go' not in scopes) or (gs.setting('gscomplete_enabled', False) is not True):
 			return []
 
-		if gs.IGNORED_SCOPES.intersection(scopes):
+		if IGNORED_SCOPES.intersection(scopes):
 			return ([], AC_OPTS)
 
 		types = []
