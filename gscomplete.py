@@ -20,14 +20,6 @@ SNIPPET_VAR_PAT = re.compile(r'\$\{([a-zA-Z]\w*)\}')
 
 HINT_KEY = '%s.completion-hint' % DOMAIN
 
-IGNORED_SCOPES = frozenset([
-	'comment.block.go',
-	'comment.line.double-slash.go',
-	'string.quoted.double.go',
-	'string.quoted.raw.go',
-	'constant.other.rune.go',
-])
-
 def snippet_match(ctx, m):
 	try:
 		for k,p in m.get('match', {}).items():
@@ -96,7 +88,7 @@ class GoSublime(sublime_plugin.EventListener):
 		if ('source.go' not in scopes) or (gs.setting('gscomplete_enabled', False) is not True):
 			return []
 
-		if IGNORED_SCOPES.intersection(scopes):
+		if not scope_ok(view, pos):
 			return ([], AC_OPTS)
 
 		types = []
@@ -243,6 +235,22 @@ class GoSublime(sublime_plugin.EventListener):
 	def typeclass_prefix(self, typeclass, typename):
 		return gs.NAME_PREFIXES.get(typename, gs.CLASS_PREFIXES.get(typeclass, ' '))
 
+ignored_scope_names = ', '.join([
+	'comment.block.go',
+	'comment.line.double-slash.go',
+	'string.quoted.double.go',
+	'string.quoted.raw.go',
+	'constant.other.rune.go',
+])
+
+def scope_ok(view, pos):
+	if view.score_selector(pos, ignored_scope_names) != 0:
+		# if moving left takes us out of scope then we're not between the delims.
+		# due to the way the syntax is defined, going to the righ of end delim takes us of scope,
+		# even if we're still touching it
+		return view.score_selector(pos-1, ignored_scope_names) == 0
+
+	return True
 
 def declex(s):
 	params = []
