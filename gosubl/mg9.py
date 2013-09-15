@@ -599,5 +599,10 @@ def on_mg_msg(res, err):
 
 	return True
 
+def on_ignore(res, err):
+	return True
+
 on('margo.message', on_mg_msg)
-on('margo.poll', lambda res, err: True)
+on('margo.poll', on_ignore)
+on('margo.hello', on_ignore)
+on('margo.bye-ni', on_ignore)
