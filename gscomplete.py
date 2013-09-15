@@ -21,13 +21,6 @@ SNIPPET_VAR_PAT = re.compile(r'\$\{([a-zA-Z]\w*)\}')
 HINT_KEY = '%s.completion-hint' % DOMAIN
 
 IGNORED_SCOPES = frozenset([
-	'string.quoted.double.go',
-	'string.quoted.single.go',
-	'string.quoted.raw.go',
-	'comment.line.double-slash.go',
-	'comment.block.go',
-
-	# gs-next
 	'comment.block.go',
 	'comment.line.double-slash.go',
 	'string.quoted.double.go',
