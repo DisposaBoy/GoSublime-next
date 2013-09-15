@@ -427,7 +427,8 @@ def _recv():
 
 						err = r.get('error', '')
 
-						ev.debug(DOMAIN, "margo response: %s" % {
+						ev.debug(DOMAIN, {
+							'_mode': 'response',
 							'method': req.method,
 							'tag': tag,
 							'token': token,
@@ -511,7 +512,11 @@ def _send():
 					_cb_err(cb, 'Failed to construct ipc body: %s' % err)
 					continue
 
-				ev.debug(DOMAIN, 'margo request: %s ' % header)
+				ev.debug(DOMAIN, {
+					'_mode': 'request',
+					'header': req.header(),
+					'body': arg,
+				})
 
 				ln = '%s %s\n' % (header, body)
 
