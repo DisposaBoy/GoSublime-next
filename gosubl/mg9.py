@@ -255,18 +255,19 @@ def complete(fn, src, pos):
 	return res, err
 
 def _complete_opts(fn, src, pos, builtins):
-	home = sh.vdir()
+	nv = sh.env()
 	return {
 		'Dir': gs.basedir_or_cwd(fn),
 		'Builtins': builtins,
 		'Fn':  fn or '',
 		'Src': src or '',
 		'Pos': pos or 0,
-		'Home': home,
+		'Home': sh.vdir(),
 		'Autoinst': gs.setting('autoinst'),
-		'Env': sh.env({
-			'XDG_CONFIG_HOME': home,
-		}),
+		'Env': {
+			'GOROOT': nv.get('GOROOT', ''),
+			'GOPATH': nv.get('GOPATH', ''),
+		},
 	}
 
 def fmt(fn, src):
