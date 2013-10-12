@@ -112,6 +112,44 @@ def clear_notes(view, cl, update=True):
 	if update:
 		_update_regions(view, m)
 
+def show_messages(view):
+	notes = kvm(view).dict()
+	items = []
+	gotos = {}
+
+	def push(row):
+		ents = ['Line %s' % (row+1)]
+		col = -1
+		for n in notes.get(row, []):
+			if n.message:
+				ents.extend(n.message.split('\n'))
+				if col < 0:
+					col = n.col
+
+		if len(ents) > 1:
+			gotos[len(items)] = (row, col)
+			items.append(ents)
+
+	rows = sorted(notes.keys())
+	row, _ = gs.rowcol(view)
+	if row in rows:
+		push(row)
+		rows.remove(row)
+
+	for row in rows:
+		push(row)
+
+	if items:
+		def cb(i, _):
+			p = gotos.get(i)
+			if p:
+				view.run_command("gs_goto_row_col", {'row': p[0], 'col': p[1]})
+
+		gs.show_quick_panel(items, cb)
+	else:
+		gs.notify(DOMAIN, 'No messages to display')
+
+
 def gs_init(m={}):
 	pass
 

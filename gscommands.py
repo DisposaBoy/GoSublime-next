@@ -1,5 +1,6 @@
 from gosubl import gs
 from gosubl import gspatch
+from gosubl import hl
 from gosubl import mg9
 import datetime
 import os
@@ -201,3 +202,8 @@ class GsPatchImportsCommand(sublime_plugin.TextCommand):
 				gs.set_attr(k, added_path)
 			else:
 				gs.del_attr(k)
+
+class GsShowMessagesCommand(sublime_plugin.TextCommand):
+	def run(self, _edit):
+		hl.show_messages(self.view)
+
