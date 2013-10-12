@@ -54,13 +54,9 @@ func (m *mGocode) Call() (interface{}, string) {
 		return nil, "No source"
 	}
 
-	pos := 0
-	for i, _ := range m.Src {
-		pos += 1
-		if pos > m.Pos {
-			pos = i
-			break
-		}
+	pos := bytePos(m.Src, m.Pos)
+	if m.Pos < 0 {
+		return nil, "Invalid offset"
 	}
 
 	src := []byte(m.Src)
