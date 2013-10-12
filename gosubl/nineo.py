@@ -1,8 +1,10 @@
 from . import about
 from . import gs
+from . import hl
 from . import kv
 from . import mg9
 from . import sh
+from . import vu
 import copy
 import os
 import string
@@ -20,20 +22,100 @@ class Writer(object):
 		self.view = view
 
 	def write(self, s):
-		print(self.view, s)
+		# todo: implement this
+		print(s)
 
 class Session(object):
-	def __init__(self, wr, wd):
-		try:
-			self.view = sublime.active_window().active_view()
-			fn = self.view.file_name() or ''
-		except AttributeError:
-			self.view = None
-			fn = ''
-
+	def __init__(self, wr, wd='', win=None, view=None, args=[]):
 		self.wr = wr
-		self.wd = wd or gs.basedir_or_cwd(fn)
+		self.vv = vu.active(win=win, view=view)
+		self.wd = wd or gs.basedir_or_cwd(self.vv.fn())
+		self.args = args
 		self.input = ''
+		self.user_args = True
+
+	def _highlight(self, c, res):
+		if not gs.is_a(res, {}):
+			gs.debug(DOMAIN, {
+				'err': 'res is not a dict',
+				'res': res,
+				'c': c,
+			})
+			return
+
+		# todo: do we really want to reject `None` here? (i.e shoul we defaut to [])
+		attrs = res.get('attrs')
+		if not gs.is_a(attrs, []):
+			gs.debug(DOMAIN, {
+				'err': 'attr is not a list',
+				'attr': attr,
+				'c': c,
+			})
+			return
+
+		nd = {}
+		cd = {}
+
+		for a in attrs:
+			if not gs.is_a(a, {}):
+				continue
+
+			ctx = a.get('gs.highlight')
+			if not ctx:
+				continue
+
+			fn = a.get('fn')
+			if fn and fn != '<stdin>':
+				fn = gs.abspath(fn, c['wd'])
+			else:
+				fn = self.vv.vfn()
+
+			cd.setdefault(fn, []).append(ctx)
+			nd.setdefault(fn, []).append(hl.Note(
+				ctx = ctx,
+				fn = fn,
+				pos = a.get('pos'),
+				message = a.get('message') or '',
+				scope = a.get('gs.scope') or '',
+				icon = a.get('gs.icon') or ''
+			))
+
+		if nd:
+			views = {}
+			for win in sublime.windows():
+				for view in win.views():
+					vfn = gs.view_fn(view)
+					if vfn in nd:
+						views[vfn] = view
+
+			for vfn in views:
+				view = views[vfn]
+				hl.clear_notes(view, cd[vfn])
+				hl.add_notes(view, nd[vfn])
+
+	def _cb(self, c, cb):
+		def f(res, err):
+			gs.do(DOMAIN, self._highlight(c, res))
+
+			if err:
+				self.error(err)
+
+			cb2 = cb
+			then = c.get('then')
+			if then:
+				def cb2(res, err):
+					if err:
+						self.error(err)
+
+					self.start(then, cb)
+
+			andor = c.get('and') if res.get('ok') is True else c.get('or')
+			if andor:
+				self.start(andor, cb2)
+			else:
+				gs.do(DOMAIN, lambda: cb2(res, err))
+
+		return f
 
 	def mk(self, cn):
 		return self._mk(gs.setting('commands', {}), {}, '', cn)
@@ -55,6 +137,7 @@ class Session(object):
 			return (cn, {}, 'recursive command definition: `%s` <-> `%s`' % (base_nm, cn))
 
 		seen[cn] = True
+
 		c = cmds.get(cn, {})
 		if c:
 			return self._mk_c(cmds, seen, cn, c)
@@ -72,6 +155,8 @@ class Session(object):
 
 		self.c_env(c)
 		self.c_wd(c)
+		c['_wd'] = c['wd']
+		c['PWD'] = c['wd']
 		self.c_cmd(c)
 		self.c_args(c)
 		self.c_switch(c)
@@ -98,7 +183,7 @@ class Session(object):
 		return (c, '')
 
 	def save_all(self, wd):
-		if self.view is None:
+		if self.vv.view is None:
 			return
 
 		if not wd:
@@ -135,14 +220,20 @@ class Session(object):
 		return string.Template(s).safe_substitute(env)
 
 	def c_env(self, c):
-		c['env'] = sh.env(c.get('env', {}))
+		env = sh.env()
+		env.update(c.get('env', {}))
+		env.update({
+			'_fn': self.vv.fn(),
+			'_vfn': self.vv.vfn(),
+		})
+		c['env'] = env
 
 	def c_save(self, c):
 		if c.get('save') is True:
 			self.save_all(c.get('wd'))
 
 		# cache the input *after* it's saved so any event hander mutations are picked up
-		self.input = gs.view_src(self.view)
+		self.input = self.vv.src()
 
 	def c_input(self, c):
 		s = c.get('input') or ''
@@ -180,7 +271,22 @@ class Session(object):
 		c['args'] = [self.expand(v, c['env']) for v in gs.lst(c.get('args', []))]
 
 	def c_switch(self, c):
-		c['switch'] = [v for v in gs.lst(c.get('switch', [])) if v]
+		l = []
+		for sw in gs.lst(c.get('switch')):
+			if gs.is_a(sw, {}):
+				cs = sw.get('case')
+				if not gs.is_a(cs, []):
+					if cs in ('', None):
+						sw['case'] = []
+					elif gs.is_a_string(cs):
+						sw['case'] = [cs]
+					else:
+						continue
+
+			l.append(sw)
+
+		c['switch'] = l
+
 
 	def c_discard(self, c):
 		c['discard_stdout'] = c.get('discard_stdout') is True
@@ -236,6 +342,11 @@ class Session(object):
 			self.error('invalid command: `%s`' % cn)
 			return
 
+		user_args = c.get('user_args', self.user_args)
+		self.user_args = False
+		if user_args:
+			c['args'].extend([self.expand(v, c['env']) for v in self.args])
+
 		if c.get('sh') is True:
 			l = sh.cmd(' '.join(gs.lst(c['cmd'], c['args'])))
 			c['cmd'] = l[0]
@@ -249,25 +360,7 @@ class Session(object):
 		self.c_save(c)
 		self.c_input(c)
 
-		def f(res, err):
-			if err:
-				self.error(err)
-
-			cb2 = cb
-			then = c.get('then')
-			if then:
-				def cb2(res, err):
-					if err:
-						self.error(err)
-
-					self.start(then, cb)
-
-			andor = c.get('and') if res.get('ok') is True else c.get('or')
-			if andor:
-				self.start(andor, cb2)
-			else:
-				gs.do(DOMAIN, lambda: cb2(res, err))
-
+		f = self._cb(c, cb)
 		b = self.c_can_use_builtin(c)
 		if b:
 			gs.do(DOMAIN, lambda: b(self, c, f))
@@ -279,8 +372,11 @@ class Session(object):
 
 				return not res.get('eof')
 
-			c['stream'] = '%s.stream' % uid
-			mg9.on(c['stream'], stream)
+			if c.get('stream') is False:
+				c['stream'] = ''
+			else:
+				c['stream'] = '%s.stream' % uid
+				mg9.on(c['stream'], stream)
 
 			self.exec_c(c, f)
 
@@ -298,6 +394,9 @@ def gs_init(_={}):
 			builtin('gs.%s' % nm[9:].replace('_', '-'), g[nm])
 
 def _ret(f, res, err):
+	if res.get('ok') is None:
+		res['ok'] = not err
+
 	gs.do(DOMAIN, lambda: f(res, err))
 
 def _builtin_version(ss, c, f):
