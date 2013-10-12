@@ -131,13 +131,22 @@ def show_messages(view):
 			items.append(ents)
 
 	rows = sorted(notes.keys())
-	row, _ = gs.rowcol(view)
-	if row in rows:
-		push(row)
-		rows.remove(row)
+	if rows:
+		active_row, _ = gs.rowcol(view)
+		closest_row = rows[0]
+		distance = abs(active_row - closest_row)
 
-	for row in rows:
-		push(row)
+		for row in rows[1:]:
+			d = abs(active_row - row)
+			if d < distance:
+				distance = d
+				closest_row = row
+
+		push(closest_row)
+		rows.remove(closest_row)
+
+		for row in rows:
+			push(row)
 
 	if items:
 		def cb(i, _):
