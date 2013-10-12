@@ -559,8 +559,8 @@ def ustr(s):
 		return s
 
 	if PY3K:
-		return str(s, 'utf-8')
-	return str(s).decode('utf-8')
+		return str(s, 'utf-8', 'replace')
+	return str(s).decode('utf-8', errors='replace')
 
 def astr(s):
 	if maybe_unicode_str(s):
