@@ -290,3 +290,13 @@ func msDur(start time.Time) time.Duration {
 	dur -= dur % time.Millisecond
 	return dur
 }
+
+func bytePos(src string, charPos int) int {
+	for i, _ := range src {
+		if charPos <= 0 {
+			return i
+		}
+		charPos--
+	}
+	return -1
+}
