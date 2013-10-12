@@ -3,11 +3,13 @@ from . import gs
 from . import kv
 from collections import namedtuple
 import sublime
+import re
 
 DOMAIN = 'GoSublime: Highlights'
 STATUS_DOMAIN = 'gs-hl-status'
 REGION_DOMAIN_NORM = 'gs-hl-region-norm'
 REGION_DOMAIN_EMPTY = 'gs-hl-region-empty'
+
 REGION_DOMAINS = {
 	REGION_DOMAIN_NORM: sublime.DRAW_EMPTY_AS_OVERWRITE,
 	REGION_DOMAIN_EMPTY: sublime.HIDDEN,
@@ -16,6 +18,28 @@ REGION_DOMAINS = {
 kvs = kv.M()
 
 Note = namedtuple('Note', 'ctx row col kind message')
+
+_pos_rx = re.compile(r'([0-9]+)')
+
+class Note(object):
+	def __init__(self, **kw):
+		self.ctx = kw.get('ctx', '')
+		self.row = kw.get('row', 0)
+		self.col = kw.get('col', 0)
+
+		pos = kw.get('pos')
+		if pos:
+			m = _pos_rx.findall(pos)
+			if m:
+				self.row = max(0, int(m[0])-1)
+
+				if len(m) > 1:
+					self.col = max(0, int(m[1])-1)
+
+		self.message = kw.get('message', '').strip()
+
+	def is_valid(self):
+		return self.message and self.ctx and self.row >= 0 and self.col >= 0
 
 def df_kvm():
 	return (kv.M(), True)
@@ -56,6 +80,7 @@ def _update_regions(view, m):
 				# this means we don't depend on being able to show an icon in the gutter
 				# (our icon can be overridden by other regions/plugins)
 				pt = sp + max(nc, n.col)
+
 				r = sublime.Region(pt, pt)
 
 				if pt < sp or pt > ep:
@@ -72,7 +97,8 @@ def add_notes(view, nl):
 	m = kvm(view)
 
 	for n in nl:
-		m.get(n.row, df_note_list).append(n)
+		if n.is_valid():
+			m.get(n.row, df_note_list).append(n)
 
 	_update_regions(view, m)
 
@@ -100,11 +126,7 @@ def lc(view, show_icon=False):
 		if nl:
 			for n in nl:
 				if n:
-					if n.kind:
-						s = ' %s: %s' % (n.kind, n.message)
-					else:
-						s = ' %s' % (n.message)
-
+					s = ' %s' % (n.message)
 					break
 
 		s = u'\u2622%s' % s
