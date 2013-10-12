@@ -1,6 +1,8 @@
 from . import ev
 from . import gs
-import fnmatch
+from . import nineo
+
+DOMAIN = 'gs.hooks'
 
 _scope_aliases = {
 	'go': 'source.go',
@@ -21,32 +23,30 @@ def _hooks(view, k):
 
 	l = []
 
-	for m in gs.setting('hooks').get(k, []):
+	for c in gs.setting('hooks').get(k, []):
 		# todo: impl fn/glob matching
 
-		cmd = m.get('cmd', [])
-		if cmd and _scope_ok(view, m):
-			inp = m.get('input')
-			if inp:
-				if inp is True:
-					inp = gs.view_src(view)
-				else:
-					inp = gs.astr(inp)
-			else:
-				inp = ''
-
-			l.append({
-				'run': cmd,
-				'save_hist': m.get('hist', False),
-				'focus_view': m.get('focus', False),
-				'input': inp,
-			})
+		cmd = c.get('cmd', '')
+		if cmd and _scope_ok(view, c):
+			l.append(c)
 
 	return l
 
 def _hk(view, k):
-	for a in _hooks(view, k):
-		view.run_command('gs9o_open', a)
+	for c in _hooks(view, k):
+		def f(res, err):
+			if err:
+				gs.error(DOMAIN, err)
+				gs.debug(DOMAIN, {
+					'res': res,
+					'mode': k,
+					'c': c,
+				})
+
+		wr = nineo.Writer(None)
+		wr.write = lambda s: None
+
+		nineo.Session(wr, view=view).start(c['cmd'], f)
 
 def gs_init(m={}):
 	pass
