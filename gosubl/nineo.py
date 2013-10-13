@@ -47,8 +47,8 @@ class Session(object):
 		attrs = res.get('attrs')
 		if not gs.is_a(attrs, []):
 			gs.debug(DOMAIN, {
-				'err': 'attr is not a list',
-				'attr': attr,
+				'err': 'attrs is not a list',
+				'attrs': attrs,
 				'c': c,
 			})
 			return
