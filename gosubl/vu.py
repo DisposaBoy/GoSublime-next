@@ -13,7 +13,7 @@ class V(object):
 			return False
 
 		# todo: check transient and 9o, is_scratch, non-overlay should be implied below
-		return self.v in win.windows()
+		return self.v in win.views()
 
 	def fn(self):
 		if self.v is None:
