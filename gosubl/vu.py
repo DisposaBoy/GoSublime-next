@@ -1,3 +1,4 @@
+from os.path import dirname, normpath
 import sublime
 
 class V(object):
@@ -26,6 +27,9 @@ class V(object):
 			return ''
 
 		return self.v.file_name() or 'gs.view://%s' % self.v.id()
+
+	def dir(self):
+		return dirname(normpath(self.fn()))
 
 	def src(self):
 		if self.v is None:
