@@ -48,6 +48,14 @@ class V(object):
 	def has_window(self):
 		return self.window() is not None
 
+	def sibling_views(self):
+		win = self.window()
+		if win is not None:
+			return win.views()
+
+		return []
+
+
 def active(win=None, view=None):
 	if view is None:
 		if win is None:
