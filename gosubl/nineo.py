@@ -393,6 +393,23 @@ def gs_init(_={}):
 		if nm.startswith('_builtin_'):
 			builtin('gs.%s' % nm[9:].replace('_', '-'), g[nm])
 
+def _dbg_cb(keys=[]):
+	def f(res, err):
+		if keys:
+			r = {}
+			for k in keys:
+				r[k] = res.get(k, '<nil>')
+		else:
+			r = res
+
+		print({
+			'res': r,
+			'err': err,
+		})
+
+	return f
+
+
 def _ret(f, res, err):
 	if res.get('ok') is None:
 		res['ok'] = not err
