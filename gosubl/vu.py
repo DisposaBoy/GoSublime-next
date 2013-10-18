@@ -42,6 +42,12 @@ class V(object):
 
 		return self.v.window()
 
+	def has_view(self):
+		return self.v is not None
+
+	def has_window(self):
+		return self.window() is not None
+
 def active(win=None, view=None):
 	if view is None:
 		if win is None:
