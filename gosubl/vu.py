@@ -2,42 +2,45 @@ import sublime
 
 class V(object):
 	def __init__(self, view):
-		self.view = view
+		self.v = view
 
 	def perma(self):
-		if self.view is None:
+		if self.v is None:
 			return False
 
-		win = self.view.window()
+		win = self.v.window()
 		if win is None:
 			return False
 
 		# todo: check transient and 9o, is_scratch, non-overlay should be implied below
-		return self.view in win.windows()
+		return self.v in win.windows()
 
 	def fn(self):
-		if self.view is None:
+		if self.v is None:
 			return ''
 
-		return self.view.file_name() or ''
+		return self.v.file_name() or ''
 
 	def vfn(self):
-		if self.view is None:
+		if self.v is None:
 			return ''
 
-		return self.view.file_name() or 'gs.view://%s' % self.view.id()
+		return self.v.file_name() or 'gs.view://%s' % self.v.id()
 
 	def src(self):
-		if self.view is None:
+		if self.v is None:
 			return ''
 
-		return self.view.substr(sublime.Region(0, self.view.size()))
+		return self.v.substr(sublime.Region(0, self.v.size()))
+
+	def view(self):
+		return self.v
 
 	def window(self):
-		if self.view is None:
+		if self.v is None:
 			return None
 
-		return self.view.window()
+		return self.v.window()
 
 def active(win=None, view=None):
 	if view is None:
