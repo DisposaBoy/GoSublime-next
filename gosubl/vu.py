@@ -33,6 +33,12 @@ class V(object):
 
 		return self.view.substr(sublime.Region(0, self.view.size()))
 
+	def window(self):
+		if self.view is None:
+			return None
+
+		return self.view.window()
+
 def active(win=None, view=None):
 	if view is None:
 		if win is None:
