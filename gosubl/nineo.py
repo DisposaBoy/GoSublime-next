@@ -191,11 +191,7 @@ class Session(object):
 			if not wd:
 				return
 
-		win = self.view.window()
-		if win is None:
-			return
-
-		for view in win.views():
+		for view in self.vv.sibling_views():
 			if self.view_wd(view) == wd:
 				self.save(view)
 
