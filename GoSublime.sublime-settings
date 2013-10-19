@@ -307,20 +307,22 @@
 				}
 			],
 
-			// construct a *string* by join `cmd` (without extension) and `args` separated by a single `space`
-			// and pass it to your shell. see the `shell` setting
-			// e.g. `"echo": {"cmd": "echo", "args": ["1", "2", "3"]}` will become `/bin/bash -l -c 'echo 1 2 3'`
-			"sh": false,
-
-			// if true, `cmd` refers to an Operating System command/binary in your $PATH
-			// that is: command extension does not take place. see `command extension:` below
-			// this is useful for resolving recursive command definitions where
-			// `a` calls `b` and `b` calls `/usr/bin/a` as `a`
-			// for convenience, the default is `false` except where a command calls itself
-			// so `"echo": {"cmd": "echo"}` is essentially `"echo": {"cmd": "/bin/echo"}`
-			// but `"echo": {"cmd": "echo-bin"}, "echo-bin": {"cmd": "echo"}` will fail because of the recursion:
-			// please note: if `sh` is `true` it will override this setting
-			"os": false,
+			// if set, `cmd` refers to the final executable commnd,
+			// and no further extension is done. supported values are:
+			// sh:
+			//     construct a *string* by join `cmd` (without extension) and `args` separated by a single `space`
+			//     and pass it to your shell. see the `shell` setting
+			//     e.g. `"echo": {"cmd": "echo", "args": ["1", "2", "3"]}` will become `/bin/bash -l -c 'echo 1 2 3'`
+			//
+			// os:
+			//     `cmd` refers to an Operating System command/binary in your $PATH
+			//     that is: command extension does not take place. see `command extension:` below
+			//     this is useful for resolving recursive command definitions where
+			//     `a` calls `b` and `b` calls `/usr/bin/a` as `a`
+			//     for convenience, of `cmd` refers to this command or is missing, the command is considered to be `final: "os"`
+			//     so `"echo": {"cmd": "echo"}` or `"echo": {}` is essentially `"echo": {"cmd": "/bin/echo"}`
+			//     but `"echo": {"cmd": "echo-bin"}, "echo-bin": {"cmd": "echo"}` will fail because of the recursion
+			"final": "",
 
 			// in both cmd and args, env vars e.g. $HOME and $_wd are expanded using `env` (above)
 
