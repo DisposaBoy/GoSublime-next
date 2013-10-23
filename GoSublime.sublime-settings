@@ -206,6 +206,8 @@
 	// converted to an object in the follow way:
 	//     the first element in the array will become `cmd` and the rest `args`
 	//     i.e. { "cmd": "echo", "args": ["abc"]}
+	//
+	// if the command name starts with a dot e.g. `.go-lint`, it will be hidden from the ui, e.g. not autocompleted
 	"commands": {
 		"": {
 			// all cancellable command (excuted via margo) are uniquely identified
@@ -213,9 +215,6 @@
 			// any previous un-finished instance will be killed before starting a new one
 			// e.g. `"srv": {"cid": "my-id", "name": "web-srv"}` will kill the old server before starting a new one
 			"cid": "",
-
-			// whether or not the command should be hidden from the ui, e.g. not autocompleted
-			"hidden": false,
 
 			// a list of attr mappings to passed to the command
 			"attrs": [],
