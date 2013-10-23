@@ -387,7 +387,7 @@ def gs_init(_={}):
 	g = globals()
 	for nm in list(g.keys()):
 		if nm.startswith('_builtin_'):
-			builtin('gs.%s' % nm[9:].replace('_', '-'), g[nm])
+			builtin(nm[9:].replace('__', '.').replace('_', '-'), g[nm])
 
 def _dbg_cb(keys=[]):
 	def f(res, err):
@@ -412,6 +412,6 @@ def _ret(f, res, err):
 
 	gs.do(DOMAIN, lambda: f(res, err))
 
-def _builtin_version(ss, c, f):
+def _builtin_gs__version(ss, c, f):
 	ss.writeln(about.VERSION)
 	_ret(f, {}, '')
