@@ -202,10 +202,13 @@
 
 	// N/I
 	// commands is a mapping of 9o command names to objects describing the command (below)
-	// for convenience, if a command is an array e.g. ["echo", "abc"] it will be automatically
-	// converted to an object in the follow way:
-	//     the first element in the array will become `cmd` and the rest `args`
-	//     i.e. { "cmd": "echo", "args": ["abc"]}
+	// for convenience:
+	//     if a command is an array e.g. ["echo", "abc"] it will be automatically
+	//     converted to an object in the follow way:
+	//         the first element in the array will become `cmd` and the rest `args`
+	//         i.e. { "cmd": "echo", "args": ["abc"]}
+	//
+	//      if a command is a string e.g. `/bin/echo` it will be translated into { "cmd": "/bin/echo" }
 	//
 	// if the command name starts with a dot e.g. `.go-lint`, it will be hidden from the ui, e.g. not autocompleted
 	"commands": {
