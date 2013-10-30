@@ -309,6 +309,9 @@
 				}
 			],
 
+			// if this is `true`, the result of the command will be set to whether or not was a match in `switch`
+			"switch_ok": true,
+
 			// if set, `cmd` refers to the final executable commnd,
 			// and no further extension is done. supported values are:
 			// sh:
