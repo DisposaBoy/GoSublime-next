@@ -1,4 +1,4 @@
-from os.path import dirname, normpath
+from os.path import dirname, normpath, splitext
 import sublime
 
 class V(object):
@@ -22,6 +22,12 @@ class V(object):
 
 		return self.v.file_name() or ''
 
+	def splitext(self):
+		return splitext(self.fn())
+
+	def ext(self):
+		return splitext(self.fn())[1]
+
 	def vfn(self):
 		if self.v is None:
 			return ''
@@ -36,6 +42,12 @@ class V(object):
 			return ''
 
 		return self.v.substr(sublime.Region(0, self.v.size()))
+
+	def scope_name(self, pos=0):
+		if self.v is None:
+			return ''
+
+		return self.v.scope_name(pos)
 
 	def view(self):
 		return self.v
