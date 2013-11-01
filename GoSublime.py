@@ -28,6 +28,7 @@ def plugin_loaded():
 	from gosubl import hl
 	from gosubl import hooks
 	from gosubl import nineo
+	from gosubl import nineo_builtins
 
 	if VERSION != about.VERSION:
 		gs.show_output('GoSublime-main', '\n'.join([
@@ -52,7 +53,7 @@ def plugin_loaded():
 		('mg9', mg9),
 		('9o', nineo),
 		('hl', hl),
-		('hooks', hooks),
+		('9o-builtins', nineo_builtins),
 	]
 
 	gs.set_attr('about.version', VERSION)
