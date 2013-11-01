@@ -26,7 +26,6 @@ def plugin_loaded():
 	from gosubl import gs
 	from gosubl import mg9
 	from gosubl import hl
-	from gosubl import hooks
 	from gosubl import nineo
 	from gosubl import nineo_builtins
 
