@@ -69,20 +69,36 @@ class GsGotoRowColCommand(sublime_plugin.TextCommand):
 	def run(self, edit, row, col=0):
 		pt = self.view.text_point(row, col)
 		r = sublime.Region(pt, pt)
-		self.view.sel().clear()
-		self.view.sel().add(r)
-		self.view.show(pt)
-		dmn = 'gs.focus.%s:%s:%s' % (gs.view_fn(self.view), row, col)
-		flags = sublime.DRAW_EMPTY_AS_OVERWRITE
-		show = lambda: self.view.add_regions(dmn, [r], 'comment', 'bookmark', flags)
-		hide = lambda: self.view.erase_regions(dmn)
+		st = self.view.settings()
+		highlight_line = st.get('highlight_line')
+		inverse_caret_state = st.get('inverse_caret_state')
+		g = None
 
-		for i in range(3):
-			m = 300
-			s = i * m * 2
-			h = s + m
-			sublime.set_timeout(show, s)
-			sublime.set_timeout(hide, h)
+		def clr():
+			self.view.sel().clear()
+			self.view.sel().add(r)
+			self.view.show(pt)
+
+		def x(t=300):
+			gs.do(DOMAIN, lambda: next(g, None), t)
+
+		def f():
+			st.set('inverse_caret_state', False)
+			hl = highlight_line
+			for _ in range(5):
+				hl = not hl
+				st.set('highlight_line', hl)
+				clr()
+				x()
+				yield
+
+			st.set('highlight_line', highlight_line)
+			st.set('inverse_caret_state', inverse_caret_state)
+			self.view.sel().add(r)
+			self.view.show(pt)
+
+		g = f()
+		x(0)
 
 class GsNewGoFileCommand(sublime_plugin.WindowCommand):
 	def run(self):
