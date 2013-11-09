@@ -23,6 +23,11 @@ class EV(sublime_plugin.EventListener):
 		sublime.set_timeout(do_sync_active_view, 0)
 
 	def on_activated(self, view):
+		try:
+			ev.sig_act(view)
+		except AttributeError:
+			pass
+
 		sublime.set_timeout(do_sync_active_view, 0)
 		sublime.set_timeout(lambda: do_set_syntax(view), 0)
 
