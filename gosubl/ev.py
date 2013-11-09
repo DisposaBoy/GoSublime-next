@@ -1,5 +1,6 @@
 from . import gs
 from . import kv
+from . import vu
 import sublime
 import threading
 import time
@@ -25,6 +26,9 @@ class Event(object):
 		return self
 
 	def __iadd__(self, f):
+		if not gs.callable(f):
+			return
+
 		with self.lck:
 			self.lst.append(f)
 
@@ -87,6 +91,22 @@ kvs = kv.M()
 def kvm(k):
 	return kvs.get(k, lambda: (kv.M(), True))
 
+def df_act_sig(view):
+	def f():
+		gs.do(DOMAIN, lambda: view_activated(view))
+		gs.do(DOMAIN, lambda: lc(view))
+
+	sig = Signal(1000)
+	sig += f
+	return (sig, True)
+
+def sig_act(view):
+	if ignore_view(view):
+		return
+
+	sig = kvm(view.id()).get('act-sig', lambda: df_act_sig(view))
+	sig()
+
 def df_mod_sig(view):
 	def f():
 		gs.do(DOMAIN, lambda: view_updated(view))
@@ -131,8 +151,7 @@ def sig_mov(view, reset_last_row=False):
 	sig()
 
 def ignore_view(view):
-	vs = view.settings()
-	return vs.get('is_widget') or vs.get('9o')
+	return vu.V(view).temp()
 
 def df_sav_sig(view):
 	def f():
@@ -154,8 +173,7 @@ def sig_sav(view):
 debug = Event()
 init = Event()
 view_updated = Event()
+view_activated = Event()
 file_saved = Event()
 line_changed = Event()
 cursor_moved = Event()
-
-file_saved += lambda view: sig_mod(view)
