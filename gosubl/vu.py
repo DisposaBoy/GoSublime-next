@@ -5,6 +5,9 @@ class V(object):
 	def __init__(self, view):
 		self.v = view
 
+	def temp(self):
+		return not self.perma()
+
 	def perma(self):
 		if self.v is None:
 			return False
@@ -13,8 +16,14 @@ class V(object):
 		if win is None:
 			return False
 
-		# todo: check transient and 9o, is_scratch, non-overlay should be implied below
-		return self.v in win.views()
+		if self.v not in win.views():
+			return False
+
+		vs = self.v.settings()
+		if vs.get('is_widget') or vs.get('9o'):
+			return False
+
+		return True
 
 	def fn(self):
 		if self.v is None:
