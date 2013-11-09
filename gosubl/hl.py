@@ -180,8 +180,4 @@ def lc(view, show_icon=False):
 
 	view.set_status(STATUS_DOMAIN, s)
 
-def mod(view):
-	pass
-
 ev.line_changed += lc
-ev.view_updated += mod
