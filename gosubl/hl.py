@@ -1,9 +1,10 @@
 from . import ev
 from . import gs
 from . import kv
-from collections import namedtuple
-import sublime
+from . import vu
+from os.path import relpath
 import re
+import sublime
 
 DOMAIN = 'GoSublime: Highlights'
 STATUS_DOMAIN = 'gs-hl-status'
@@ -15,16 +16,22 @@ REGION_DOMAINS = {
 	REGION_DOMAIN_EMPTY: sublime.HIDDEN,
 }
 
-kvs = kv.M()
-
-Note = namedtuple('Note', 'ctx row col kind message')
-
 _pos_rx = re.compile(r'([0-9]+)')
+
+class M(kv.M):
+	def m(self, k):
+		return self.get(k, df_m)
+
+	def l(self, k):
+		return self.get(k, df_l)
+
+kvs = M()
 
 class Note(object):
 	def __init__(self, **kw):
 		self.ctx = kw.get('ctx', '')
 		self.row = kw.get('row', 0)
+		self.fn = kw.get('fn', '')
 		self.col = kw.get('col', 0)
 
 		pos = kw.get('pos')
@@ -41,30 +48,26 @@ class Note(object):
 	def is_valid(self):
 		return self.message and self.ctx and self.row >= 0 and self.col >= 0
 
-def df_kvm():
-	return (kv.M(), True)
+def df_l():
+	return ([], True)
 
-def kvm(view):
-	return kvs.get(gs.view_fn(view), df_kvm)
+def df_m():
+	return (M(), True)
 
-def notes(view):
-	return kvm(view).values()
+def refresh(view=None):
+	vv = vu.active(view=view)
+	if not vv.has_view():
+		return
 
-def row_notes(view, row):
-	return kvm(view).get(row, df_note_list)
-
-def _update_regions(view, m):
-	show_icon = False
+	view = vv.view()
 	seen = {}
 	regions = {
 		REGION_DOMAIN_NORM: [],
 		REGION_DOMAIN_EMPTY: [],
 	}
 
-	for nl in m.dict().values():
+	for nl in kvs.m(vv.vfn()).values():
 		if nl:
-			show_icon = True
-
 			n = nl[0]
 			if n.row not in seen:
 				line = view.line(view.text_point(n.row, 0))
@@ -89,36 +92,46 @@ def _update_regions(view, m):
 					regions[REGION_DOMAIN_NORM].append(r)
 
 	for k, rl in regions.items():
-		view.add_regions(k, rl, 'lint error invalid', 'dot', REGION_DOMAINS[k])
+		if rl:
+			view.add_regions(k, rl, 'lint error invalid', 'dot', REGION_DOMAINS[k])
+		else:
+			view.erase_regions(k)
 
-	lc(view, show_icon)
+	lc(vv)
 
-def add_notes(view, nl):
-	m = kvm(view)
-
+def add(*nl):
 	for n in nl:
 		if n.is_valid():
-			m.get(n.row, df_note_list).append(n)
+			kvs.m(n.fn).l(n.row).append(n)
 
-	_update_regions(view, m)
+def clear(*cl):
+	def filter_rows(_, nl):
+		return [n for n in nl if n.ctx not in cl]
 
-def df_note_list():
-	return ([], True)
+	def filter_ents(_, m):
+		m.filter(filter_rows)
+		return m
 
-def clear_notes(view, cl, update=True):
-	m = kvm(view)
-	m.filter(lambda _, nl: [n for n in nl if n.ctx not in cl])
-
-	if update:
-		_update_regions(view, m)
+	kvs.filter(filter_ents)
 
 def show_messages(view):
-	notes = kvm(view).dict()
+	vv = vu.active(view=view)
+	vfn = vv.vfn()
 	items = []
 	gotos = {}
 
-	def push(row):
-		ents = ['Line %s' % (row+1)]
+	def rel(s):
+		t = relpath(s, vv.dir())
+		if t.startswith('.'):
+			return s
+		return t
+
+	def push(notes, fn, row):
+		if fn == vfn:
+			ents = ['Line %s' % (row+1)]
+		else:
+			ents = ['%s:%s' % (rel(fn), row+1)]
+
 		col = -1
 		for n in notes.get(row, []):
 			if n.message:
@@ -127,32 +140,36 @@ def show_messages(view):
 					col = n.col
 
 		if len(ents) > 1:
-			gotos[len(items)] = (row, col)
+			gotos[len(items)] = (fn, row, col)
 			items.append(ents)
 
-	rows = sorted(notes.keys())
-	if rows:
-		active_row, _ = gs.rowcol(view)
-		closest_row = rows[0]
-		distance = abs(active_row - closest_row)
+	d = kvs.dict()
+	for fn in sorted(d.keys(), key=lambda k: '' if k == vfn else rel(k)):
+		notes = d[fn].dict()
+		rows = sorted(notes.keys())
+		if rows:
+			active_row, _ = gs.rowcol(view)
+			closest_row = rows[0]
+			distance = abs(active_row - closest_row)
 
-		for row in rows[1:]:
-			d = abs(active_row - row)
-			if d < distance:
-				distance = d
-				closest_row = row
+			for row in rows[1:]:
+				d = abs(active_row - row)
+				if d < distance:
+					distance = d
+					closest_row = row
 
-		push(closest_row)
-		rows.remove(closest_row)
+			push(notes, fn, closest_row)
+			rows.remove(closest_row)
 
-		for row in rows:
-			push(row)
+			for row in rows:
+				push(notes, fn, row)
 
 	if items:
-		def cb(i, _):
+		def cb(i, win):
 			p = gotos.get(i)
 			if p:
-				view.run_command("gs_goto_row_col", {'row': p[0], 'col': p[1]})
+				fn, row, col = p
+				gs.focus(fn, row=row, col=col, win=win)
 
 		gs.show_quick_panel(items, cb)
 	else:
@@ -162,13 +179,12 @@ def show_messages(view):
 def gs_init(m={}):
 	pass
 
-def lc(view, show_icon=False):
-	sel = gs.sel(view)
-	row, _ = view.rowcol(sel.begin())
-	m = kvm(view)
+def lc(vv):
+	row, _ = vv.rowcol()
+	m = kvs.m(vv.vfn())
 	s = ''
 
-	if show_icon or len(m) > 0:
+	if len(m) > 0:
 		nl = m.get(row)
 		if nl:
 			for n in nl:
@@ -178,6 +194,21 @@ def lc(view, show_icon=False):
 
 		s = u'\u2622%s' % s
 
-	view.set_status(STATUS_DOMAIN, s)
+	# todo: make this display globally as well
+	vv.view().set_status(STATUS_DOMAIN, s)
 
-ev.line_changed += lc
+def on_close(view):
+	# if errors were tracked for an unsaved view, they would linger forever after it was saved
+	vv = vu.V(view).vfn()
+	for s in set((vv.fn(), vv.vfn())):
+		print('del',s)
+		kvs.delete(s)
+
+	refresh()
+
+ev.line_changed += lambda view: lc(vu.V(view))
+ev.view_activated += refresh
+ev.file_sync += refresh
+ev.view_closed += refresh
+# note-to-self: don't cleanup the old views when they close...
+# we want to preserve the old errors so they're highlighted after they're re-opened
