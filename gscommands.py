@@ -2,6 +2,7 @@ from gosubl import gs
 from gosubl import gspatch
 from gosubl import hl
 from gosubl import mg9
+from gosubl import vu
 import datetime
 import os
 import sublime
@@ -74,10 +75,15 @@ class GsGotoRowColCommand(sublime_plugin.TextCommand):
 		inverse_caret_state = st.get('inverse_caret_state')
 		g = None
 
-		def clr():
-			self.view.sel().clear()
-			self.view.sel().add(r)
-			self.view.show(pt)
+		self.view.sel().clear()
+		self.view.sel().add(r)
+		self.view.show(pt)
+
+		def curs():
+			if vu.rowcol(self.view) == (row, col):
+				self.view.show(pt)
+				return True
+			return False
 
 		def x(t=300):
 			gs.do(DOMAIN, lambda: next(g, None), t)
@@ -86,16 +92,17 @@ class GsGotoRowColCommand(sublime_plugin.TextCommand):
 			st.set('inverse_caret_state', False)
 			hl = highlight_line
 			for _ in range(5):
+				if not curs():
+					break
+
 				hl = not hl
 				st.set('highlight_line', hl)
-				clr()
 				x()
 				yield
 
 			st.set('highlight_line', highlight_line)
 			st.set('inverse_caret_state', inverse_caret_state)
-			self.view.sel().add(r)
-			self.view.show(pt)
+			curs()
 
 		g = f()
 		x(0)
