@@ -43,8 +43,7 @@
 	},
 	{
 		"keys": ["super+.", "super+e"],
-		"command": "gs_show_messages",
-		"context": [{ "key": "selector", "operator": "equal", "operand": "source.go" }]
+		"command": "gs_show_messages"
 	},
 	{
 		"keys": ["super+.", "super+["],
