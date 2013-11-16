@@ -200,6 +200,5 @@ def lc(vv):
 ev.line_changed += lambda view: lc(vu.V(view))
 ev.view_activated += refresh
 ev.file_sync += refresh
-ev.view_closed += refresh
 # note-to-self: don't cleanup the old views when they close...
 # we want to preserve the old errors so they're highlighted after they're re-opened
