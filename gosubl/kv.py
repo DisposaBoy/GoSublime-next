@@ -55,6 +55,14 @@ class M(object):
 		with self.lck:
 			return self.d.copy()
 
+	def keys(self):
+		with self.lck:
+			return list(self.d.keys())
+
+	def values(self):
+		with self.lck:
+			return list(self.d.values())
+
 	def clear(self, m={}):
 		with self.lck:
 			self.d = m
