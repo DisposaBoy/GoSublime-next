@@ -80,6 +80,12 @@ class V(object):
 
 		return []
 
+	def sel(i=0):
+		return sel(self.v, i)
+
+	def rowcol(self):
+		return rowcol(self.v)
+
 
 def active(win=None, view=None):
 	if view is None:
@@ -90,3 +96,19 @@ def active(win=None, view=None):
 			view = win.active_view()
 
 	return V(view)
+
+def sel(view, i=0):
+	try:
+		s = view.sel()
+		if s is not None and i < len(s):
+			return s[i]
+	except Exception:
+		pass
+
+	return sublime.Region(0, 0)
+
+def rowcol(view):
+	try:
+		return view.rowcol(sel(view).begin())
+	except Exception:
+		return (0, 0)
