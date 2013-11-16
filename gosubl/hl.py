@@ -197,15 +197,6 @@ def lc(vv):
 	# todo: make this display globally as well
 	vv.view().set_status(STATUS_DOMAIN, s)
 
-def on_close(view):
-	# if errors were tracked for an unsaved view, they would linger forever after it was saved
-	vv = vu.V(view).vfn()
-	for s in set((vv.fn(), vv.vfn())):
-		print('del',s)
-		kvs.delete(s)
-
-	refresh()
-
 ev.line_changed += lambda view: lc(vu.V(view))
 ev.view_activated += refresh
 ev.file_sync += refresh
