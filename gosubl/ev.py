@@ -213,3 +213,6 @@ ev_map = {
 	'on_selection_modified': sig_mov,
 }
 
+# todo: maybe impl view_closed... it's a little complex because closed views are treated as temp
+# view and thus ignored...
+
