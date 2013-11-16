@@ -1,21 +1,26 @@
 from . import about
+from . import gs
 from . import nineo
+import pprint
 
 def gs_init(_={}):
 	g = globals()
+	p = 'bi_'
+	l = len(p)
 	for nm in list(g.keys()):
-		if nm.startswith('bi_'):
-			nineo.builtin(nm[9:].replace('__', '.').replace('_', '-'), g[nm])
+		if nm.startswith(p):
+			k = nm[l:].replace('__', '.').replace('_', '-')
+			nineo.builtin(k, g[nm])
 
 def _do_cl(c, k):
 	if c.args:
 		c.ok = k != 'any'
 		for cn in c.args:
-			c.cl[k].append(c.sess.cmd(cn, cb=c.cb_step, set_stream=c.set_stream))
+			c.cl[k].append(c.sess.cmd(cn, set_stream=c.set_stream))
 	else:
 		c.ok = True
 
-	c.step()
+	c.resume()
 
 def bi_all(c):
 	_do_cl(c, 'all')
@@ -37,21 +42,46 @@ def bi_false(c):
 
 def bi_confirm(c):
 	if c.args:
-		c.step(sublime.ok_cancel_dialog(' '.join(c.args)))
+		c.resume(sublime.ok_cancel_dialog(' '.join(c.args)))
 	else:
 		c.fail('Usage: confirm <message>')
 
+def _dbg_c(c, keys):
+	d = c.__dict__
+	if keys:
+		v = {}
+		for k in keys:
+			v[k] = d.get(k)
+	else:
+		v = d
+
+	return pprint.pformat(v)
+
 def bi_gs__cmdump(c):
-	s = '`%s`' % c.sess.cmd(c.args).__dict__
-	print(s)
+	if len(c.args) == 0 or not gs.is_a(c.args[0], []):
+		c.fail('Usage: gs.cmdump <keys-list> [cmd [args...]]')
+		return
+
+	keys = c.args[0]
+	args = c.args[1:]
+	s = _dbg_c(c, keys)
+	print('gs.cmdump: %s' % s)
 	c.done(s)
 
 def bi_gs__cmdebug(c):
-	def cb(x):
-		print(x.__dict__)
-		c.step(x.ok)
+	if len(c.args) == 0 or not gs.is_a(c.args[0], []):
+		c.fail('Usage: gs.cmdebug <keys-list> [cmd [args...]]')
+		return
 
-	c.sess.cmd(c.args, cb=cb, set_stream=c.set_stream).start()
+	keys = c.args[0]
+	args = c.args[1:]
+
+	def cb(x):
+		print('gs.cmdebug: %s' % _dbg_c(x, keys))
+		x.resume()
+		c.resume(x.ok)
+
+	c.sess.cmd(args, cb=cb, set_stream=c.set_stream).start()
 
 def bi_echo(c, ok=True):
 	if c.args and c.args[0] == '-n':
@@ -59,7 +89,7 @@ def bi_echo(c, ok=True):
 	else:
 		c.sess.writeln(' '.join(c.args))
 
-	c.step(ok)
+	c.resume(ok)
 
 def bi_fail(c):
 	bi_echo(c, False)

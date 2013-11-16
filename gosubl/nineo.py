@@ -1,4 +1,5 @@
 from . import about
+from . import ev
 from . import gs
 from . import hl
 from . import kv
@@ -7,6 +8,7 @@ from . import sh
 from . import vu
 import copy
 import os
+import re
 import string
 import sublime
 
@@ -17,173 +19,327 @@ views = kv.M()
 completions = []
 _builtins = {}
 
-class Writer(object):
+class Wr(object):
 	def __init__(self, view):
 		self.view = view
 
 	def write(self, s):
 		# todo: implement this
-		print(s)
+		if self.view is not None:
+			print(s)
 
-class Session(object):
-	def __init__(self, wr, wd='', win=None, view=None, args=[]):
-		self.wr = wr
-		self.vv = vu.active(win=win, view=view)
-		self.wd = wd or gs.basedir_or_cwd(self.vv.fn())
-		self.args = args
+class Cmd(object):
+	def __init__(self, sess, cn, cb=None, set_stream=None):
+		self.cid = ''
+		self.attrs = []
 		self.input = ''
-		self.user_args = True
+		self.discard_stdout = False
+		self.discard_stderr = False
+		self.save = False
+		self.set_stream = set_stream
+		self.stream = True
+		self.wd = ''
+		self.env = {}
+		self.hl = {}
+		self.cfg = {}
+		self.switch = []
+		self.switch_ok = True
+		self.final = ''
+		self.cmd = ''
+		self.args = []
+		self.res = {}
+		self.ok = True
+		self.cl = {
+			'all': [],
+			'any': [],
+			'each': [],
+		}
+		self.sess = sess
+		self.wd = sess.wd
+		self.cbl = []
+		self.errs = []
+		self.visited = []
+		self.f = None
+		self.g = None
 
-	def _highlight(self, c, res):
-		if not gs.is_a(res, {}):
-			gs.debug(DOMAIN, {
-				'err': 'res is not a dict',
-				'res': res,
-				'c': c,
-			})
+		self.cb(cb)
+		self.merge(cn)
+
+	def cb(self, cb):
+		if gs.callable(cb):
+			self.cbl.append(cb)
+
+	def merge(self, cn):
+		if gs.is_a_string(cn):
+			v = self.sess.cmds.get(cn)
+			if v is not None:
+				# allow the user to specify a command without a `cmd`entry:
+				# default the name in the `cmds` object
+				if not self.cmd:
+					self.cmd = cn
+
+				if v in self.visited:
+					self.visited.append(v)
+					self.final = 'error/recursion'
+					self.errs.append('recursive command definition: %s' % self.visited_names())
+					return
+
+				cn = v
+
+		if gs.is_a_string(cn):
+			# same as above "allow the user..."
+			if not self.cmd:
+				self.cmd = cn
+
+			# break the recursion
+			cn = {}
+		elif gs.is_a(cn, []):
+			cn = {'cmd': cn[0], 'args': cn[1:]}
+		elif not gs.is_a(cn, {}):
+			self.final = 'error/invalid-type'
+			self.errs.append('invalid command type. want object, array or string, got %s' % type(cn))
 			return
 
-		# todo: do we really want to reject `None` here? (i.e shoul we defaut to [])
-		attrs = res.get('attrs')
-		if not gs.is_a(attrs, []):
-			gs.debug(DOMAIN, {
-				'err': 'attrs is not a list',
-				'attrs': attrs,
-				'c': c,
-			})
+		if not self.cid:
+			self.cid = cn.get('cid') or ''
+
+		if not self.input:
+			self.input = cn.get('input') or ''
+
+		if not self.discard_stdout:
+			self.discard_stdout = cn.get('discard_stdout') is True
+
+		if not self.discard_stderr:
+			self.discard_stderr = cn.get('discard_stderr') is True
+
+		if not self.stream:
+			self.stream = cn.get('stream') is True
+
+		if not self.save:
+			self.save = cn.get('save') is True
+
+		self.switch_ok = bool(cn.get('switch_ok', self.switch_ok))
+
+		for k in self.cl:
+			x = cn.get(k)
+			if x:
+				self.cl[k].insert(0, Cmd(self.sess, x))
+
+		if not self.wd:
+			self.wd = cn.get('wd') or ''
+
+		self.update_d(self.hl, cn, 'hl')
+		self.update_d(self.cfg, cn, 'cfg')
+		self.update_d(self.env, cn, 'env')
+		self.update_l(self.switch, cn, 'switch')
+		self.update_l(self.args, cn, 'args')
+		self.update_l(self.attrs, cn, 'attrs')
+
+		if not self.final:
+			self.final = cn.get('final') or self.final
+
+		cm = cn.get('cmd', '')
+		self.cmd = cm or self.cmd
+
+		if cm and not self.final:
+			if len(self.visited) > 100:
+				self.final = 'error/max-depth'
+				self.errs.append('max command resolution depth reached: %s' % self.visited_names())
+				return
+
+			self.visited.append(cn)
+			self.merge(cm)
+
+		if self.final in ('', 'builtin'):
+			f = builtin(self.cmd)
+			if f:
+				self.f = f
+				self.final = 'builtin'
+
+	def visited_names(self):
+		return ' -> '.join('{%s}' % v.get('cmd', '<anon>') for v in self.visited)
+
+	def update_d(self, p, d, q_name):
+		q = gs.dval(d.get(q_name), {})
+		for k in q:
+			if not p.get(k):
+				p[k] = copy.deepcopy(q[k])
+
+	def update_l(self, p, d, q_name):
+		q = gs.dval(d.get(q_name), [])
+		if q:
+			l = p[:]
+			del p[:]
+
+			if q_name == 'switch':
+				for v in q:
+					if gs.is_a_string(v):
+						v = {'case': [v]}
+
+					p.append(v)
+			else:
+				p.extend(q.copy())
+
+			p.extend(l)
+
+	def start(self, cb=None):
+		if self.errs:
+			self.fail('\n'.join(self.errs))
 			return
 
-		nd = {}
-		cd = {}
+		self.env = sh.env(self.env)
 
-		for a in attrs:
-			if not gs.is_a(a, {}):
-				continue
+		for k in self.env:
+			self.env[k] = self.exp(self.env[k])
 
-			ctx = a.get('gs.highlight')
-			if not ctx:
-				continue
+		for k in self.hl:
+			self.hl[k] = self.exp(self.hl[k])
 
+		for sw in self.switch:
+			attr = sw.get('attr')
+			if attr:
+				for k in attr:
+					attr[k] = self.exp(attr[k])
+
+		if self.final == 'sh':
+			l = sh.cmd(' '.join(gs.lst(c.cmd, c.args)))
+			c.cmd = l[0]
+			c.args = l[1:]
+		else:
+			self.cmd = self.exp(self.cmd)
+			self.args = [self.exp(v) for v in self.args]
+
+		if self.save:
+			self.sess.save_all(self.wd)
+
+		if self.input is True:
+			self.input = self.sess.vv.src()
+		elif not gs.is_a_string(self.input):
+			self.input = ''
+
+		self.cb(cb)
+		self.g = self.gen()
+		self.resume()
+
+	def gen(self):
+		f = self.f or _exec_c
+
+		ev.debug(DOMAIN, {
+			'k': 'start',
+			'f': f,
+		})
+		yield f(self)
+
+		if self.ok:
+			for x in self.cl['all']:
+				ev.debug(DOMAIN, {
+					'k': 'all',
+					'c': x,
+				})
+				yield x.start(self.call_resume)
+				self.ok = x.ok
+				if not x.ok:
+					break
+		else:
+			for x in self.cl['any']:
+				ev.debug(DOMAIN, {
+					'k': 'any',
+					'c': x,
+				})
+				yield x.start(self.call_resume)
+				self.ok = x.ok
+				if x.ok:
+					break
+
+		for x in self.cl['each']:
+			ev.debug(DOMAIN, {
+				'k': 'each',
+				'c': x,
+			})
+			yield x.start(self.call_resume)
+
+		for f in self.cbl:
+			ev.debug(DOMAIN, {
+				'k': 'cb',
+				'cb': f,
+			})
+			yield f(self)
+
+		if self.hl:
+			ev.debug(DOMAIN, {
+				'k': 'hl',
+				'hl': self.hl,
+				'attrs': self.attrs,
+			})
+			gs.do(DOMAIN, self.do_hl)
+
+	def resume(self, ok=None):
+		if ok in (True, False):
+			self.ok = ok
+
+		gs.do(DOMAIN, lambda: next(self.g, None))
+
+	def call_resume(self, c):
+		c.resume()
+		self.resume()
+
+	def done(self, s=''):
+		if s:
+			self.sess.writeln(s)
+
+		self.resume(True)
+
+	def fail(self, s=''):
+		if s:
+			self.errs.append(s)
+			self.sess.error(s)
+
+		self.resume(False)
+
+	def exp(self, s):
+		if gs.is_a_string(s):
+			return string.Template(s).safe_substitute(self.env)
+
+		return s
+
+	def do_hl(self):
+		ctx = self.hl.get('ctx')
+		if not ctx:
+			return
+
+		hl.clear(ctx)
+
+		for a in self.attrs:
+			a = gs.dval(a, {})
+			message = a.get('message', '').strip()
 			fn = a.get('fn')
 			if fn and fn != '<stdin>':
-				fn = gs.abspath(fn, c['wd'])
+				fn = gs.abspath(fn, self.sess.wd)
 			else:
-				fn = self.vv.vfn()
+				fn = self.sess.vv.vfn()
 
-			cd.setdefault(fn, []).append(ctx)
-			nd.setdefault(fn, []).append(hl.Note(
-				ctx = ctx,
-				fn = fn,
-				pos = a.get('pos'),
-				message = a.get('message') or '',
-				scope = a.get('gs.scope') or '',
-				icon = a.get('gs.icon') or ''
-			))
+			if fn and message:
+				hl.add(hl.Note(
+					ctx = ctx,
+					fn = fn,
+					pos = a.get('pos'),
+					message = message,
+				))
 
-		if nd:
-			views = {}
-			for win in sublime.windows():
-				for view in win.views():
-					vfn = gs.view_fn(view)
-					if vfn in nd:
-						views[vfn] = view
+		hl.refresh()
 
-			for vfn in views:
-				view = views[vfn]
-				hl.clear_notes(view, cd[vfn])
-				hl.add_notes(view, nd[vfn])
+class Sess(object):
+	def __init__(self, wr=None, wd='', win=None, view=None, cmds={}):
+		self.vv = vu.active(win=win, view=view)
+		self.wr = wr or Wr(self.vv.view())
+		self.wd = wd or gs.basedir_or_cwd(self.vv.fn())
+		self.cmds = cmds or gs.setting('commands', {})
 
-	def _cb(self, c, cb):
-		def f(res, err):
-			gs.do(DOMAIN, self._highlight(c, res))
-
-			if err:
-				self.error(err)
-
-			cb2 = cb
-			then = c.get('then')
-			if then:
-				def cb2(res, err):
-					if err:
-						self.error(err)
-
-					self.start(then, cb)
-
-			andor = c.get('and') if res.get('ok') is True else c.get('or')
-			if andor:
-				self.start(andor, cb2)
-			else:
-				gs.do(DOMAIN, lambda: cb2(res, err))
-
-		return f
-
-	def mk(self, cn):
-		return self._mk(gs.setting('commands', {}), {}, '', cn)
-
-	def _mk_c(self, cmds, seen, base_nm, cn):
-		if not cn:
-			return ('', {}, 'empty command')
-
-		if gs.is_a(cn, {}):
-			return ('', cn, '')
-
-		if gs.is_a(cn, []):
-			return ('', {'cmd': cn[0], 'args': cn[1:]}, '')
-
-		if not gs.is_a_string(cn):
-			return ('', {}, 'invalid command type %s' % type(cn))
-
-		if cn in seen:
-			return (cn, {}, 'recursive command definition: `%s` <-> `%s`' % (base_nm, cn))
-
-		seen[cn] = True
-
-		c = cmds.get(cn, {})
-		if c:
-			return self._mk_c(cmds, seen, cn, c)
-
-		return ('', {'builtin': True, 'cmd': cn}, '')
-
-	def _mk(self, cmds, seen, base_nm, cn):
-		nm, c, err = self._mk_c(cmds, seen, base_nm, cn)
-		if not c:
-			return ({}, err)
-
-		# we want to avoid any side-effects on the original object as we're going to mutate the
-		# object later
-		c = copy.deepcopy(c)
-
-		self.c_env(c)
-		self.c_wd(c)
-		c['_wd'] = c['wd']
-		c['PWD'] = c['wd']
-		self.c_cmd(c)
-		self.c_args(c)
-		self.c_switch(c)
-		self.c_discard(c)
-
-		nx = c['cmd']
-		if self.c_can_expand(c, cmds, nm, nx):
-			c['cmd'] = ''
-
-			x, err = self._mk(cmds, seen, nm, nx)
-			if err:
-				return ({}, err)
-
-			for k in x:
-				if k in ('args', 'switch', 'attrs'):
-					x[k].extend(c[k])
-					c[k] = x[k]
-				elif k in ('env'):
-					x[k].update(c[k])
-					c[k] = x[k]
-				else:
-					c[k] = x[k]
-
-		return (c, '')
+	def cmd(self, cn, cb=None, set_stream=None):
+		return Cmd(self, cn, cb=cb, set_stream=set_stream)
 
 	def save_all(self, wd):
-		if self.vv.view is None:
+		if self.vv.view() is None:
 			return
 
 		if not wd:
@@ -212,169 +368,14 @@ class Session(object):
 	def dir(self, fn):
 		return os.path.dirname(os.path.normpath(fn))
 
-	def expand(self, s, env):
-		return string.Template(s).safe_substitute(env)
-
-	def c_env(self, c):
-		env = sh.env()
-		env.update(c.get('env', {}))
-		env.update({
-			'_fn': self.vv.fn(),
-			'_vfn': self.vv.vfn(),
-		})
-		c['env'] = env
-
-	def c_save(self, c):
-		if c.get('save') is True:
-			self.save_all(c.get('wd'))
-
-		# cache the input *after* it's saved so any event hander mutations are picked up
-		self.input = self.vv.src()
-
-	def c_input(self, c):
-		s = c.get('input') or ''
-		c['input'] = self.input if s is True else s
-
-	def c_wd(self, c):
-		if c.get('wd'):
-			c['wd'] = self.expand(c['wd'], c['env'])
-		else:
-			c['wd'] = self.wd
-
-	def c_can_use_builtin(self, c):
-		if c.get('os') or c.get('sh'):
-			return None
-
-		return builtin(c['cmd'])
-
-	def c_can_expand(self, c, cmds, nm, nx):
-		if nm == nx:
-			return False
-
-		if c.get('builtin'):
-			return False
-
-		if c.get('os') or c.get('sh'):
-			return False
-
-		return nx in cmds
-
-	def c_cmd(self, c):
-		s = c.get('cmd') or ''
-		c['cmd'] = self.expand(s, c['env'])
-
-	def c_args(self, c):
-		c['args'] = [self.expand(v, c['env']) for v in gs.lst(c.get('args', []))]
-
-	def c_switch(self, c):
-		l = []
-		for sw in gs.lst(c.get('switch')):
-			if gs.is_a(sw, {}):
-				cs = sw.get('case')
-				if not gs.is_a(cs, []):
-					if cs in ('', None):
-						sw['case'] = []
-					elif gs.is_a_string(cs):
-						sw['case'] = [cs]
-					else:
-						continue
-
-			l.append(sw)
-
-		c['switch'] = l
-
-
-	def c_discard(self, c):
-		c['discard_stdout'] = c.get('discard_stdout') is True
-		c['discard_stderr'] = c.get('discard_stderr') is True
-
 	def write(self, s):
-		self.wr.write(s)
+		self.wr.write('%s' % s)
 
 	def writeln(self, s):
 		self.wr.write('%s\n' % s)
 
 	def error(self, s):
 		self.wr.write('Error: %s\n' % s)
-
-	def exec_c(self, c, cb):
-		a = {
-			'Stream': c['stream'],
-			'Cid': c['cid'],
-			'Input': c['input'],
-			'Env': c['env'],
-			'Wd': c['wd'],
-			'Cmd': c['cmd'],
-			'Args': c['args'],
-			'Switch': c['switch'],
-			'DiscardStdout': c.get('discard_stdout') is True,
-			'DiscardStderr': c.get('discard_stderr') is True,
-		}
-
-		tid = gs.begin(
-			DOMAIN,
-			'[ %s ] # %s %s' % (gs.simple_fn(c['wd']), c['cmd'], c['args']),
-			set_status=False,
-			cancel=lambda: mg9.acall('cancel', {'cid': c['cid']}, None)
-		)
-
-		def f(res, err):
-			try:
-				gs.do(DOMAIN, lambda: cb(res, err))
-			except Exception:
-				gs.println(gs.traceback())
-			finally:
-				gs.end(tid)
-
-		mg9.acall('exec', a, f)
-
-	def start(self, cn, cb):
-		c, err = self.mk(cn)
-		if err:
-			self.error(err)
-			return
-
-		if not c:
-			self.error('invalid command: `%s`' % cn)
-			return
-
-		user_args = c.get('user_args', self.user_args)
-		self.user_args = False
-		if user_args:
-			c['args'].extend([self.expand(v, c['env']) for v in self.args])
-
-		if c.get('sh') is True:
-			l = sh.cmd(' '.join(gs.lst(c['cmd'], c['args'])))
-			c['cmd'] = l[0]
-			c['args'] = l[1:]
-
-		uid = gs.uid()
-
-		if not c.get('cid'):
-			c['cid'] = uid
-
-		self.c_save(c)
-		self.c_input(c)
-
-		f = self._cb(c, cb)
-		b = self.c_can_use_builtin(c)
-		if b:
-			gs.do(DOMAIN, lambda: b(self, c, f))
-		else:
-			def stream(res, err):
-				out = res.get('out')
-				if out is not None:
-					self.write(out)
-
-				return not res.get('eof')
-
-			if c.get('stream') is False:
-				c['stream'] = ''
-			else:
-				c['stream'] = '%s.stream' % uid
-				mg9.on(c['stream'], stream)
-
-			self.exec_c(c, f)
 
 def builtin(nm, f=None):
 	f = gs.callable(f)
@@ -384,34 +385,99 @@ def builtin(nm, f=None):
 	return _builtins.get(nm)
 
 def gs_init(_={}):
-	g = globals()
-	for nm in list(g.keys()):
-		if nm.startswith('_builtin_'):
-			builtin(nm[9:].replace('__', '.').replace('_', '-'), g[nm])
+	pass
 
-def _dbg_cb(keys=[]):
+def _exec_c(c):
+	if not c.cmd:
+		c.fail('invalid command')
+		return
+
+	st = ''
+	uid = gs.uid()
+	stream = c.set_stream
+	if stream is None:
+		stream = c.stream
+
+	if c.stream:
+		st = '%s.stream' % uid
+		def stream_f(res, err):
+			out = res.get('out')
+			if out is not None:
+				c.sess.write(out)
+
+			return not res.get('eof')
+
+		mg9.on(st, stream_f)
+
+	a = {
+		'Stream': st,
+		'Cid': c.cid,
+		'Input': c.input,
+		'Env': c.env,
+		'Wd': c.sess.wd,
+		'Cmd': c.cmd,
+		'Args': c.args,
+		'Switch': c.switch,
+		'SwitchOk': c.switch_ok,
+		'DiscardStdout': c.discard_stdout,
+		'DiscardStderr': c.discard_stderr,
+	}
+
+	tid = gs.begin(
+		DOMAIN,
+		'[ %s ] # %s %s' % (gs.simple_fn(c.sess.wd), c.cmd, c.args),
+		set_status=False,
+		cancel=lambda: mg9.acall('cancel', {'cid': c.cid}, None)
+	)
+
 	def f(res, err):
-		if keys:
-			r = {}
-			for k in keys:
-				r[k] = res.get(k, '<nil>')
-		else:
-			r = res
+		try:
+			c.attrs.extend(gs.dval(res.get('attrs'), []))
+			c.res = res
+			out = res.get('out', '')
 
-		print({
-			'res': r,
-			'err': err,
-		})
+			if out:
+				if out.endswith('\n'):
+					c.sess.write(out)
+				else:
+					c.sess.writeln(out)
 
-	return f
+			if err:
+				c.fail(err)
+			else:
+				c.resume(res.get('ok'))
+		except Exception:
+			gs.print_traceback()
+		finally:
+			gs.end(tid)
 
+	mg9.acall('exec', a, f)
 
-def _ret(f, res, err):
-	if res.get('ok') is None:
-		res['ok'] = not err
+null_wr = Wr(None)
 
-	gs.do(DOMAIN, lambda: f(res, err))
+def _hk(view, e):
+	ss = Sess(view=view, wr=null_wr)
+	fx = ss.vv.ext()
 
-def _builtin_gs__version(ss, c, f):
-	ss.writeln(about.VERSION)
-	_ret(f, {}, '')
+	# file_sync is triggered for file_loaded and file_saved, so don't call `gs.on-lint` again
+	if e == 'sync':
+		el = ('gs.on-sync')
+	else:
+		el = ('gs.on-%s' % e, 'gs.on-lint')
+
+	for k in el:
+		for v in set((k+fx, k)):
+			cn = ss.cmds.get(v)
+			# check for `None`, not `falsey value`; empty command objects refer to system commands and builtins
+			if cn is not None:
+				ss.cmd(cn, set_stream=False).start()
+				ev.debug(DOMAIN, {
+					'k': 'hk',
+					'hook': v,
+				})
+
+ev.file_sync += lambda view: _hk(view, 'sync')
+ev.file_loaded += lambda view: _hk(view, 'load')
+ev.file_saved += lambda view: _hk(view, 'save')
+ev.view_updated += lambda view: _hk(view, 'change')
+ev.view_activated += lambda view: _hk(view, 'activate')
