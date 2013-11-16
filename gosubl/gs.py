@@ -60,6 +60,7 @@ _default_settings = {
 	"fmt_enabled": False,
 	"fmt_tab_indent": True,
 	"fmt_tab_width": 8,
+	"fmt_cmd": [],
 	"calltips": True,
 	"autocomplete_snippets": False,
 	"autocomplete_tests": False,
