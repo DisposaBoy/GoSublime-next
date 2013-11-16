@@ -156,6 +156,7 @@ def ignore_view(view):
 def df_sav_sig(view):
 	def f():
 		gs.do(DOMAIN, lambda: file_saved(view))
+		gs.do(DOMAIN, lambda: file_sync(view))
 
 	sig = Signal(100)
 	sig += f
@@ -170,10 +171,45 @@ def sig_sav(view):
 	sig = m.get('sav-sig', lambda: df_sav_sig(view))
 	sig()
 
+def df_lod_sig(view):
+	def f():
+		gs.do(DOMAIN, lambda: file_loaded(view))
+		gs.do(DOMAIN, lambda: file_sync(view))
+
+	sig = Signal(1000)
+	sig += f
+	return (sig, True)
+
+def sig_lod(view):
+	if ignore_view(view):
+		return
+
+	m = kvm(view.id())
+
+	sig = m.get('lod-sig', lambda: df_lod_sig(view))
+	sig()
+
+def sublime_event(k, view):
+	# todo: delay sublime events until margo/mg9 is ready... esp(or just) the load event
+	sig = ev_map.get(k)
+	if sig:
+		sig(view)
+
 debug = Event()
 init = Event()
 view_updated = Event()
 view_activated = Event()
 file_saved = Event()
+file_loaded = Event()
+file_sync = Event()
 line_changed = Event()
 cursor_moved = Event()
+
+ev_map = {
+	'on_post_save': sig_sav,
+	'on_activated': sig_act,
+	'on_load': sig_lod,
+	'on_modified': sig_mod,
+	'on_selection_modified': sig_mov,
+}
+

@@ -7,60 +7,42 @@ import sublime_plugin
 DOMAIN = 'GsEV'
 
 class EV(sublime_plugin.EventListener):
+	def _se(self, k, view):
+		try :
+			ev.sublime_event(k, view)
+		except AttributeError:
+			pass
+
 	def on_pre_save(self, view):
 		view.run_command('gs_fmt')
 		sublime.set_timeout(lambda: do_set_syntax(view), 0)
 
 	def on_post_save(self, view):
-		try:
-			ev.sig_sav(view)
-		except AttributeError:
-			pass
-
+		self._se('on_post_save', view)
 		sublime.set_timeout(lambda: do_post_save(view), 0)
 
 	def on_close(self, view):
+		self._se('on_close', view)
 		sublime.set_timeout(do_sync_active_view, 0)
 
 	def on_activated(self, view):
-		try:
-			ev.sig_act(view)
-		except AttributeError:
-			pass
-
 		sublime.set_timeout(do_sync_active_view, 0)
+		self._se('on_activated', view)
 		sublime.set_timeout(lambda: do_set_syntax(view), 0)
-
-		try:
-			ev.sig_mov(view, True)
-		except AttributeError:
-			pass
 
 	def on_new(self, view):
 		sublime.set_timeout(do_sync_active_view, 0)
 
 	def on_load(self, view):
 		sublime.set_timeout(do_sync_active_view, 0)
-
-		try:
-			ev.sig_mod(view)
-		except AttributeError:
-			pass
-
+		self._se('on_load', view)
 		sublime.set_timeout(lambda: do_set_syntax(view), 0)
 
 	def on_modified(self, view):
-		try:
-			ev.sig_mod(view)
-		except AttributeError:
-			pass
+		self._se('on_modified', view)
 
 	def on_selection_modified(self, view):
-		try:
-			ev.sig_mov(view)
-		except AttributeError:
-			pass
-
+		self._se('on_selection_modified', view)
 
 class GsOnLeftClick(sublime_plugin.TextCommand):
 	def run(self, edit):
