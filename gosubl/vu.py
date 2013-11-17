@@ -89,6 +89,40 @@ class V(object):
 	def rowcol(self):
 		return rowcol(self.v)
 
+	def write(self, s, pt=-1, ctx='', interp=False):
+		if not self.has_view():
+			return False
+
+		self.v.run_command('gs_write', {
+			's': s,
+			'pt': pt,
+			'ctx': ctx,
+			'interp': interp,
+		})
+		return True
+
+def ve_write(view, edit, s, pt=-1, ctx='', interp=False):
+	if not s:
+		return
+
+	n = view.size()
+	rl = view.get_regions(ctx) if ctx else []
+	ep = int(pt)
+	if ep < 0:
+		ep = rl[-1].end() if rl else n
+
+	# todo: maybe make this behave more like a real console and handle \b
+	if interp and s.endswith('\r') and '\n' not in s:
+		s = s.rstrip('\r')
+		r = view.line(ep)
+		view.replace(edit, r, s)
+	else:
+		view.insert(edit, ep, s)
+
+	if ctx:
+		sp = rl[0].begin() if rl else ep
+		ep += view.size() - n
+		view.add_regions(ctx, [sublime.Region(sp, ep)], 'string', '', sublime.DRAW_OUTLINED)
 
 def active(win=None, view=None):
 	if view is None:

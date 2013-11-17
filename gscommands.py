@@ -212,6 +212,11 @@ class GsInsertContentCommand(sublime_plugin.TextCommand):
 		pos = int(pos) # un-fucking-believable
 		self.view.insert(edit, pos, content)
 
+class GsWriteCommand(sublime_plugin.TextCommand):
+	def run(self, edit, s, pt=-1, ctx='', interp=False):
+		# convert pt to an int because the api might(will) pass it as a float
+		vu.ve_write(self.view, edit, s, pt=int(pt), ctx=ctx, interp=interp)
+
 class GsPatchImportsCommand(sublime_plugin.TextCommand):
 	def run(self, edit, pos, content, added_path=''):
 		pos = int(pos) # un-fucking-believable
