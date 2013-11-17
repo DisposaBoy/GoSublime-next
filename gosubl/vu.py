@@ -89,7 +89,7 @@ class V(object):
 	def rowcol(self):
 		return rowcol(self.v)
 
-	def write(self, s, pt=-1, ctx='', interp=False, scope=''):
+	def write(self, s, pt=-1, ctx='', interp=False, scope='', outlined=False):
 		if not self.has_view():
 			return False
 
@@ -99,10 +99,11 @@ class V(object):
 			'ctx': ctx,
 			'interp': interp,
 			'scope': scope,
+			'outlined': outlined,
 		})
 		return True
 
-def ve_write(view, edit, s, pt=-1, ctx='', interp=False, scope=''):
+def ve_write(view, edit, s, pt=-1, ctx='', interp=False, scope='', outlined=False):
 	if not s:
 		return
 
@@ -123,7 +124,8 @@ def ve_write(view, edit, s, pt=-1, ctx='', interp=False, scope=''):
 	if ctx:
 		sp = rl[0].begin() if rl else ep
 		ep += view.size() - n
-		view.add_regions(ctx, [sublime.Region(sp, ep)], scope, '', sublime.HIDDEN)
+		flags = sublime.DRAW_OUTLINED if outlined else sublime.HIDDEN
+		view.add_regions(ctx, [sublime.Region(sp, ep)], scope, '', flags)
 
 def active(win=None, view=None):
 	if view is None:

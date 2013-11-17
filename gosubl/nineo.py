@@ -20,13 +20,15 @@ completions = []
 _builtins = {}
 
 class Wr(object):
-	def __init__(self, view, ctx='', interp=True):
+	def __init__(self, view, ctx='', interp=True, scope='', outlined=False):
 		self.vv = vu.V(view)
 		self.ctx = ctx
 		self.interp = interp
+		self.scope = scope
+		self.outlined = outlined
 
 	def write(self, s):
-		self.vv.write(s=s, ctx=self.ctx, interp=self.interp)
+		self.vv.write(s=s, ctx=self.ctx, interp=self.interp, scope=self.scope, outlined=self.outlined)
 
 class Cmd(object):
 	def __init__(self, sess, cn, cb=None, set_stream=None):
