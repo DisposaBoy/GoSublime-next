@@ -208,6 +208,9 @@ def margo_ready():
 				# will be... but it should be safe to sig_act all loaded views (ST doesn't that anyway)
 				sig_act(view)
 
+	gs.ready = True
+	ready()
+
 opts = kv.O(
 	margo_ready = False
 )
@@ -221,6 +224,7 @@ file_loaded = Event()
 file_sync = Event()
 line_changed = Event()
 cursor_moved = Event()
+ready = Event()
 
 ev_map = {
 	'on_post_save': sig_sav,

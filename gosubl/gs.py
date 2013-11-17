@@ -37,6 +37,7 @@ NAME = 'GoSublime'
 
 _uid = kv.Counter()
 
+ready = False
 mg9_send_q = queue.Queue()
 mg9_recv_q = queue.Queue()
 
