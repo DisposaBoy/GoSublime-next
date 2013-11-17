@@ -61,6 +61,7 @@ class Cmd(object):
 		self.visited = []
 		self.f = None
 		self.g = None
+		self.exec_opts = {}
 
 		self.cb(cb)
 		self.merge(cn)
@@ -409,7 +410,7 @@ def _exec_c(c):
 
 		mg9.on(st, stream_f)
 
-	a = {
+	c.exec_opts = {
 		'Stream': st,
 		'Cid': c.cid,
 		'Input': c.input,
@@ -451,7 +452,7 @@ def _exec_c(c):
 		finally:
 			gs.end(tid)
 
-	mg9.acall('exec', a, f)
+	mg9.acall('exec', c.exec_opts, f)
 
 def _hk(view, e):
 	ss = Sess(view=view)
