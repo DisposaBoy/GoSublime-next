@@ -151,7 +151,7 @@ def sig_mov(view, reset_last_row=False):
 	sig()
 
 def ignore_view(view):
-	return vu.V(view).temp()
+	return not vu.V(view).perma()
 
 def df_sav_sig(view):
 	def f():

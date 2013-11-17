@@ -6,6 +6,9 @@ class V(object):
 		self.v = view
 
 	def temp(self):
+		if self.v is None:
+			return False
+
 		return not self.perma()
 
 	def perma(self):
