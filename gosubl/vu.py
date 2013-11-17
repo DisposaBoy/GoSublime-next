@@ -83,7 +83,7 @@ class V(object):
 
 		return []
 
-	def sel(i=0):
+	def sel(self, i=0):
 		return sel(self.v, i)
 
 	def rowcol(self):
