@@ -398,7 +398,7 @@ def _exec_c(c):
 	if stream is None:
 		stream = c.stream
 
-	if c.stream:
+	if stream:
 		st = '%s.stream' % uid
 		def stream_f(res, err):
 			out = res.get('out')
