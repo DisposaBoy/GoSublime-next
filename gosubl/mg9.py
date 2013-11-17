@@ -188,6 +188,7 @@ def _install(maybe=False):
 	gs.set_attr(_inst_name(), 'done')
 
 	if m_out == 'ok':
+		ev.margo_ready()
 		gs.notify('GoSublime', 'ready')
 
 		if maybe:
