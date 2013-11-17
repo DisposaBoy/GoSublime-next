@@ -461,9 +461,9 @@ def _hk(view, e):
 
 	# file_sync is triggered for file_loaded and file_saved, so don't call `gs.on-lint` again
 	if e == 'sync':
-		el = ('gs.on-sync')
+		el = ['gs.on-sync']
 	else:
-		el = ('gs.on-%s' % e, 'gs.on-lint')
+		el = ['gs.on-%s' % e, 'gs.on-lint']
 
 	for k in el:
 		for v in set((k+fx, k)):
