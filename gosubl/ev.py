@@ -190,10 +190,27 @@ def sig_lod(view):
 	sig()
 
 def sublime_event(k, view):
-	# todo: delay sublime events until margo/mg9 is ready... esp(or just) the load event
+	if not opts.margo_ready and k in ('on_load', 'on_activated'):
+		return
+
 	sig = ev_map.get(k)
 	if sig:
 		sig(view)
+
+def margo_ready():
+	opts.margo_ready = True
+
+	for win in sublime.windows():
+		for view in win.views():
+			if not view.is_loading():
+				sig_lod(view)
+				# at this point ST might still be loading, so we don't know what the real active view
+				# will be... but it should be safe to sig_act all loaded views (ST doesn't that anyway)
+				sig_act(view)
+
+opts = kv.O(
+	margo_ready = False
+)
 
 debug = Event()
 init = Event()
