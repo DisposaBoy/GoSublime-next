@@ -331,7 +331,7 @@ class Cmd(object):
 class Sess(object):
 	def __init__(self, wr=None, wd='', win=None, view=None, cmds={}):
 		self.vv = vu.active(win=win, view=view)
-		self.wr = wr or Wr(self.vv.view())
+		self.wr = wr or Wr(None)
 		self.wd = wd or gs.basedir_or_cwd(self.vv.fn())
 		self.cmds = cmds or gs.setting('commands', {})
 
@@ -453,10 +453,8 @@ def _exec_c(c):
 
 	mg9.acall('exec', a, f)
 
-null_wr = Wr(None)
-
 def _hk(view, e):
-	ss = Sess(view=view, wr=null_wr)
+	ss = Sess(view=view)
 	fx = ss.vv.ext()
 
 	# file_sync is triggered for file_loaded and file_saved, so don't call `gs.on-lint` again
