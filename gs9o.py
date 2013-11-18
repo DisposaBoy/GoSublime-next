@@ -1,6 +1,7 @@
 from gosubl import about
 from gosubl import gs
 from gosubl import mg9
+from gosubl import nineo
 from gosubl import sh
 import datetime
 import json
@@ -543,6 +544,15 @@ def _9_begin_call(name, view, edit, args, wd, rkey, cid):
 
 def cmd_echo(view, edit, args, wd, rkey):
 	push_output(view, rkey, ' '.join(args))
+
+def cmd_9o(view, edit, args, wd, rkey):
+	wr = nineo.Wr(view=view, ctx=rkey)
+	ss = nineo.Sess(wd=wd, wr=wr)
+	def cb(c):
+		c.resume()
+		push_output(view, rkey, '')
+
+	ss.cmd(args, cb=cb).start()
 
 def cmd_which(view, edit, args, wd, rkey):
 	l = []
