@@ -96,7 +96,7 @@
 	// when you `import`, or `autocomplete` them
 	"autoinst": true,
 
-	// commands to run on (post) save - list of objects of the form {"cmd": "...", "args": {...}}
+	// commands to run on (post) save - list of objects of the form {"cmd": "...", "args": [...]}
 	"on_save": [],
 
 	// as an alternative to Sublime Text's snippet system you may add snippets to GoSublime's
