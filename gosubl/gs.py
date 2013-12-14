@@ -7,6 +7,7 @@ from subprocess import Popen, PIPE
 import copy
 import datetime
 import json
+import locale
 import os
 import re
 import string
@@ -25,6 +26,16 @@ except ImportError:
 PY3K = (sys.version_info[0] == 3)
 ST3 = sublime.version().startswith('3')
 ST2 = sublime.version().startswith('2')
+
+penc = locale.getpreferredencoding()
+try_encodings = [penc]
+if penc.lower() != 'utf-8':
+	try_encodings.append('utf-8')
+
+if PY3K:
+	str_decode = lambda s, enc, errs: str(s, enc, errors=errs)
+else:
+	str_decode = lambda s, enc, errs: str(s).decode(enc, errs)
 
 try:
 	STARTUP_INFO = subprocess.STARTUPINFO()
@@ -559,9 +570,13 @@ def ustr(s):
 	if maybe_unicode_str(s):
 		return s
 
-	if PY3K:
-		return str(s, 'utf-8', 'replace')
-	return str(s).decode('utf-8', errors='replace')
+	for e in try_encodings:
+		try:
+			return str_decode(s, e, 'strict')
+		except UnicodeDecodeError:
+			continue
+
+	return str_decode(s, 'utf-8', 'replace')
 
 def astr(s):
 	if maybe_unicode_str(s):
