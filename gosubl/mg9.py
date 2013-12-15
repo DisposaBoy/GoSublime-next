@@ -269,6 +269,7 @@ def _complete_opts(fn, src, pos, builtins):
 			'GOROOT': nv.get('GOROOT', ''),
 			'GOPATH': nv.get('GOPATH', ''),
 		},
+		'InstallSuffix': gs.setting('installsuffix'),
 	}
 
 def fmt(fn, src):

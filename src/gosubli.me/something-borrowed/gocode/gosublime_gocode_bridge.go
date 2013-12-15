@@ -10,9 +10,10 @@ import (
 var Margo = newMargoState()
 
 type MargoConfig struct {
-	Builtins bool
-	GOROOT   string
-	GOPATHS  []string
+	Builtins      bool
+	InstallSuffix string
+	GOROOT        string
+	GOPATHS       []string
 }
 
 type margoState struct {
@@ -62,7 +63,7 @@ func (m *margoState) Complete(c MargoConfig, file []byte, filename string, curso
 
 func (m *margoState) updateConfig(c MargoConfig) {
 	pl := []string{}
-	osArch := runtime.GOOS + "_" + runtime.GOARCH
+	osArch := runtime.GOOS + "_" + runtime.GOARCH + c.InstallSuffix
 	add := func(p string) {
 		if p != "" {
 			pl = append(pl, filepath.Join(p, "pkg", osArch))

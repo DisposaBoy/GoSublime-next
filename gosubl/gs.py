@@ -97,6 +97,7 @@ _default_settings = {
 	"use_named_imports": False,
 	"use_legacy_imports": True,
 	"commands": {},
+	"installsuffix": "",
 }
 _settings = copy.copy(_default_settings)
 

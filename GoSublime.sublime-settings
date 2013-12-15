@@ -96,6 +96,11 @@
 	// when you `import`, or `autocomplete` them
 	"autoinst": true,
 
+	// the installsuffix to use for autocompletion, autoinst, pkg imports etc.
+	// e.g. if you are developing on appengine, you can set it to "_appengine"
+	// note: attempts *might* be made to call the `go` command with `go -installsuffix` if this is set
+	"installsuffix": "",
+
 	// commands to run on (post) save - list of objects of the form {"cmd": "...", "args": {...}}
 	"on_save": [],
 
