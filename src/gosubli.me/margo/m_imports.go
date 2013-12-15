@@ -19,13 +19,14 @@ type mImportDeclArg struct {
 }
 
 type mImports struct {
-	Fn        string
-	Src       string
-	Toggle    []mImportDeclArg
-	TabWidth  int
-	TabIndent bool
-	Env       map[string]string
-	Autoinst  bool
+	Fn            string
+	Src           string
+	Toggle        []mImportDeclArg
+	TabWidth      int
+	TabIndent     bool
+	Env           map[string]string
+	Autoinst      bool
+	InstallSuffix string
 }
 
 func (m *mImports) Call() (interface{}, string) {
@@ -61,8 +62,9 @@ func (m *mImports) Call() (interface{}, string) {
 
 	if m.Autoinst {
 		autoInstall(AutoInstOptions{
-			Env:         m.Env,
-			ImportPaths: fileImportPaths(af),
+			Env:           m.Env,
+			ImportPaths:   fileImportPaths(af),
+			InstallSuffix: m.InstallSuffix,
 		})
 	}
 

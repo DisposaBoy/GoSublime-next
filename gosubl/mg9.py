@@ -306,6 +306,7 @@ def import_paths(fn, src, f):
 		'env': sh.env(),
 		'WantPkgNames': gs.setting('use_named_imports'),
 		'UseLegacyImports': gs.setting('use_legacy_imports'),
+		'InstallSuffix': gs.setting('installsuffix'),
 	}, cb)
 
 def pkg_name(fn, src):
