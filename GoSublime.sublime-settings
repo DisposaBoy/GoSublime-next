@@ -97,7 +97,7 @@
 	"autoinst": true,
 
 	// the installsuffix to use for autocompletion, autoinst, pkg imports etc.
-	// e.g. if you are developing on appengine, you can set it to "_appengine"
+	// e.g. if you are developing on appengine, you can set it to "appengine"
 	// note: attempts *might* be made to call the `go` command with `go -installsuffix` if this is set
 	"installsuffix": "",
 
