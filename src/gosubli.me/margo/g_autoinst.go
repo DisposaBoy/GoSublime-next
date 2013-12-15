@@ -28,6 +28,9 @@ type AutoInstOptions struct {
 	// the environment variables as passed by the client - they should not be merged with os.Environ(...)
 	// GOPATH is be valid
 	Env map[string]string
+
+	// the installsuffix to use for pkg paths
+	InstallSuffix string
 }
 
 func (a *AutoInstOptions) imports() map[string]string {
@@ -46,6 +49,11 @@ func (a *AutoInstOptions) imports() map[string]string {
 }
 
 func (a *AutoInstOptions) install() {
+	sfx := ""
+	if a.InstallSuffix != "" {
+		sfx = a.InstallSuffix
+	}
+	osArchSfx := osArch + sfx
 	if a.Env == nil {
 		a.Env = map[string]string{}
 	}
@@ -53,11 +61,11 @@ func (a *AutoInstOptions) install() {
 	roots := []string{}
 
 	if p := a.Env["GOROOT"]; p != "" {
-		roots = append(roots, filepath.Join(p, "pkg", osArch))
+		roots = append(roots, filepath.Join(p, "pkg", osArchSfx))
 	}
 
 	for _, p := range pathList(a.Env["GOPATH"]) {
-		roots = append(roots, filepath.Join(p, "pkg", osArch))
+		roots = append(roots, filepath.Join(p, "pkg", osArchSfx))
 	}
 
 	if len(roots) == 0 {
@@ -79,7 +87,7 @@ func (a *AutoInstOptions) install() {
 
 	for path, fn := range a.imports() {
 		if !archiveOk(fn) {
-			cmd := exec.Command("go", "install", path)
+			cmd := exec.Command("go", "install", "-installsuffix", sfx, path)
 			cmd.Env = el
 			cmd.Stderr = ioutil.Discard
 			cmd.Stdout = ioutil.Discard
