@@ -28,9 +28,9 @@ ST3 = sublime.version().startswith('3')
 ST2 = sublime.version().startswith('2')
 
 penc = locale.getpreferredencoding()
-try_encodings = [penc]
-if penc.lower() != 'utf-8':
-	try_encodings.append('utf-8')
+try_encodings = ['utf-8']
+if penc.lower() not in try_encodings:
+	try_encodings.append(penc)
 
 if PY3K:
 	str_decode = lambda s, enc, errs: str(s, enc, errors=errs)
