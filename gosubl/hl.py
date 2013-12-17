@@ -153,9 +153,9 @@ def show_messages(view):
 			distance = abs(active_row - closest_row)
 
 			for row in rows[1:]:
-				d = abs(active_row - row)
-				if d < distance:
-					distance = d
+				dist = abs(active_row - row)
+				if dist < distance:
+					distance = dist
 					closest_row = row
 
 			push(notes, fn, closest_row)
