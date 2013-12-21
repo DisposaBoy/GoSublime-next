@@ -87,7 +87,12 @@ func (a *AutoInstOptions) install() {
 
 	for path, fn := range a.imports() {
 		if !archiveOk(fn) {
-			cmd := exec.Command("go", "install", "-installsuffix", sfx, path)
+			var cmd *exec.Command
+			if sfx == "" {
+				cmd = exec.Command("go", "install", path)
+			} else {
+				cmd = exec.Command("go", "install", "-installsuffix", sfx, path)
+			}
 			cmd.Env = el
 			cmd.Stderr = ioutil.Discard
 			cmd.Stdout = ioutil.Discard
