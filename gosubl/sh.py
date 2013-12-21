@@ -53,7 +53,7 @@ class _command(object):
 		out = ''
 		err = ''
 		exc = None
-		
+
 		nv0 = {}
 		for k in self.env:
 			nv0[gs.astr(k)] = gs.astr(self.env[k])
