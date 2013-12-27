@@ -1,4 +1,4 @@
-package main
+package mg
 
 type mHello M
 
