@@ -82,7 +82,7 @@ func (a *AutoInstOptions) install() {
 		return false
 	}
 
-	el := envSlice(a.Env)
+	el := Env(a.Env)
 	installed := []string{}
 
 	for path, fn := range a.imports() {

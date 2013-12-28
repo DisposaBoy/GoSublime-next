@@ -74,15 +74,16 @@ func errStr(err error) string {
 	return ""
 }
 
-func envSlice(envMap map[string]string) []string {
-	env := []string{}
-	for k, v := range envMap {
-		env = append(env, k+"="+v)
+func Env(m map[string]string) []string {
+	if len(m) == 0 {
+		return os.Environ()
 	}
-	if len(env) == 0 {
-		env = os.Environ()
+
+	s := make([]string, 0, len(m))
+	for k, v := range m {
+		s = append(s, k+"="+v)
 	}
-	return env
+	return s
 }
 
 func defaultEnv() map[string]string {

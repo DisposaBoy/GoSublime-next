@@ -25,7 +25,7 @@ type mSh struct {
 // todo: send the client output as it comes
 //       handle And, Or
 func (m *mSh) Call() (interface{}, string) {
-	env := envSlice(m.Env)
+	env := Env(m.Env)
 
 	if m.Cid == "" {
 		m.Cid = "sh.auto." + numbers.nextString()
