@@ -81,7 +81,7 @@ func (p *ProcTable) set(cid string, cmd *exec.Cmd) *exec.Cmd {
 }
 
 func init() {
-	byeDefer(func() {
+	Defer(func() {
 		procs.Lock()
 		defer procs.Unlock()
 

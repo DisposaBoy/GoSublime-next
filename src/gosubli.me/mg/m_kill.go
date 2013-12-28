@@ -82,7 +82,7 @@ func killCmd(id string) bool {
 }
 
 func init() {
-	byeDefer(func() {
+	Defer(func() {
 		cmdWatchLck.Lock()
 		defer cmdWatchLck.Unlock()
 		for _, c := range cmdWatchlist {

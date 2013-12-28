@@ -53,7 +53,7 @@ type byeFunc struct {
 	f    func()
 }
 
-func byeDefer(f func()) {
+func Defer(f func()) {
 	byeLck.Lock()
 	defer byeLck.Unlock()
 	byeFuncs = &byeFunc{
