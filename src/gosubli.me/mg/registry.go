@@ -1,11 +1,12 @@
 package mg
 
 import (
+	"runtime"
 	"sync"
 )
 
 var (
-	registry = &Registry{m: map[string]Method{}}
+	registry = &Registry{m: map[string]registration{}}
 )
 
 type Method func(*Broker) Caller
@@ -14,34 +15,48 @@ type Caller interface {
 	Call() (res interface{}, err string)
 }
 
+type registration struct {
+	Method Method
+	fn     string
+	line   int
+}
+
 type Registry struct {
-	m   map[string]Method
+	m   map[string]registration
 	lck sync.RWMutex
 }
 
 func Register(name string, method Method) {
-	registry.Register(name, method)
+	registry.register(name, method, 1)
 }
 
 func (r *Registry) Register(name string, method Method) {
+	r.register(name, method, 1)
+}
+
+func (r *Registry) register(name string, method Method, skip int) {
 	r.lck.Lock()
 	defer r.lck.Unlock()
 
 	if name == "" {
-		panic("Cannot register method without a name")
+		logger.Panic("Cannot register method without a name")
 	}
 	if method == nil {
-		panic("Method " + name + " is nil")
+		logger.Fatalf("Method %v is nil", name)
 	}
-	if r.m[name] != nil {
-		panic("Method " + name + " is already registered")
+	if reg, exists := r.m[name]; exists {
+		logger.Panicf("Method %v is already registered (from %v:%v)\n", name, reg.fn, reg.line)
 	}
 
-	r.m[name] = method
+	reg := registration{
+		Method: method,
+	}
+	_, reg.fn, reg.line, _ = runtime.Caller(skip + 1)
+	r.m[name] = reg
 }
 
 func (r *Registry) Lookup(name string) Method {
 	r.lck.RLock()
 	defer r.lck.RUnlock()
-	return r.m[name]
+	return r.m[name].Method
 }
