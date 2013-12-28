@@ -63,7 +63,7 @@ func (d jData) MarshalJSON() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func uid() string {
+func Uid() string {
 	return "mg#" + strconv.FormatUint(numbers.next(), 16)
 }
 
@@ -290,8 +290,8 @@ func envRootList(env map[string]string) (string, []string) {
 	return env["GOROOT"], pathList(env["GOPATH"])
 }
 
-func msDur(start time.Time) time.Duration {
-	dur := time.Now().Sub(start)
+func Since(start time.Time) time.Duration {
+	dur := time.Since(start)
 	dur -= dur % time.Millisecond
 	return dur
 }

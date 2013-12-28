@@ -52,7 +52,7 @@ func (m *mSh) Call() (interface{}, string) {
 	res := M{
 		"out": jData(stdOut.Bytes()),
 		"err": jData(stdErr.Bytes()),
-		"dur": msDur(start).String(),
+		"dur": Since(start).String(),
 	}
 	return res, errStr(err)
 }

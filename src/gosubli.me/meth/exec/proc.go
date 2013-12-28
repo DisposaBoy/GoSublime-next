@@ -1,6 +1,7 @@
-package mg
+package exec
 
 import (
+	"gosubli.me/mg"
 	"os"
 	"os/exec"
 	"sync"
@@ -19,14 +20,14 @@ var procs = &ProcTable{
 
 func (p *ProcTable) Run(cid string, cmd *exec.Cmd) (error, time.Duration) {
 	if cid == "" {
-		cid = uid()
+		cid = mg.Uid()
 	}
 
 	p.repl(cid, cmd)
 
 	start := time.Now()
 	err := cmd.Run()
-	dur := msDur(start)
+	dur := mg.Since(start)
 
 	p.Lock()
 	delete(p.m, cid)
@@ -81,7 +82,7 @@ func (p *ProcTable) set(cid string, cmd *exec.Cmd) *exec.Cmd {
 }
 
 func init() {
-	Defer(func() {
+	mg.Defer(func() {
 		procs.Lock()
 		defer procs.Unlock()
 
