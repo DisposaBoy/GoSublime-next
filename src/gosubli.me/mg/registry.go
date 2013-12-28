@@ -19,6 +19,10 @@ type Registry struct {
 	lck sync.RWMutex
 }
 
+func Register(name string, method Method) {
+	registry.Register(name, method)
+}
+
 func (r *Registry) Register(name string, method Method) {
 	r.lck.Lock()
 	defer r.lck.Unlock()
