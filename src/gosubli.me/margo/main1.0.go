@@ -41,6 +41,5 @@ func main() {
 		}
 		res.Token = req.Token
 		enc.Encode(res)
-		os.Stdout.WriteString("\n")
 	}
 }
