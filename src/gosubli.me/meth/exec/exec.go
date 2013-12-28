@@ -1,4 +1,8 @@
-package mg
+package exec
+
+import (
+	"gosubli.me/mg"
+)
 
 type Switch struct {
 	Case        string
@@ -8,7 +12,7 @@ type Switch struct {
 	Fallthrough bool
 }
 
-type mExec struct {
+type Exec struct {
 	Cid    string
 	Stream string
 
@@ -21,16 +25,16 @@ type mExec struct {
 	Args          []string
 	Switch        []*Switch
 
-	b     *Broker
+	b *mg.Broker
 }
 
-func (m *mExec) Call() (interface{}, string) {
+func (e *Exec) Call() (interface{}, string) {
 	return nil, "N/I"
 }
 
 func init() {
-	registry.Register("exec", func(b *Broker) Caller {
-		return &mExec{
+	mg.Register("exec", func(b *mg.Broker) mg.Caller {
+		return &Exec{
 			b: b,
 		}
 	})
