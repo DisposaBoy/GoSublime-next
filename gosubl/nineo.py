@@ -402,13 +402,14 @@ def _exec_c(c):
 		c.fail('invalid command')
 		return
 
+	uid = gs.uid()
 	st = ''
 	stream = c.set_stream
 	if stream is None:
 		stream = c.stream
 
 	if stream:
-		st = '%s.stream' % gs.uid()
+		st = '%s.exec.stream' % uid
 		def stream_f(res, err):
 			for s in res.get('Chunks', []):
 				c.sess.write(chunk(s))
@@ -417,9 +418,13 @@ def _exec_c(c):
 
 		mg9.on(st, stream_f)
 
+	cid = c.cid
+	if not cid:
+		cid = '%s.exec.cid' % uid
+
 	c.exec_opts = {
 		'Stream': st,
-		'Cid': c.cid,
+		'Cid': cid,
 		'Input': c.input,
 		'Env': c.env,
 		'Wd': c.sess.wd,
@@ -435,7 +440,7 @@ def _exec_c(c):
 		DOMAIN,
 		'[ %s ] # %s %s' % (gs.simple_fn(c.sess.wd), c.cmd, c.args),
 		set_status=False,
-		cancel=lambda: mg9.acall('cancel', {'Cid': c.cid}, None)
+		cancel=lambda: mg9.acall('cancel', {'Cid': cid}, None)
 	)
 
 	def f(res, err):
