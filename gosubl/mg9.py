@@ -112,8 +112,6 @@ def _mg_exists():
 def build_mg(force=False):
 	if force:
 		pass
-	elif gs.setting('_rebuild'):
-		print('GoSublime: `_rebuild` is set')
 	elif _mg_exists():
 		return 'ok'
 

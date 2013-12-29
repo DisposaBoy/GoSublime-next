@@ -59,7 +59,7 @@ def plugin_loaded():
 	gs.set_attr('about.ann', ANN)
 
 	for mod_name, mod in mods:
-		print('GoSublime %s: init mod(%s)' % (VERSION, mod_name))
+		print('GoSublime %s: init mod(%s)' % (about.VERSION, mod_name))
 
 		try:
 			mod.gs_init({

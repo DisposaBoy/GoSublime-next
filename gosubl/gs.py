@@ -16,6 +16,7 @@ import subprocess
 import sys
 import tempfile
 import threading
+import time
 import traceback as tbck
 
 try:
@@ -64,7 +65,7 @@ _default_settings = {
 	"margo_oom": 0,
 	"_debug": False,
 	"_build_flags": [],
-	"_rebuild": False,
+	"_av": False,
 	"env": {},
 	"gscomplete_enabled": False,
 	"complete_builtins": False,
@@ -761,3 +762,6 @@ def gs_init(m={}):
 	settings_obj().clear_on_change("GoSublime.settings")
 	settings_obj().add_on_change("GoSublime.settings", sync_settings)
 	sync_settings()
+
+	if setting('_av', False):
+		about.VERSION = time.strftime(r'%Y.%m.%d-%H%M%S')
