@@ -83,6 +83,9 @@ class EV(sublime_plugin.EventListener):
 		if view.score_selector(pos, 'text.9o') == 0:
 			return []
 
+		if view.substr(locations[0]-2) == '$':
+			return [('$'+k, '\$'+k+' ') for k in sh.env()]
+
 		cl = set()
 
 		hkey = _hkey(view.settings().get('9o.wd', ''))
