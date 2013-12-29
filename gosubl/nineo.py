@@ -6,6 +6,7 @@ from . import kv
 from . import mg9
 from . import sh
 from . import vu
+import base64
 import copy
 import os
 import re
@@ -390,25 +391,29 @@ def builtin(nm, f=None):
 def gs_init(_={}):
 	pass
 
+def chunk(s):
+	try:
+		return gs.ustr(base64.b64decode(s))
+	except Exception:
+		return s
+
 def _exec_c(c):
 	if not c.cmd:
 		c.fail('invalid command')
 		return
 
 	st = ''
-	uid = gs.uid()
 	stream = c.set_stream
 	if stream is None:
 		stream = c.stream
 
 	if stream:
-		st = '%s.stream' % uid
+		st = '%s.stream' % gs.uid()
 		def stream_f(res, err):
-			out = res.get('out')
-			if out is not None:
-				c.sess.write(out)
+			for s in res.get('Chunks', []):
+				c.sess.write(chunk(s))
 
-			return not res.get('eof')
+			return not res.get('End')
 
 		mg9.on(st, stream_f)
 
@@ -430,25 +435,28 @@ def _exec_c(c):
 		DOMAIN,
 		'[ %s ] # %s %s' % (gs.simple_fn(c.sess.wd), c.cmd, c.args),
 		set_status=False,
-		cancel=lambda: mg9.acall('cancel', {'cid': c.cid}, None)
+		cancel=lambda: mg9.acall('cancel', {'Cid': c.cid}, None)
 	)
 
 	def f(res, err):
 		try:
-			c.attrs.extend(gs.dval(res.get('attrs'), []))
+			c.attrs.extend(gs.dval(res.get('Attrs'), []))
 			c.res = res
-			out = res.get('out', '')
+			chunks = res.get('Chunks', [])
+			if chunks:
+				for s in chunks[:-1]:
+					c.sess.write(chunk(s))
 
-			if out:
-				if out.endswith('\n'):
-					c.sess.write(out)
+				s = chunk(chunks[-1])
+				if s.endswith('\n'):
+					c.sess.write(s)
 				else:
-					c.sess.writeln(out)
+					c.sess.writeln(s)
 
 			if err:
 				c.fail(err)
 			else:
-				c.resume(res.get('ok'))
+				c.resume(res.get('Ok'))
 		except Exception:
 			gs.print_traceback()
 		finally:
