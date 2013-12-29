@@ -14,8 +14,12 @@ type ProcTable struct {
 	m map[string]*exec.Cmd
 }
 
-var procs = &ProcTable{
-	m: map[string]*exec.Cmd{},
+var procs = NewProcTable()
+
+func NewProcTable() *ProcTable {
+	return &ProcTable{
+		m: map[string]*exec.Cmd{},
+	}
 }
 
 func (p *ProcTable) Run(cid string, cmd *exec.Cmd) (error, time.Duration) {
