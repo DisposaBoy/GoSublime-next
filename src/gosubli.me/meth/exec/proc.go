@@ -2,7 +2,6 @@ package exec
 
 import (
 	"gosubli.me/mg"
-	"os"
 	"os/exec"
 	"sync"
 	"time"
@@ -30,6 +29,7 @@ func (p *ProcTable) Run(cid string, cmd *exec.Cmd) (error, time.Duration) {
 	p.repl(cid, cmd)
 
 	start := time.Now()
+	setsid(cmd)
 	err := cmd.Run()
 	dur := mg.Since(start)
 
@@ -55,12 +55,12 @@ func (p *ProcTable) repl(cid string, cmd *exec.Cmd) {
 		if c == cmd {
 			break
 		}
-		c.Process.Signal(os.Interrupt)
+		interrupt(c)
 		p.sleep()
 	}
 
 	for c != cmd {
-		c.Process.Kill()
+		kill(cmd)
 		p.sleep()
 		c = p.set(cid, cmd)
 	}
