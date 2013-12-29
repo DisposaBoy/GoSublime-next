@@ -166,7 +166,7 @@ func (b *Broker) accept(jobsCh chan Job) (stopLooping bool) {
 	cl := m(b)
 	err = dec.Decode(cl)
 	if err != nil {
-		logger.Println("Cannot decode arg", err)
+		logger.Printf("Cannot decode arg to method: `%v', token: `%v`, err: `%v'\n", req.Method, req.Token, err)
 		b.Send(Response{
 			Token: req.Token,
 			Error: err.Error(),
