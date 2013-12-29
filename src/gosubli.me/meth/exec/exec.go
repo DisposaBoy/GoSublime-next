@@ -27,8 +27,7 @@ type Resp struct {
 }
 
 type Switch struct {
-	Case        string
-	Attr        map[string]interface{}
+	Case        []string
 	Negative    bool
 	Discard     bool
 	Fallthrough bool
@@ -45,7 +44,8 @@ type Exec struct {
 	Env           map[string]string
 	Cmd           string
 	Args          []string
-	Switch        []*Switch
+	Switch        []Switch
+	SwitchOk      bool
 
 	brk  *mg.Broker
 	sink *sink.Chan
