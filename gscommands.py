@@ -143,19 +143,21 @@ class GsShowTasksCommand(sublime_plugin.WindowCommand):
 		m = {}
 		try:
 			tasks = gs.task_list()
-			ents.insert(0, ['', '%d active task(s)' % len(tasks)])
-			for tid, t in tasks:
-				cancel_text = ''
-				if t['cancel']:
-					cancel_text = ' (cancel task)'
-					m[len(ents)] = tid
+			if tasks:
+				for tid, t in tasks:
+					cancel_text = ''
+					if t['cancel']:
+						cancel_text = ' (cancel task)'
+						m[len(ents)] = tid
 
-				ents.append([
-					'#%s %s%s' % (tid, t['domain'], cancel_text),
-					t['message'],
-					'started: %s' % t['start'],
-					'elapsed: %s' % (now - t['start']),
-				])
+					ents.append([
+						'#%s %s%s' % (tid, t['domain'], cancel_text),
+						t['message'],
+						'started: %s' % t['start'],
+						'elapsed: %s' % (now - t['start']),
+					])
+			else:
+				ents = [['', 'There are no active tasks']]
 		except:
 			ents = [['', 'Failed to gather active tasks']]
 
