@@ -46,6 +46,10 @@
 		"command": "gs_show_messages"
 	},
 	{
+		"keys": ["ctrl+.", "ctrl+k"],
+		"command": "gs_show_tasks"
+	},
+	{
 		"keys": ["ctrl+.", "ctrl+["],
 		"command": "gs_palette",
 		"args": {"palette": "jump_back"},

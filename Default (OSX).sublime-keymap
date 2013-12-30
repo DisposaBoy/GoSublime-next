@@ -40,6 +40,10 @@
 		"command": "gs_show_messages"
 	},
 	{
+		"keys": ["super+.", "ctrl+k"],
+		"command": "gs_show_tasks"
+	},
+	{
 		"keys": ["super+.", "super+["],
 		"command": "gs_palette",
 		"args": {"palette": "jump_back"},
