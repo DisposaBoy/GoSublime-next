@@ -90,18 +90,8 @@
 		"command": "gs_show_call_tip"
 	},
 	{
-		"caption": "GoSublime: Show last build output",
-		"command": "show_panel",
-		"args": {"panel": "output.exec"}
-	},
-	{
 		"caption": "GoSublime: Show/Cancel pending tasks",
 		"command": "gs_show_tasks"
-	},
-	{
-		"caption": "GoSublime: Cancel the currently executing command",
-		"command": "exec",
-		"args": { "kill": true }
 	},
 	{
 		"caption": "GoSublime: Activate 9o",
