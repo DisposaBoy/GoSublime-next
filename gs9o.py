@@ -558,7 +558,7 @@ def cmd_echo(view, edit, args, wd, rkey):
 	push_output(view, rkey, ' '.join(args))
 
 def cmd_9o(view, edit, args, wd, rkey):
-	wr = nineo.Wr(view=view, ctx=rkey)
+	wr = nineo.Wr(view=view, ctx=rkey, outlined=True, scope='string')
 	ss = nineo.Sess(wd=wd, wr=wr)
 	def cb(c):
 		c.resume()
