@@ -573,7 +573,7 @@ def cmd_9o(view, edit, args, wd, rkey):
 	mk_cmd(view, wd, rkey, args).start()
 
 def mk_cmd(view, wd, ctx, cn, f=None):
-	wr = nineo.Wr(view=view, ctx=ctx, outlined=True, scope='string')
+	wr = nineo.Wr(view=view, ctx=ctx)
 	ss = nineo.Sess(wd=wd, wr=wr)
 	def cb(c):
 		if f:
