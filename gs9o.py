@@ -21,6 +21,8 @@ URL_SCHEME_PAT = re.compile(r'^[\w.+-]+://')
 URL_PATH_PAT = re.compile(r'^(?:[\w.+-]+://|(?:www|(?:\w+\.)*(?:golang|pkgdoc|gosublime)\.org))')
 HIST_EXPAND_PAT = re.compile(r'^(\^+)\s*(\d+)$')
 
+HOURGLASS = u'\u231B'
+
 DEFAULT_COMMANDS = [
 	'help',
 	'run',
