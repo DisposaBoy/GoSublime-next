@@ -291,13 +291,15 @@ func RootPaths(env map[string]string) (string, []string) {
 	return env["GOROOT"], PathList(env["GOPATH"])
 }
 
-func Roots(env map[string]string) []string {
+func SrcDirs(env map[string]string) []string {
 	g, p := RootPaths(env)
 	l := make([]string, 0, len(p)+1)
 	if g != "" {
-		l = append(l, g)
+		l = append(l, filepath.Join(g, "src", "pkg"))
 	}
-	l = append(l, p...)
+	for _, s := range p {
+		l = append(l, filepath.Join(s, "src"))
+	}
 	return l
 }
 
