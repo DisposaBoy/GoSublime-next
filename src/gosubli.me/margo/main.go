@@ -6,6 +6,7 @@ import (
 	_ "gosubli.me/meth/exec" // cancel and exec
 	_ "gosubli.me/meth/hello"
 	_ "gosubli.me/meth/ping"
+	_ "gosubli.me/meth/posdef"
 	"gosubli.me/mg"
 	"os"
 )

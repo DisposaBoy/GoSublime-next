@@ -324,6 +324,23 @@ def pkg_dirs(f):
 		'env': sh.env(),
 	}, cb)
 
+def a_posdef(fn, pos, f):
+	tid = gs.begin(DOMAIN, '')
+	def cb(res, err):
+		gs.end(tid)
+		f(res, err)
+
+	m = sh.env()
+	acall('posdef', {
+		'Fn': fn,
+		'Pos': pos,
+		'Env': {
+			'GOPATH': m.get('GOPATH'),
+			'GOROOT': m.get('GOROOT'),
+		},
+		'InstallSuffix': gs.setting('installsuffix'),
+	}, cb)
+
 def a_pkgpaths(exclude, f):
 	tid = gs.begin(DOMAIN, '')
 	def cb(res, err):

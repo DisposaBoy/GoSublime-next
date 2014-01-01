@@ -16,6 +16,33 @@ EXT_EXCLUDE = [
 	'pprof', 'prof', 'mem', 'cpu', 'swap',
 ]
 
+class GsPosdefCommand(sublime_plugin.TextCommand):
+	def is_enabled(self):
+		return bool(gs.is_go_source_view(self.view) and self.view.file_name())
+
+	def run(self, _):
+		view = self.view
+		pt = gs.sel(view).begin()
+		src = view.substr(sublime.Region(0, view.size()))
+		pt = len(src[:pt].encode("utf-8"))
+		def f(res, err):
+			if err:
+				gs.notify(DOMAIN, err)
+				gs.println(DOMAIN, err)
+				return
+
+			fn = res.get('Fn')
+			row = res.get('Line', -1) - 1
+			col = res.get('Col', 0) - 1
+			if not fn or row < 0:
+				gs.notify(DOMAIN, "no definition found")
+				return
+
+			gs.println('opening %s:%s:%s' % (fn, row, col))
+			gs.focus(fn, row, col)
+
+		mg9.a_posdef(view.file_name(), pt, f)
+
 class GsDocCommand(sublime_plugin.TextCommand):
 	def is_enabled(self):
 		return gs.is_go_source_view(self.view)
