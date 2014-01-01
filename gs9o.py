@@ -21,8 +21,6 @@ URL_SCHEME_PAT = re.compile(r'^[\w.+-]+://')
 URL_PATH_PAT = re.compile(r'^(?:[\w.+-]+://|(?:www|(?:\w+\.)*(?:golang|pkgdoc|gosublime)\.org))')
 HIST_EXPAND_PAT = re.compile(r'^(\^+)\s*(\d+)$')
 
-HOURGLASS = u'\u231B'
-
 DEFAULT_COMMANDS = [
 	'help',
 	'run',
@@ -406,9 +404,10 @@ def _exec(view, edit, save_hist=False):
 			view.run_command('gs9o_init')
 			return
 
-		view.replace(edit, line, (u'[ `%s` %s ]' % (cmd, HOURGLASS)))
-		rkey = '9o.exec.%s' % uuid.uuid4()
-		view.add_regions(rkey, [sublime.Region(line.begin(), view.size())], '')
+		line = view.full_line(pos)
+		rkey = '9o.exec.%s' % gs.uid()
+		view.add_regions(rkey, [line], '')
+		view.replace(edit, line, ('[`%s`]\n' % cmd))
 		view.run_command('gs9o_init')
 
 		nv = sh.env()
@@ -477,6 +476,16 @@ class Gs9oPushOutput(sublime_plugin.TextCommand):
 			view.show(r.end())
 		else:
 			view.show(r.begin())
+
+class Gs9oShowCtx(sublime_plugin.TextCommand):
+	def run(self, edit, ctx):
+		rl = self.view.get_regions(ctx) or [sublime.Region(0, self.view.size())]
+		if gs.setting('9o_show_end') is True:
+			pt = rl[-1].end()
+		else:
+			pt = rl[0].begin()
+
+		self.view.show(pt)
 
 class Gs9oRunManyCommand(sublime_plugin.TextCommand):
 	def run(self, edit, wd=None, commands=[], save_hist=False, focus_view=False):
@@ -555,44 +564,59 @@ def _9_begin_call(name, view, edit, args, wd, rkey, cid):
 	return cid, cb
 
 def cmd_echo(view, edit, args, wd, rkey):
-	push_output(view, rkey, ' '.join(args))
+	mk_cmd(view, wd, rkey, {
+		'cmd': 'echo',
+		'args': args,
+	}).start()
 
 def cmd_9o(view, edit, args, wd, rkey):
-	wr = nineo.Wr(view=view, ctx=rkey, outlined=True, scope='string')
+	mk_cmd(view, wd, rkey, args).start()
+
+def mk_cmd(view, wd, ctx, cn, f=None):
+	wr = nineo.Wr(view=view, ctx=ctx, outlined=True, scope='string')
 	ss = nineo.Sess(wd=wd, wr=wr)
 	def cb(c):
-		c.resume()
-		push_output(view, rkey, '')
+		if f:
+			f(c)
 
-	ss.cmd(args, cb=cb).start()
+		s = ''
+		if gs.is_a(c.res, {}) and c.res.get('Dur'):
+			s = ' %s' % c.res.get('Dur')
+
+		wr.write('\n[done%s]\n' % s)
+		view.run_command('gs9o_show_ctx', {'ctx': ctx})
+		c.resume()
+
+	return ss.cmd(cn, cb=cb)
 
 def cmd_which(view, edit, args, wd, rkey):
-	l = []
-	am = aliases()
-	m = builtins()
+	def f(c):
+		am = aliases()
+		m = builtins()
 
-	if not args:
-		args = []
-		args.extend(sorted(m.keys()))
-		args.extend(sorted(am.keys()))
+		a = args
+		if not a:
+			a = []
+			a.extend(sorted(m.keys()))
+			a.extend(sorted(am.keys()))
 
-	fm = '%{0}s: %s'.format(max(len(s) for s in args))
+		fm = '%{0}s: %s'.format(max(len(s) for s in a))
 
-	for k in args:
-		if k == 'sh':
-			v = '9o builtin: %s' % sh.cmd('${CMD}')
-		elif k in ('go'):
-			v = '9o builtin: %s' % sh.which(k)
-		elif k in m:
-			v = '9o builtin'
-		elif k in am:
-			v = '9o alias: `%s`' % am[k]
-		else:
-			v = sh.which(k)
+		for k in a:
+			if k == 'sh':
+				v = '9o builtin: %s' % sh.cmd('${CMD}')
+			elif k in ('go'):
+				v = '9o builtin: %s' % sh.which(k)
+			elif k in m:
+				v = '9o builtin'
+			elif k in am:
+				v = '9o alias: `%s`' % am[k]
+			else:
+				v = sh.which(k)
 
-		l.append(fm % (k, v))
+			c.sess.writeln(fm % (k, v))
 
-	push_output(view, rkey, '\n'.join(l))
+	c = mk_cmd(view, wd, rkey, ['true'], f).start()
 
 def cmd_cd(view, edit, args, wd, rkey):
 	try:
@@ -623,19 +647,12 @@ def cmd_clear(view, edit, args, wd, rkey):
 	cmd_reset(view, edit, args, wd, rkey)
 
 def cmd_go(view, edit, args, wd, rkey):
-	_save_all(view.window(), wd)
-
-	cid, cb = _9_begin_call('go', view, edit, args, wd, rkey, '9go-%s' % wd)
-	a = {
-		'cid': cid,
-		'env': sh.env(),
-		'cwd': wd,
-		'cmd': {
-			'name': 'go',
-			'args': args,
-		}
-	}
-	sublime.set_timeout(lambda: mg9.acall('sh', a, cb), 0)
+	sub = args[0] if args else ''
+	mk_cmd(view, wd, rkey, {
+		'save': (sub in ('install', 'get', 'build')),
+		'cmd': 'go',
+		'args': args,
+	}).start()
 
 def cmd_cancel_replay(view, edit, args, wd, rkey):
 	cid = ''
