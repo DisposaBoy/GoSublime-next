@@ -64,7 +64,7 @@ func (a *AutoInstOptions) install() {
 		roots = append(roots, filepath.Join(p, "pkg", osArchSfx))
 	}
 
-	for _, p := range pathList(a.Env["GOPATH"]) {
+	for _, p := range PathList(a.Env["GOPATH"]) {
 		roots = append(roots, filepath.Join(p, "pkg", osArchSfx))
 	}
 

@@ -273,9 +273,10 @@ func fileImportPaths(af *ast.File) []string {
 	return l
 }
 
-func pathList(p string) []string {
-	l := []string{}
-	for _, s := range strings.Split(p, string(filepath.ListSeparator)) {
+func PathList(p string) []string {
+	dirs := strings.Split(p, string(filepath.ListSeparator))
+	l := make([]string, 0, len(dirs))
+	for _, s := range dirs {
 		if s != "" {
 			l = append(l, s)
 		}
@@ -283,11 +284,21 @@ func pathList(p string) []string {
 	return l
 }
 
-func envRootList(env map[string]string) (string, []string) {
+func RootPaths(env map[string]string) (string, []string) {
 	if env == nil {
 		return "", []string{}
 	}
-	return env["GOROOT"], pathList(env["GOPATH"])
+	return env["GOROOT"], PathList(env["GOPATH"])
+}
+
+func Roots(env map[string]string) []string {
+	g, p := RootPaths(env)
+	l := make([]string, 0, len(p)+1)
+	if g != "" {
+		l = append(l, g)
+	}
+	l = append(l, p...)
+	return l
 }
 
 func Since(start time.Time) time.Duration {

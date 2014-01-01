@@ -23,7 +23,7 @@ func init() {
 
 func mPkgPathsRes(env map[string]string, exclude []string, wantPkgNames bool) map[string]map[string]string {
 	lck := sync.Mutex{}
-	goroot, gopaths := envRootList(env)
+	goroot, gopaths := RootPaths(env)
 
 	res := map[string]map[string]string{}
 

@@ -91,7 +91,7 @@ func (g *mGocode) completions(src []byte, fn string, pos int) []gocode.MargoCand
 	c := gocode.MargoConfig{}
 	c.InstallSuffix = g.InstallSuffix
 	c.Builtins = g.Builtins
-	c.GOROOT, c.GOPATHS = envRootList(g.Env)
+	c.GOROOT, c.GOPATHS = RootPaths(g.Env)
 	return gocode.Margo.Complete(c, src, fn, pos)
 }
 
