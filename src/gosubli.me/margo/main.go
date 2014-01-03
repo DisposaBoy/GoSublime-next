@@ -8,6 +8,7 @@ import (
 	_ "gosubli.me/mg/meth/hello"
 	_ "gosubli.me/mg/meth/ping"
 	_ "gosubli.me/mg/meth/posdef"
+	_ "gosubli.me/mg/meth/synchk"
 	"os"
 )
 

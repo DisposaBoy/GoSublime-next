@@ -1,5 +1,6 @@
 from . import about
 from . import gs
+from . import mg9
 from . import nineo
 import pprint
 
@@ -93,3 +94,30 @@ def bi_echo(c, ok=True):
 
 def bi_fail(c):
 	bi_echo(c, False)
+
+def bi_gs__synchk(c):
+	def f(res, err):
+		errs = res.get('Errors', [])
+		if errs:
+			for e in errs:
+				c.attrs.append({
+					'fn': e.get('Fn', ''),
+					'message': e.get('Message', ''),
+					'pos': '%s:%s' % (e.get('Line', -1), e.get('Column', 0)),
+				})
+
+			c.fail()
+		else:
+			c.done()
+
+	if c.args:
+		files = [{'Fn': fn} for fn in c.args]
+	else:
+		vv = c.sess.vv
+		files = [{'Src': vv.src()}]
+		if not c.hl:
+			c.hl = {
+				'ctx': 'gs.synchk:%s' % vv.vfn(),
+			}
+
+	mg9.acall('synchk', {'Files': files}, f)
