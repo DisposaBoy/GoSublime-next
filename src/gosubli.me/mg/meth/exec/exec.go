@@ -32,6 +32,7 @@ type Resp struct {
 	Chunks [][]byte
 	Ok     bool
 	Dur    string
+	Mem    string
 }
 
 type Attr map[string]string
@@ -103,6 +104,7 @@ func (e *Exec) Call() (interface{}, string) {
 		Dur:    dur.String(),
 		Chunks: e.chunks(),
 		Ok:     ok,
+		Mem:    maxRss(c.ProcessState),
 	}
 
 	if err != nil {

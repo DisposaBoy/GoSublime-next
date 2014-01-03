@@ -573,10 +573,10 @@ def mk_cmd(view, wd, ctx, cn, f=None):
 			f(c)
 
 		s = ''
-		if gs.is_a(c.res, {}) and c.res.get('Dur'):
-			s = ' %s' % c.res.get('Dur')
+		if gs.is_a(c.res, {}):
+			s = ''.join('[ %s ]' % v for v in (c.res.get('Dur'), c.res.get('Mem')) if v)
 
-		wr.write('\n[done%s]\n' % s)
+		wr.write('\n%s\n' % (s or '[ done ]'))
 		view.run_command('gs9o_show_ctx', {'ctx': ctx})
 		c.resume()
 

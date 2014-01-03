@@ -17,3 +17,7 @@ func interrupt(c *exec.Cmd) error {
 
 func setsid(c *exec.Cmd) {
 }
+
+func maxRss(p *os.ProcessState) string {
+	return ""
+}
