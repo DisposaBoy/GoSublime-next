@@ -3,11 +3,11 @@
 package main
 
 import (
-	_ "gosubli.me/meth/exec" // cancel and exec
-	_ "gosubli.me/meth/hello"
-	_ "gosubli.me/meth/ping"
-	_ "gosubli.me/meth/posdef"
 	"gosubli.me/mg"
+	_ "gosubli.me/mg/meth/exec" // cancel and exec
+	_ "gosubli.me/mg/meth/hello"
+	_ "gosubli.me/mg/meth/ping"
+	_ "gosubli.me/mg/meth/posdef"
 	"os"
 )
 
