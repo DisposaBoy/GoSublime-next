@@ -436,22 +436,19 @@ def _exec(view, edit, save_hist=False):
 			anv['_args'] = ag
 			cmd = string.Template(alias).safe_substitute(anv)
 
-		if nm != 'sh':
-			f = builtins().get(nm)
-			if f:
-				args = []
-				if ag:
-					args = [_exparg(s, nv) for s in shlex.split(gs.astr(ag))]
-
-				f(view, edit, args, wd, rkey)
-				return
-
 		if nm == 'sh':
-			args = sh.cmd(ag)
-		else:
-			args = sh.cmd(cmd)
+			cmd_sh(view, edit, sh.cmd(ag), wd, rkey)
+			return
 
-		cmd_sh(view, edit, args, wd, rkey)
+		args = []
+		if ag:
+			args = [_exparg(s, nv) for s in shlex.split(gs.astr(ag))]
+
+		f = builtins().get(nm)
+		if f:
+			f(view, edit, args, wd, rkey)
+		else:
+			cmd_9o(view, edit, [nm]+args, wd, rkey)
 	else:
 		view.insert(edit, gs.sel(view).begin(), '\n')
 
@@ -564,12 +561,6 @@ def _9_begin_call(name, view, edit, args, wd, rkey, cid):
 		sublime.set_timeout(f, 0)
 
 	return cid, cb
-
-def cmd_echo(view, edit, args, wd, rkey):
-	mk_cmd(view, wd, rkey, {
-		'cmd': 'echo',
-		'args': args,
-	}).start()
 
 def cmd_9o(view, edit, args, wd, rkey):
 	mk_cmd(view, wd, rkey, args).start()
