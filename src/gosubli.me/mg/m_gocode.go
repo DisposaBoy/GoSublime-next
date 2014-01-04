@@ -31,13 +31,33 @@ type calltipVisitor struct {
 }
 
 func (v *calltipVisitor) Visit(node ast.Node) (w ast.Visitor) {
-	if node != nil {
-		if x, ok := node.(*ast.CallExpr); ok {
-			a := v.fset.Position(node.Pos())
-			b := v.fset.Position(node.End())
+	switch x := node.(type) {
+	case *ast.CallExpr:
+		a := v.fset.Position(x.Pos())
+		b := v.fset.Position(x.End())
+		if (a.IsValid() && v.offset >= a.Offset) && (!b.IsValid() || v.offset <= b.Offset) {
+			v.x = x
+		}
+	case *ast.AssignStmt:
+		check := func(l ast.Node, r ast.Node) bool {
+			a := v.fset.Position(l.Pos())
+			b := v.fset.Position(l.End())
+			if v.offset >= a.Offset && v.offset <= b.Offset {
+				if c, ok := r.(*ast.CallExpr); ok {
+					v.x = c
+				}
+				return true
+			}
+			return false
+		}
 
-			if (a.IsValid() && v.offset >= a.Offset) && (!b.IsValid() || v.offset <= b.Offset) {
-				v.x = x
+		if len(x.Rhs) == 1 {
+			check(x, x.Rhs[0])
+		} else {
+			for i, n := range x.Lhs {
+				if i >= len(x.Rhs) || check(n, x.Rhs[i]) {
+					break
+				}
 			}
 		}
 	}
