@@ -23,6 +23,10 @@ var (
 	osArch     = runtime.GOOS + "_" + runtime.GOARCH
 )
 
+type MsDuration struct {
+	time.Duration
+}
+
 type void struct{}
 
 type jString string
@@ -61,6 +65,14 @@ func (d jData) MarshalJSON() ([]byte, error) {
 	enc.Close()
 	buf.WriteByte('"')
 	return buf.Bytes(), nil
+}
+
+func (d MsDuration) String() string {
+	if d.Duration < time.Millisecond {
+		return "0ms"
+	}
+	dur := d.Duration - d.Duration%time.Millisecond
+	return dur.String()
 }
 
 func Uid() string {
@@ -303,10 +315,8 @@ func SrcDirs(env map[string]string) []string {
 	return l
 }
 
-func Since(start time.Time) time.Duration {
-	dur := time.Since(start)
-	dur -= dur % time.Millisecond
-	return dur
+func Since(start time.Time) MsDuration {
+	return MsDuration{time.Since(start)}
 }
 
 func BytePos(src string, charPos int) int {

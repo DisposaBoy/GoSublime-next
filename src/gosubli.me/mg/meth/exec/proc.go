@@ -21,7 +21,7 @@ func NewProcTable() *ProcTable {
 	}
 }
 
-func (p *ProcTable) Run(cid string, cmd *exec.Cmd) (error, time.Duration) {
+func (p *ProcTable) Run(cid string, cmd *exec.Cmd) (error, mg.MsDuration) {
 	if cid == "" {
 		cid = mg.Uid()
 	}
