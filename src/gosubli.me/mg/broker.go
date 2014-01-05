@@ -54,7 +54,7 @@ func NewBroker(r io.Reader, w io.Writer, tag string) *Broker {
 func (b *Broker) Send(resp Response) error {
 	err := b.SendNoLog(resp)
 	if err != nil {
-		logger.Println("Cannot send result: tag: `%v`, token: `%v`, err: `%v`", resp.Tag, resp.Token, err)
+		logger.Printf("Cannot send result: tag: `%v`, token: `%v`, err: `%v`", resp.Tag, resp.Token, err)
 	}
 	return err
 }
