@@ -1,9 +1,10 @@
-package mg
+package gocode
 
 import (
 	"go/ast"
 	"go/parser"
 	"go/token"
+	"gosubli.me/mg"
 	"gosubli.me/something-borrowed/gocode"
 	"io/ioutil"
 	"path/filepath"
@@ -75,7 +76,7 @@ func (m *mGocode) Call() (interface{}, string) {
 		return nil, "No source"
 	}
 
-	pos := bytePos(m.Src, m.Pos)
+	pos := mg.BytePos(m.Src, m.Pos)
 	if m.Pos < 0 {
 		return nil, "Invalid offset"
 	}
@@ -83,7 +84,7 @@ func (m *mGocode) Call() (interface{}, string) {
 	src := []byte(m.Src)
 	fn := m.Fn
 	if !filepath.IsAbs(fn) {
-		fn = filepath.Join(orString(m.Dir, m.Home), orString(fn, "_.go"))
+		fn = filepath.Join(mg.OrString(m.Dir, m.Home), mg.OrString(fn, "_.go"))
 	}
 
 	res := struct {
@@ -97,7 +98,7 @@ func (m *mGocode) Call() (interface{}, string) {
 	}
 
 	if m.Autoinst && len(res.Candidates) == 0 {
-		autoInstall(AutoInstOptions{
+		mg.AutoInstall(mg.AutoInstOptions{
 			Src:           m.Src,
 			Env:           m.Env,
 			InstallSuffix: m.InstallSuffix,
@@ -111,7 +112,7 @@ func (g *mGocode) completions(src []byte, fn string, pos int) []gocode.MargoCand
 	c := gocode.MargoConfig{}
 	c.InstallSuffix = g.InstallSuffix
 	c.Builtins = g.Builtins
-	c.GOROOT, c.GOPATHS = RootPaths(g.Env)
+	c.GOROOT, c.GOPATHS = mg.RootPaths(g.Env)
 	return gocode.Margo.Complete(c, src, fn, pos)
 }
 
@@ -172,11 +173,11 @@ func offsetLine(fset *token.FileSet, af *ast.File, offset int) (line int) {
 }
 
 func init() {
-	registry.Register("gocode_complete", func(b *Broker) Caller {
+	mg.Register("gocode_complete", func(b *mg.Broker) mg.Caller {
 		return &mGocode{}
 	})
 
-	registry.Register("gocode_calltip", func(b *Broker) Caller {
+	mg.Register("gocode_calltip", func(b *mg.Broker) mg.Caller {
 		return &mGocode{calltip: true}
 	})
 }

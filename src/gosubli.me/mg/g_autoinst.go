@@ -13,7 +13,7 @@ var (
 	autoInstCh = make(chan AutoInstOptions, 10)
 )
 
-func autoInstall(ao AutoInstOptions) {
+func AutoInstall(ao AutoInstOptions) {
 	select {
 	case autoInstCh <- ao:
 	default:

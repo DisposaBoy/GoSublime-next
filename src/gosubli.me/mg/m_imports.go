@@ -61,7 +61,7 @@ func (m *mImports) Call() (interface{}, string) {
 	}
 
 	if m.Autoinst {
-		autoInstall(AutoInstOptions{
+		AutoInstall(AutoInstOptions{
 			Env:           m.Env,
 			ImportPaths:   fileImportPaths(af),
 			InstallSuffix: m.InstallSuffix,

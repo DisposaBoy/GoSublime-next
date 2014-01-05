@@ -94,7 +94,7 @@ func defaultEnv() map[string]string {
 	}
 }
 
-func orString(a ...string) string {
+func OrString(a ...string) string {
 	for _, s := range a {
 		if s != "" {
 			return s
@@ -309,7 +309,7 @@ func Since(start time.Time) time.Duration {
 	return dur
 }
 
-func bytePos(src string, charPos int) int {
+func BytePos(src string, charPos int) int {
 	for i, _ := range src {
 		if charPos <= 0 {
 			return i
