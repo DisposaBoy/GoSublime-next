@@ -165,6 +165,10 @@ def show_messages(view):
 				push(notes, fn, row)
 
 	if items:
+		n = max(map(len, items))
+		for l in items:
+			l.extend('' for i in range(n - len(l)))
+
 		def cb(i, win):
 			p = gotos.get(i)
 			if p:
