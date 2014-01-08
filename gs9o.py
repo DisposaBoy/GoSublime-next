@@ -437,7 +437,7 @@ def _exec(view, edit, save_hist=False):
 			cmd = string.Template(alias).safe_substitute(anv)
 
 		if nm == 'sh':
-			cmd_sh(view, edit, sh.cmd(ag), wd, rkey)
+			cmd_9o(view, edit, sh.cmd(ag), wd, rkey)
 			return
 
 		args = []
@@ -662,19 +662,6 @@ def cmd_cancel_replay(view, edit, args, wd, rkey):
 
 	mg9.acall('kill', {'cid': cid}, None)
 	push_output(view, rkey, '')
-
-def cmd_sh(view, edit, args, wd, rkey):
-	cid, cb = _9_begin_call('sh', view, edit, args, wd, rkey, '')
-	a = {
-		'cid': cid,
-		'env': sh.env(),
-		'cwd': wd,
-		'cmd': {
-			'name': args[0],
-			'args': args[1:],
-		}
-	}
-	sublime.set_timeout(lambda: mg9.acall('sh', a, cb), 0)
 
 def cmd_share(view, edit, args, wd, rkey):
 	av = gs.active_valid_go_view(win=view.window())
