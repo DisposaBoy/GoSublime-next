@@ -33,7 +33,7 @@ func (m *mImports) Call() (interface{}, string) {
 	lineRef := 0
 	src := ""
 
-	fset, af, err := parseAstFile(m.Fn, m.Src, parser.ImportsOnly|parser.ParseComments)
+	fset, af, err := ParseFile(m.Fn, m.Src, parser.ImportsOnly|parser.ParseComments)
 	if err == nil {
 		// we neither return, nor attempt the whole source because it likely contains
 		// syntax errors after the imports... as a result we need to tell the client
@@ -57,7 +57,7 @@ func (m *mImports) Call() (interface{}, string) {
 		}
 
 		af = imp(fset, af, m.Toggle)
-		src, err = printSrc(fset, af, m.TabIndent, m.TabWidth)
+		src, err = Src(fset, af, m.TabIndent, m.TabWidth)
 	}
 
 	if m.Autoinst {
@@ -72,7 +72,7 @@ func (m *mImports) Call() (interface{}, string) {
 		"src":     src,
 		"lineRef": lineRef,
 	}
-	return res, errStr(err)
+	return res, Err(err)
 }
 
 func init() {

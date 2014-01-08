@@ -54,7 +54,7 @@ func (m *mSh) Call() (interface{}, string) {
 		"err": jData(stdErr.Bytes()),
 		"dur": Since(start).String(),
 	}
-	return res, errStr(err)
+	return res, Err(err)
 }
 
 func init() {

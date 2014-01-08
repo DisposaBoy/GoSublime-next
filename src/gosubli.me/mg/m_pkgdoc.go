@@ -33,19 +33,19 @@ func mPkgdocFetchDoc(m *mPkgdoc) (interface{}, string) {
 
 	req, err := http.NewRequest("GET", "http://godoc.org/"+path, nil)
 	if err != nil {
-		return res, errStr(err)
+		return res, Err(err)
 	}
 
 	setupReq(req)
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return res, errStr(err)
+		return res, Err(err)
 	}
 	defer resp.Body.Close()
 	s, err := ioutil.ReadAll(resp.Body)
 
 	if err != nil {
-		return res, errStr(err)
+		return res, Err(err)
 	}
 
 	res["doc"] = mPkgdocDoc{
@@ -64,13 +64,13 @@ func mPkgdocSearch(m *mPkgdoc) (interface{}, string) {
 
 	req, err := http.NewRequest("GET", "http://godoc.org/?q="+url.QueryEscape(s), nil)
 	if err != nil {
-		return res, errStr(err)
+		return res, Err(err)
 	}
 
 	setupReq(req)
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return res, errStr(err)
+		return res, Err(err)
 	}
 	defer resp.Body.Close()
 

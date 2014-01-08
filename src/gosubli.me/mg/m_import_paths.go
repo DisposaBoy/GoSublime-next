@@ -26,7 +26,7 @@ type mImportPathsDecl struct {
 
 func (m *mImportPaths) Call() (interface{}, string) {
 	imports := []mImportPathsDecl{}
-	_, af, err := parseAstFile(m.Fn, m.Src, parser.ImportsOnly)
+	_, af, err := ParseFile(m.Fn, m.Src, parser.ImportsOnly)
 	if err != nil {
 		return M{}, err.Error()
 	}

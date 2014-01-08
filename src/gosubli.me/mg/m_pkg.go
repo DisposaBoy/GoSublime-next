@@ -11,11 +11,11 @@ type mPkg struct {
 
 func (m *mPkg) Call() (interface{}, string) {
 	res := M{}
-	_, af, err := parseAstFile(m.Fn, m.Src, parser.PackageClauseOnly)
+	_, af, err := ParseFile(m.Fn, m.Src, parser.PackageClauseOnly)
 	if err == nil {
 		res["name"] = af.Name.String()
 	}
-	return res, errStr(err)
+	return res, Err(err)
 }
 
 func init() {

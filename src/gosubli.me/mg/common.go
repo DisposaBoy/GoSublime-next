@@ -79,7 +79,7 @@ func Uid() string {
 	return "mg#" + strconv.FormatUint(numbers.next(), 16)
 }
 
-func errStr(err error) string {
+func Err(err error) string {
 	if err != nil {
 		return err.Error()
 	}
@@ -115,7 +115,7 @@ func OrString(a ...string) string {
 	return ""
 }
 
-func parseAstFile(fn string, s string, mode parser.Mode) (fset *token.FileSet, af *ast.File, err error) {
+func ParseFile(fn string, s string, mode parser.Mode) (fset *token.FileSet, af *ast.File, err error) {
 	fset = token.NewFileSet()
 	var src interface{}
 	if s != "" {
@@ -139,7 +139,7 @@ func newPrinter(tabIndent bool, tabWidth int) *printer.Config {
 	}
 }
 
-func printSrc(fset *token.FileSet, v interface{}, tabIndent bool, tabWidth int) (src string, err error) {
+func Src(fset *token.FileSet, v interface{}, tabIndent bool, tabWidth int) (src string, err error) {
 	p := newPrinter(tabIndent, tabWidth)
 	buf := &bytes.Buffer{}
 	if err = p.Fprint(buf, fset, v); err == nil {

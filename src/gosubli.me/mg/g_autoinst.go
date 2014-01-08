@@ -37,7 +37,7 @@ func (a *AutoInstOptions) imports() map[string]string {
 	m := map[string]string{}
 
 	if len(a.ImportPaths) == 0 {
-		_, af, _ := parseAstFile("a.go", a.Src, parser.ImportsOnly)
+		_, af, _ := ParseFile("a.go", a.Src, parser.ImportsOnly)
 		a.ImportPaths = fileImportPaths(af)
 	}
 

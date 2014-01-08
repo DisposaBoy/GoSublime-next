@@ -30,7 +30,7 @@ func (m *mDeclarations) Call() (interface{}, string) {
 	fileDecls := []*mDeclarationsDecl{}
 	pkgDecls := []*mDeclarationsDecl{}
 
-	if fset, af, err := parseAstFile(m.Fn, m.Src, 0); err == nil {
+	if fset, af, err := ParseFile(m.Fn, m.Src, 0); err == nil {
 		fileDecls = m.collectDecls(fset, af, fileDecls)
 	}
 

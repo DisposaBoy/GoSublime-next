@@ -90,18 +90,18 @@ func (m *mPlay) Call() (interface{}, string) {
 
 		if !pkg.IsCommand() {
 			res, err = runCmd("go", "test")
-			return res, errStr(err)
+			return res, Err(err)
 		}
 	}
 
 	fn := filepath.Join(dir, "gosublime.a.exe")
 	res, err = runCmd("go", "build", "-o", fn)
 	if m.BuildOnly || err != nil {
-		return res, errStr(err)
+		return res, Err(err)
 	}
 
 	res, err = runCmd(fn, m.Args...)
-	return res, errStr(err)
+	return res, Err(err)
 }
 
 func init() {

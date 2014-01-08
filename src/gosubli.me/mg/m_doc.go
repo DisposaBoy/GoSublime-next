@@ -33,7 +33,7 @@ type mDoc struct {
 func (m *mDoc) Call() (interface{}, string) {
 	res := []*Doc{}
 
-	fset, af, err := parseAstFile(m.Fn, m.Src, parser.ParseComments)
+	fset, af, err := ParseFile(m.Fn, m.Src, parser.ParseComments)
 	if err != nil {
 		return res, err.Error()
 	}
@@ -133,7 +133,7 @@ func objDoc(fset *token.FileSet, pkg *ast.Package, tabIndent bool, tabWidth int,
 	}
 
 	if objSrc == "" {
-		objSrc, _ = printSrc(fset, decl, tabIndent, tabWidth)
+		objSrc, _ = Src(fset, decl, tabIndent, tabWidth)
 	}
 
 	return &Doc{
