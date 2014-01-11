@@ -88,7 +88,7 @@ func Run(args []string) {
 	startOomKiller(maxMem)
 
 	if dump_env {
-		m := defaultEnv()
+		m := DefaultEnv()
 		for _, s := range os.Environ() {
 			p := strings.SplitN(s, "=", 2)
 			if len(p) == 2 {
