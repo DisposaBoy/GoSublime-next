@@ -24,7 +24,7 @@ type mPlay struct {
 // todo: send the client output as it comes
 func (m *mPlay) Call() (interface{}, string) {
 	env := Env(m.Env)
-	dir, err := ioutil.TempDir(tempDir(m.Env), "play-")
+	dir, err := ioutil.TempDir(TempDir(m.Env), "play-")
 	if err != nil {
 		return nil, err.Error()
 	}

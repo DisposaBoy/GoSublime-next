@@ -224,7 +224,7 @@ func eRune() []byte {
 	return s
 }
 
-func tempDir(env map[string]string, subDirs ...string) string {
+func TempDir(env map[string]string, subDirs ...string) string {
 	dir := ""
 
 	if env != nil {
