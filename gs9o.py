@@ -670,7 +670,7 @@ def cmd_share(view, edit, args, wd, rkey):
 		return
 
 	def f(res, err):
-		s = '%s\n%s' % (err, res.get('url', ''))
+		s = '%s\n%s' % (err, res.get('Url', ''))
 		push_output(view, rkey, s.strip())
 
 	mg9.share(gs.view_src(view.window().active_view()), f)

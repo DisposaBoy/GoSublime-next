@@ -1,25 +1,29 @@
-package mg
+package share
 
 import (
 	"bytes"
+	"gosubli.me/mg"
 	"io/ioutil"
 	"net/http"
 )
 
-type mShare struct {
+type Share struct {
 	Src string
 }
 
-func (m mShare) Call() (interface{}, string) {
-	res := M{}
+type Res struct {
+	Url string
+}
 
+func (m Share) Call() (interface{}, string) {
+	res := &Res{}
 	s := bytes.TrimSpace([]byte(m.Src))
 	if len(s) == 0 {
 		return res, "Nothing to share"
 	}
 
 	u := "http://play.golang.org"
-	body := bytes.NewBufferString(m.Src)
+	body := bytes.NewBuffer(s)
 	req, err := http.NewRequest("POST", u+"/share", body)
 	req.Header.Set("User-Agent", "GoSublime")
 	resp, err := http.DefaultClient.Do(req)
@@ -33,7 +37,7 @@ func (m mShare) Call() (interface{}, string) {
 		return res, err.Error()
 	}
 
-	res["url"] = u + "/p/" + string(s)
+	res.Url = u + "/p/" + string(s)
 	e := ""
 	if resp.StatusCode != 200 {
 		e = "Unexpected http status: " + resp.Status
@@ -43,7 +47,7 @@ func (m mShare) Call() (interface{}, string) {
 }
 
 func init() {
-	registry.Register("share", func(_ *Broker) Caller {
-		return &mShare{}
+	mg.Register("share", func(_ *mg.Broker) mg.Caller {
+		return &Share{}
 	})
 }
