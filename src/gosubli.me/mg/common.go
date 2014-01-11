@@ -98,7 +98,7 @@ func Env(m map[string]string) []string {
 	return s
 }
 
-func defaultEnv() map[string]string {
+func DefaultEnv() map[string]string {
 	return map[string]string{
 		"GOROOT": runtime.GOROOT(),
 		"GOARCH": runtime.GOARCH,
