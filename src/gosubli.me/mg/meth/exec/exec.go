@@ -21,13 +21,13 @@ var (
 	}{m: map[string]*regexp.Regexp{}}
 )
 
-type StreamResp struct {
+type StreamRes struct {
 	Chunks [][]byte
 	Stream string
 	End    bool
 }
 
-type Resp struct {
+type Res struct {
 	Attrs  []Attr
 	Chunks [][]byte
 	Ok     bool
@@ -52,6 +52,7 @@ type Exec struct {
 	Stream string
 
 	Wd            string
+	Fn            string
 	Input         string
 	DiscardStdout bool
 	DiscardStderr bool
@@ -61,6 +62,8 @@ type Exec struct {
 	Switch        []Switch
 	SwitchOk      bool
 
+	filter   func([]byte) []byte
+	fini     func()
 	switches []*Switch
 	brk      *mg.Broker
 	sink     *sink.Chan
@@ -72,45 +75,41 @@ type Exec struct {
 }
 
 func (e *Exec) Call() (interface{}, string) {
+	res := Res{}
+	errStr := ""
 	e.initSwitches()
-	c := exec.Command(e.Cmd, e.Args...)
-	c.Dir = e.Wd
-	c.Env = mg.Env(e.Env)
-	if !e.DiscardStdout {
-		c.Stdout = e.sink
-	}
-	if !e.DiscardStderr {
-		c.Stderr = e.sink
-	}
-	if e.Input != "" {
-		c.Stdin = strings.NewReader(e.Input)
-	}
-
 	wg := &sync.WaitGroup{}
 	wg.Add(1)
 	go e.stream(wg)
-	err, dur := procs.Run(e.Cid, c)
+
+	for _, c := range e.cl() {
+		err, dur := procs.Run(e.Cid, c)
+		errStr = mg.Err(err)
+		res.Mem = maxRss(c.ProcessState)
+		res.Dur = dur.String()
+		res.Attrs, res.Ok = e.cmdAttrsOk(c)
+
+		if err != nil || !res.Ok {
+			break
+		}
+	}
+
 	e.sink.Close()
 	wg.Wait()
+	res.Chunks = e.chunks()
 
-	ok := c.ProcessState != nil && c.ProcessState.Success()
-	attrs, swOk := e.collectAttrs()
-	if e.SwitchOk && len(e.Switch) > 0 {
-		ok = swOk
+	if e.fini != nil {
+		e.fini()
 	}
 
-	res := Resp{
-		Attrs:  attrs,
-		Dur:    dur.String(),
-		Chunks: e.chunks(),
-		Ok:     ok,
-		Mem:    maxRss(c.ProcessState),
-	}
+	return res, errStr
+}
 
-	if err != nil {
-		return res, err.Error()
+func (e *Exec) cl() []*exec.Cmd {
+	switch e.Cmd {
+	default:
+		return []*exec.Cmd{mkCmd(e, e.Input, e.Cmd, e.Args...)}
 	}
-	return res, ""
 }
 
 func (e *Exec) stream(wg *sync.WaitGroup) {
@@ -120,6 +119,10 @@ func (e *Exec) stream(wg *sync.WaitGroup) {
 	for {
 		select {
 		case s, ok := <-e.sink.C:
+			if e.filter != nil {
+				s = e.filter(s)
+			}
+
 			eof := !ok
 			s = e.sw(s)
 			e.put(s, eof)
@@ -169,7 +172,7 @@ func (e *Exec) flush(eof bool) {
 
 	e.brk.Send(mg.Response{
 		Token: e.Stream,
-		Data: StreamResp{
+		Data: StreamRes{
 			Chunks: e.chunks(),
 			End:    eof,
 		},
@@ -197,6 +200,14 @@ func (e *Exec) initSwitches() error {
 		e.switches = append(e.switches, sw)
 	}
 	return nil
+}
+
+func (e *Exec) cmdAttrsOk(c *exec.Cmd) ([]Attr, bool) {
+	attrs, swOk := e.collectAttrs()
+	if e.SwitchOk && len(e.Switch) > 0 {
+		return attrs, swOk
+	}
+	return attrs, c.ProcessState != nil && c.ProcessState.Success()
 }
 
 func (e *Exec) collectAttrs() ([]Attr, bool) {
@@ -282,6 +293,22 @@ func rx(s string) (*regexp.Regexp, error) {
 func crSuffix(s []byte) bool {
 	i := len(s) - 1
 	return i >= 0 && s[i] == '\r'
+}
+
+func mkCmd(e *Exec, input string, cmd string, args ...string) *exec.Cmd {
+	c := exec.Command(cmd, args...)
+	c.Dir = e.Wd
+	c.Env = mg.Env(e.Env)
+	if !e.DiscardStdout {
+		c.Stdout = e.sink
+	}
+	if !e.DiscardStderr {
+		c.Stderr = e.sink
+	}
+	if input != "" {
+		c.Stdin = strings.NewReader(input)
+	}
+	return c
 }
 
 func init() {
