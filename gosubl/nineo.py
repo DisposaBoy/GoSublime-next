@@ -36,6 +36,7 @@ class Cmd(object):
 		self.cid = ''
 		self.attrs = []
 		self.input = ''
+		self.fn = ''
 		self.discard_stdout = False
 		self.discard_stderr = False
 		self.save = False
@@ -218,6 +219,7 @@ class Cmd(object):
 
 		if self.input is True:
 			self.input = self.sess.vv.src()
+			self.fn = self.sess.vv.vfn()
 		elif not gs.is_a_string(self.input):
 			self.input = ''
 
@@ -425,6 +427,7 @@ def _exec_c(c):
 	c.exec_opts = {
 		'Stream': st,
 		'Cid': cid,
+		'Fn': c.fn,
 		'Input': c.input,
 		'Env': c.env,
 		'Wd': c.sess.wd,
