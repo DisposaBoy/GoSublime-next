@@ -76,14 +76,23 @@ type Exec struct {
 
 func (e *Exec) Call() (interface{}, string) {
 	e.initSwitches()
+	cl, err := e.cl()
+
+	if e.fini != nil {
+		defer e.fini()
+	}
+
+	if err != nil {
+		return nil, err.Error()
+	}
+
 	wg := &sync.WaitGroup{}
 	wg.Add(1)
 	go e.stream(wg)
 	var c *exec.Cmd
 	var dur mg.MsDuration
-	var err error
 
-	for _, c = range e.cl() {
+	for _, c = range cl {
 		err, dur = procs.Run(e.Cid, c)
 		if err != nil {
 			break
@@ -100,24 +109,16 @@ func (e *Exec) Call() (interface{}, string) {
 	}
 	res.Attrs, res.Ok = e.cmdAttrsOk(c)
 
-	if e.fini != nil {
-		e.fini()
-	}
-
 	return res, mg.Err(err)
 }
 
-func (e *Exec) cl() (cl []*exec.Cmd) {
+func (e *Exec) cl() ([]*exec.Cmd, error) {
 	switch e.Cmd {
 	case ".play":
-		cl = playCmd(e)
+		return playCmd(e)
+	default:
+		return []*exec.Cmd{mkCmd(e, e.Input, e.Cmd, e.Args...)}, nil
 	}
-
-	if len(cl) == 0 {
-		cl = []*exec.Cmd{mkCmd(e, e.Input, e.Cmd, e.Args...)}
-	}
-
-	return cl
 }
 
 func (e *Exec) stream(wg *sync.WaitGroup) {

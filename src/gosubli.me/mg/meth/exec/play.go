@@ -10,10 +10,10 @@ import (
 	"path/filepath"
 )
 
-func playCmd(e *Exec) []*exec.Cmd {
+func playCmd(e *Exec) ([]*exec.Cmd, error) {
 	dir, err := ioutil.TempDir(mg.TempDir(e.Env), "play-")
 	if err != nil {
-		return nil
+		return nil, err
 	}
 
 	e.fini = func() {
@@ -22,12 +22,12 @@ func playCmd(e *Exec) []*exec.Cmd {
 
 	pkg, err := build.ImportDir(e.Wd, 0)
 	if err != nil {
-		return nil
+		return nil, err
 	}
 
 	if !pkg.IsCommand() {
 		args := append([]string{"test"}, e.Args...)
-		return []*exec.Cmd{mkCmd(e, "", "go", args...)}
+		return []*exec.Cmd{mkCmd(e, "", "go", args...)}, nil
 	}
 
 	srcFn := filepath.Join(dir, "tmp.go")
@@ -41,7 +41,7 @@ func playCmd(e *Exec) []*exec.Cmd {
 
 	return []*exec.Cmd{
 		mkCmd(e, "", "go", append([]string{"run"}, pkg.GoFiles...)...),
-	}
+	}, nil
 }
 
 func playInput(e *Exec, fn string) bool {
