@@ -339,7 +339,9 @@ class Sess(object):
 		self.vv = vu.active(win=win, view=view)
 		self.wr = wr or Wr(None)
 		self.wd = wd or gs.basedir_or_cwd(self.vv.fn())
-		self.cmds = cmds or gs.setting('commands', {})
+		d = gs.settings_dict()
+		self.cmds = d.get('default_commands', {})
+		self.cmds.update(cmds or d.get('commands', {}))
 
 	def cmd(self, cn, cb=None, set_stream=None):
 		return Cmd(self, cn, cb=cb, set_stream=set_stream)

@@ -97,6 +97,7 @@ _default_settings = {
 	"use_gs_gopath": False,
 	"use_named_imports": False,
 	"use_legacy_imports": True,
+	"default_commands": {},
 	"commands": {},
 	"installsuffix": "",
 }
