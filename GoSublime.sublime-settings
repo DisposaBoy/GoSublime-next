@@ -354,6 +354,17 @@
 
 			// the args to pass to the command
 			"args": []
+		},
+	},
+
+	"default_commands": {
+		"play": {
+			"cmd": ".play",
+			"input": true
+		},
+		"replay": {
+			"cid": "replay:$_wd",
+			"cmd": "play",
 		}
 	},
 

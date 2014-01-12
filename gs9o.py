@@ -679,12 +679,6 @@ def cmd_help(view, edit, args, wd, rkey):
 	gs.focus(gs.dist_path('9o.md'))
 	push_output(view, rkey, '')
 
-def cmd_run(view, edit, args, wd, rkey):
-	cmd_9(view, edit, gs.lst('run', args), wd, rkey)
-
-def cmd_replay(view, edit, args, wd, rkey):
-	cmd_9(view, edit, gs.lst('replay', args), wd, rkey)
-
 def cmd_build(view, edit, args, wd, rkey):
 	cmd_9(view, edit, gs.lst('build', args), wd, rkey)
 
