@@ -75,41 +75,49 @@ type Exec struct {
 }
 
 func (e *Exec) Call() (interface{}, string) {
-	res := Res{}
-	errStr := ""
 	e.initSwitches()
 	wg := &sync.WaitGroup{}
 	wg.Add(1)
 	go e.stream(wg)
+	var c *exec.Cmd
+	var dur mg.MsDuration
+	var err error
 
-	for _, c := range e.cl() {
-		err, dur := procs.Run(e.Cid, c)
-		errStr = mg.Err(err)
-		res.Mem = maxRss(c.ProcessState)
-		res.Dur = dur.String()
-		res.Attrs, res.Ok = e.cmdAttrsOk(c)
-
-		if err != nil || !res.Ok {
+	for _, c = range e.cl() {
+		err, dur = procs.Run(e.Cid, c)
+		if err != nil {
 			break
 		}
 	}
 
 	e.sink.Close()
 	wg.Wait()
-	res.Chunks = e.chunks()
+
+	res := Res{
+		Chunks: e.chunks(),
+		Mem:    maxRss(c.ProcessState),
+		Dur:    dur.String(),
+	}
+	res.Attrs, res.Ok = e.cmdAttrsOk(c)
 
 	if e.fini != nil {
 		e.fini()
 	}
 
-	return res, errStr
+	return res, mg.Err(err)
 }
 
-func (e *Exec) cl() []*exec.Cmd {
+func (e *Exec) cl() (cl []*exec.Cmd) {
 	switch e.Cmd {
-	default:
-		return []*exec.Cmd{mkCmd(e, e.Input, e.Cmd, e.Args...)}
+	case ".play":
+		cl = playCmd(e)
 	}
+
+	if len(cl) == 0 {
+		cl = []*exec.Cmd{mkCmd(e, e.Input, e.Cmd, e.Args...)}
+	}
+
+	return cl
 }
 
 func (e *Exec) stream(wg *sync.WaitGroup) {
