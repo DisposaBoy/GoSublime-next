@@ -235,10 +235,8 @@ func (e *Exec) sw(s []byte) []byte {
 	discard := false
 
 	for _, sw := range e.switches {
-		attr, matched := sw.match(s)
-		if len(attr) != 0 {
-			sw.attrs = append(sw.attrs, attr)
-		}
+		al, matched := sw.match(s)
+		sw.attrs = append(sw.attrs, al...)
 
 		if matched != sw.Negative {
 			if sw.Discard {
@@ -257,25 +255,31 @@ func (e *Exec) sw(s []byte) []byte {
 	return s
 }
 
-func (s *Switch) match(p []byte) (Attr, bool) {
+func (s *Switch) match(p []byte) ([]Attr, bool) {
 	if len(s.cases) == 0 {
 		return nil, true
 	}
 
 	for _, rx := range s.cases {
-		mt := rx.FindSubmatch(p)
-		if len(mt) > 0 {
-			// p (and by extension mt) is owned by the caller so make sure it gets copied
+		ml := rx.FindAllSubmatch(p, -1)
+		if len(ml) > 0 {
+			// p (and by extension ml, mt) is owned by the caller so make sure it gets copied
 			names := rx.SubexpNames()
-			attr := Attr{}
-			if len(mt) == len(names) {
-				for i, k := range names {
-					if k != "" {
-						attr[k] = string(mt[i])
+			al := []Attr{}
+			for _, mt := range ml {
+				attr := Attr{}
+				if len(mt) == len(names) {
+					for i, k := range names {
+						if k != "" {
+							attr[k] = string(mt[i])
+						}
 					}
 				}
+				if len(mt) != 0 {
+					al = append(al, attr)
+				}
 			}
-			return attr, true
+			return al, true
 		}
 	}
 
