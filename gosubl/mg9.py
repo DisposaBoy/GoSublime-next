@@ -275,8 +275,6 @@ def fmt(fn, src):
 	a = {
 		'Fn': fn or '',
 		'Src': src or '',
-		'TabIndent': st.get('fmt_tab_indent'),
-		'TabWidth': st.get('fmt_tab_width'),
 	}
 	x = st.get('fmt_cmd')
 	if x:
@@ -370,8 +368,6 @@ def imports(fn, src, toggle):
 		'fn': fn or '',
 		'src': src or '',
 		'toggle': toggle or [],
-		'tabIndent': gs.setting('fmt_tab_indent'),
-		'tabWidth': gs.setting('fmt_tab_width'),
 	})
 
 def doc(fn, src, offset, f):
@@ -385,8 +381,6 @@ def doc(fn, src, offset, f):
 		'src': src or '',
 		'offset': offset or 0,
 		'env': sh.env(),
-		'tabIndent': gs.setting('fmt_tab_indent'),
-		'tabWidth': gs.setting('fmt_tab_width'),
 	}, cb)
 
 def share(src, f):

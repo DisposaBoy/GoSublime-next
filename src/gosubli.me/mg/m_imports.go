@@ -22,8 +22,6 @@ type mImports struct {
 	Fn            string
 	Src           string
 	Toggle        []mImportDeclArg
-	TabWidth      int
-	TabIndent     bool
 	Env           map[string]string
 	Autoinst      bool
 	InstallSuffix string
@@ -57,7 +55,7 @@ func (m *mImports) Call() (interface{}, string) {
 		}
 
 		af = imp(fset, af, m.Toggle)
-		src, err = Src(fset, af, m.TabIndent, m.TabWidth)
+		src, err = Src(fset, af)
 	}
 
 	if m.Autoinst {
@@ -78,9 +76,7 @@ func (m *mImports) Call() (interface{}, string) {
 func init() {
 	registry.Register("imports", func(_ *Broker) Caller {
 		return &mImports{
-			Toggle:    []mImportDeclArg{},
-			TabWidth:  8,
-			TabIndent: true,
+			Toggle: []mImportDeclArg{},
 		}
 	})
 }

@@ -15,12 +15,10 @@ type Res struct {
 }
 
 type Fmt struct {
-	Fn        string
-	Src       string
-	TabIndent bool
-	TabWidth  int
-	Cmd       string
-	Args      []string
+	Fn   string
+	Src  string
+	Cmd  string
+	Args []string
 }
 
 func (f *Fmt) Call() (interface{}, string) {
@@ -32,7 +30,7 @@ func (f *Fmt) Call() (interface{}, string) {
 	fset, af, err := mg.ParseFile(f.Fn, f.Src, parser.ParseComments)
 	if err == nil {
 		ast.SortImports(fset, af)
-		res.Src, err = mg.Src(fset, af, f.TabIndent, f.TabWidth)
+		res.Src, err = mg.Src(fset, af)
 	}
 	return res, mg.Err(err)
 }
@@ -60,9 +58,6 @@ func (f *Fmt) gofmt() (Res, string) {
 
 func init() {
 	mg.Register("fmt", func(b *mg.Broker) mg.Caller {
-		return &Fmt{
-			TabIndent: true,
-			TabWidth:  8,
-		}
+		return &Fmt{}
 	})
 }

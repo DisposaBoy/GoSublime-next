@@ -22,12 +22,10 @@ type Doc struct {
 }
 
 type mDoc struct {
-	Fn        string
-	Src       string
-	Env       map[string]string
-	Offset    int
-	TabIndent bool
-	TabWidth  int
+	Fn     string
+	Src    string
+	Env    map[string]string
+	Offset int
 }
 
 func (m *mDoc) Call() (interface{}, string) {
@@ -63,7 +61,7 @@ func (m *mDoc) Call() (interface{}, string) {
 
 	obj, pkg, objPkgs := findUnderlyingObj(fset, af, pkg, pkgs, rootDirs(m.Env), sel, id)
 	if obj != nil {
-		res = append(res, objDoc(fset, pkg, m.TabIndent, m.TabWidth, obj))
+		res = append(res, objDoc(fset, pkg, obj))
 		if objPkgs != nil {
 			xName := "Example" + obj.Name
 			xPrefix := xName + "_"
@@ -75,7 +73,7 @@ func (m *mDoc) Call() (interface{}, string) {
 
 				for _, xObj := range xPkg.Scope.Objects {
 					if xObj.Name == xName || strings.HasPrefix(xObj.Name, xPrefix) {
-						res = append(res, objDoc(fset, xPkg, m.TabIndent, m.TabWidth, xObj))
+						res = append(res, objDoc(fset, xPkg, xObj))
 					}
 				}
 			}
@@ -92,7 +90,7 @@ func init() {
 	})
 }
 
-func objDoc(fset *token.FileSet, pkg *ast.Package, tabIndent bool, tabWidth int, obj *ast.Object) *Doc {
+func objDoc(fset *token.FileSet, pkg *ast.Package, obj *ast.Object) *Doc {
 	decl := obj.Decl
 	kind := obj.Kind.String()
 	tp := fset.Position(obj.Pos())
@@ -133,7 +131,7 @@ func objDoc(fset *token.FileSet, pkg *ast.Package, tabIndent bool, tabWidth int,
 	}
 
 	if objSrc == "" {
-		objSrc, _ = Src(fset, decl, tabIndent, tabWidth)
+		objSrc, _ = Src(fset, decl)
 	}
 
 	return &Doc{

@@ -128,19 +128,11 @@ func ParseFile(fn string, s string, mode parser.Mode) (fset *token.FileSet, af *
 	return
 }
 
-func newPrinter(tabIndent bool, tabWidth int) *printer.Config {
-	mode := printer.UseSpaces
-	if tabIndent {
-		mode |= printer.TabIndent
+func Src(fset *token.FileSet, v interface{}) (src string, err error) {
+	p := &printer.Config{
+		Mode:     printer.UseSpaces | printer.TabIndent,
+		Tabwidth: 8,
 	}
-	return &printer.Config{
-		Mode:     mode,
-		Tabwidth: tabWidth,
-	}
-}
-
-func Src(fset *token.FileSet, v interface{}, tabIndent bool, tabWidth int) (src string, err error) {
-	p := newPrinter(tabIndent, tabWidth)
 	buf := &bytes.Buffer{}
 	if err = p.Fprint(buf, fset, v); err == nil {
 		src = buf.String()
