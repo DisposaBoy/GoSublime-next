@@ -262,7 +262,7 @@ func (s *Switch) match(p []byte) ([]Attr, bool) {
 	}
 
 	for _, rx := range s.cases {
-		ml := rx.FindAllSubmatch(bytes.TrimRight(p, "\r\n"), -1)
+		ml := rx.FindAllSubmatch(bytes.TrimSpace(p), -1)
 		if len(ml) > 0 {
 			// p (and by extension ml, mt) is owned by the caller so make sure it gets copied
 			names := rx.SubexpNames()
