@@ -2,6 +2,7 @@ package exec
 
 import (
 	"bytes"
+	"fmt"
 	"go/build"
 	"gosubli.me/mg"
 	"io/ioutil"
@@ -10,7 +11,7 @@ import (
 	"path/filepath"
 )
 
-func playCmd(e *Exec) ([]*exec.Cmd, error) {
+func playCmd(e *Exec) (*exec.Cmd, error) {
 	dir, err := ioutil.TempDir(mg.TempDir(e.Env), "play-")
 	if err != nil {
 		return nil, err
@@ -27,21 +28,31 @@ func playCmd(e *Exec) ([]*exec.Cmd, error) {
 
 	if !pkg.IsCommand() {
 		args := append([]string{"test"}, e.Args...)
-		return []*exec.Cmd{mkCmd(e, "", "go", args...)}, nil
+		return mkCmd(e, "", "go", args...), nil
 	}
 
-	srcFn := filepath.Join(dir, "tmp.go")
-	if playInput(e, srcFn) {
-		for i, s := range pkg.GoFiles {
-			if s == e.Fn {
-				pkg.GoFiles[i] = srcFn
+	tmpFn := filepath.Join(dir, "tmp.go")
+	if playInput(e, tmpFn) {
+		for i, fn := range pkg.GoFiles {
+			fn = filepath.Join(e.Wd, fn)
+			if fn == e.Fn {
+				fn = tmpFn
 			}
+			pkg.GoFiles[i] = fn
 		}
 	}
 
-	return []*exec.Cmd{
-		mkCmd(e, "", "go", append([]string{"run"}, pkg.GoFiles...)...),
-	}, nil
+	buf := bytes.NewBuffer(nil)
+	binFn := filepath.Join(dir, filepath.Base(e.Wd)+".exe")
+	args := append([]string{"go", "build", "-o", binFn}, pkg.GoFiles...)
+	c := exec.Command(args[0], args[1:]...)
+	c.Stdout = buf
+	c.Stderr = buf
+	if err := c.Run(); err != nil {
+		return nil, fmt.Errorf("build failed: %#q. Error: %v.\nOutput:%v\n", args, err, buf.String())
+	}
+
+	return mkCmd(e, "", binFn, e.Args...), nil
 }
 
 func playInput(e *Exec, fn string) bool {

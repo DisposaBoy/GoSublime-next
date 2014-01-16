@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"gosubli.me/mg"
 	"gosubli.me/sink"
+	"io"
 	"os/exec"
 	"regexp"
 	"strings"
@@ -77,27 +78,19 @@ type Exec struct {
 
 func (e *Exec) Call() (interface{}, string) {
 	e.initSwitches()
-	cl, err := e.cl()
 
-	if e.fini != nil {
-		defer e.fini()
-	}
-
+	c, err := e.cmd()
 	if err != nil {
-		return nil, err.Error()
+		return Res{}, err.Error()
 	}
 
 	wg := &sync.WaitGroup{}
 	wg.Add(1)
 	go e.stream(wg)
-	var c *exec.Cmd
-	var dur mg.MsDuration
 
-	for _, c = range cl {
-		err, dur = procs.Run(e.Cid, c)
-		if err != nil {
-			break
-		}
+	err, dur := procs.Run(e.Cid, c)
+	if e.fini != nil {
+		e.fini()
 	}
 
 	e.sink.Close()
@@ -113,12 +106,12 @@ func (e *Exec) Call() (interface{}, string) {
 	return res, mg.Err(err)
 }
 
-func (e *Exec) cl() ([]*exec.Cmd, error) {
+func (e *Exec) cmd() (*exec.Cmd, error) {
 	switch e.Cmd {
 	case ".play":
 		return playCmd(e)
 	default:
-		return []*exec.Cmd{mkCmd(e, e.Input, e.Cmd, e.Args...)}, nil
+		return mkCmd(e, e.Input, e.Cmd, e.Args...), nil
 	}
 }
 
