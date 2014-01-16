@@ -12,15 +12,6 @@ import (
 )
 
 func playCmd(e *Exec) (*exec.Cmd, error) {
-	dir, err := ioutil.TempDir(mg.TempDir(e.Env), "play-")
-	if err != nil {
-		return nil, err
-	}
-
-	e.fini = func() {
-		os.RemoveAll(dir)
-	}
-
 	pkg, err := build.ImportDir(e.Wd, 0)
 	if err != nil {
 		return nil, err
@@ -31,14 +22,27 @@ func playCmd(e *Exec) (*exec.Cmd, error) {
 		return mkCmd(e, "", "go", args...), nil
 	}
 
-	tmpFn := filepath.Join(dir, "tmp.go")
-	if playInput(e, tmpFn) {
-		for i, fn := range pkg.GoFiles {
-			fn = filepath.Join(e.Wd, fn)
-			if fn == e.Fn {
-				fn = tmpFn
+	for i, fn := range pkg.GoFiles {
+		pkg.GoFiles[i] = filepath.Join(e.Wd, fn)
+	}
+
+	dir, err := ioutil.TempDir(mg.TempDir(e.Env), "play-")
+	if err != nil {
+		return nil, err
+	}
+
+	e.fini = func() {
+		os.RemoveAll(dir)
+	}
+
+	if e.Dirty {
+		tmpFn := filepath.Join(dir, "tmp.go")
+		if playInput(e, tmpFn) {
+			for i, fn := range pkg.GoFiles {
+				if fn == e.Fn {
+					pkg.GoFiles[i] = tmpFn
+				}
 			}
-			pkg.GoFiles[i] = fn
 		}
 	}
 
