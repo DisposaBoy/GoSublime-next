@@ -218,8 +218,10 @@ class Cmd(object):
 			self.sess.save_all(self.wd)
 
 		if self.input is True:
-			self.input = self.sess.vv.src()
-			self.fn = self.sess.vv.vfn()
+			vv = self.sess.vv
+			self.input = vv.src()
+			self.fn = vv.vfn()
+			self.dirty = vv.view.is_dirty()
 		elif not gs.is_a_string(self.input):
 			self.input = ''
 
@@ -429,6 +431,7 @@ def _exec_c(c):
 	c.exec_opts = {
 		'Stream': st,
 		'Cid': cid,
+		'Dirty': c.dirty,
 		'Fn': c.fn,
 		'Input': c.input,
 		'Env': c.env,
