@@ -679,48 +679,6 @@ def cmd_help(view, edit, args, wd, rkey):
 	gs.focus(gs.dist_path('9o.md'))
 	push_output(view, rkey, '')
 
-def cmd_build(view, edit, args, wd, rkey):
-	cmd_9(view, edit, gs.lst('build', args), wd, rkey)
-
-def cmd_9(view, edit, args, wd, rkey):
-	if len(args) == 0 or args[0] not in ('run', 'replay', 'build'):
-		push_output(view, rkey, ('9: invalid args %s' % args))
-		return
-
-	subcmd = args[0]
-	cid = ''
-	if subcmd == 'replay':
-		cid = '9replay-%s' % wd
-
-	av = None
-	win = view.window()
-	if win is not None:
-		av = win.active_view()
-
-		if av is not None and not av.file_name():
-			cid = '9replayv-%s' % av.id()
-
-	cid, cb = _9_begin_call(subcmd, view, edit, args, wd, rkey, cid)
-
-	a = {
-		'cid': cid,
-		'env': sh.env(),
-		'dir': wd,
-		'args': args[1:],
-		'build_only': (subcmd == 'build'),
-	}
-
-	if av is not None:
-		fn = av.file_name()
-		if fn:
-			_save_all(win, wd)
-		else:
-			if gs.is_go_source_view(av, False):
-				a['fn'] = gs.view_fn(av)
-				a['src'] = av.substr(sublime.Region(0, av.size()))
-
-	sublime.set_timeout(lambda: mg9.acall('play', a, cb), 0)
-
 def cmd_tskill(view, edit, args, wd, rkey):
 	if len(args) == 0:
 		sublime.set_timeout(lambda: sublime.active_window().run_command("gs_show_tasks"), 0)
