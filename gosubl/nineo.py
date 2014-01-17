@@ -36,6 +36,7 @@ class Cmd(object):
 		self.cid = ''
 		self.attrs = []
 		self.input = ''
+		self.dirty = False
 		self.fn = ''
 		self.discard_stdout = False
 		self.discard_stderr = False
@@ -221,7 +222,7 @@ class Cmd(object):
 			vv = self.sess.vv
 			self.input = vv.src()
 			self.fn = vv.vfn()
-			self.dirty = vv.view.is_dirty()
+			self.dirty = vv.view().is_dirty()
 		elif not gs.is_a_string(self.input):
 			self.input = ''
 
