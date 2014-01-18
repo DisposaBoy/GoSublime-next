@@ -4,6 +4,7 @@ from gosubl import mg9
 from gosubl import nineo
 from gosubl import sh
 import datetime
+import glob
 import json
 import os
 import re
@@ -78,13 +79,32 @@ def _wdid(wd):
 
 
 class EV(sublime_plugin.EventListener):
-	def on_query_completions(self, view, prefix, locations):
-		pos = gs.sel(view).begin()
+	def on_query_completions(self, view, _, locations):
+		pos = locations[0]
 		if view.score_selector(pos, 'text.9o') == 0:
 			return []
 
 		if view.substr(locations[0]-2) == '$':
-			return [('$'+k, '\$'+k+' ') for k in sh.env()]
+			return ([('$'+k, '\$'+k+' ') for k in sh.env()], AC_OPTS)
+
+		# the prefix passed tho us by definition doesn't contain os.path.sep because it's not a word char
+		pfx = view.substr(sublime.Region(view.line(pos).begin(), pos)).split()[-1]
+		if os.path.sep in pfx:
+			l = []
+			try:
+				pfxl = pfx.lower()
+				pfxi = len(pfxl)-1
+				for fn in glob.iglob(pfx+'*'):
+					sfx = fn
+					# i don't expect this to fail, but let's at least be safe
+					if fn.lower().startswith(pfxl):
+						sfx = sfx[pfxi:]
+
+					l.append((fn, sfx+' '))
+			except Exception:
+				pass
+
+			return (l, AC_OPTS)
 
 		cl = set()
 
@@ -95,6 +115,10 @@ class EV(sublime_plugin.EventListener):
 		cl.update(DEFAULT_CL)
 
 		return ([cl_esc(e) for e in sorted(cl)], AC_OPTS)
+
+def fn_esc(fn):
+	# surely this is enough... surely...
+	return fn.replace('\\', '\\\\').replace(' ', '\\ ')
 
 def cl_esc(e):
 	return (e[0], e[1].replace('$', '\\$'))
