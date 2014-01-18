@@ -233,6 +233,10 @@ class Gs9oInitCommand(sublime_plugin.TextCommand):
 
 		os.chdir(wd)
 
+class GsOverlayCommandsCommand(sublime_plugin.WindowCommand):
+	def run(self):
+		nineo.overlay_commands()
+
 class Gs9oOpenCommand(sublime_plugin.TextCommand):
 	def run(self, edit, wd=None, run=[], save_hist=False, focus_view=True):
 		self.view.window().run_command('gs9o_win_open', {

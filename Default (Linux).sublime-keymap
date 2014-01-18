@@ -132,6 +132,10 @@
 		"context": [{ "key": "selector", "operator": "equal", "operand": "source.go" }]
 	},
 	{
+		"keys": ["ctrl+.", "ctrl+c"],
+		"command": "gs_overlay_commands"
+	},
+	{
 		"keys": ["ctrl+9"],
 		"command": "gs9o_win_open"
 	},

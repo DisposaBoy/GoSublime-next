@@ -49,6 +49,7 @@ class Cmd(object):
 		self.cfg = {}
 		self.switch = []
 		self.switch_ok = True
+		self.overlay = ''
 		self.final = ''
 		self.cmd = ''
 		self.args = []
@@ -125,6 +126,9 @@ class Cmd(object):
 			self.save = cn.get('save') is True
 
 		self.switch_ok = bool(cn.get('switch_ok', self.switch_ok))
+
+		if not self.overlay:
+			self.overlay = cn.get('overlay') is True
 
 		for k in self.cl:
 			x = cn.get(k)
@@ -498,6 +502,42 @@ def _hk(view, e):
 					'k': 'hk',
 					'hook': v,
 				})
+
+def overlay_commands():
+	ss = Sess()
+	l = []
+	for nm in ss.cmds:
+		cn = ss.cmds[nm]
+		if gs.is_a(cn, {}) and cn.get('overlay') is True:
+			l.append(nm)
+
+	if not l:
+		gs.show_quick_panel([['', 'No overlay commands found']])
+		return
+
+	l.sort()
+	aso = gs.aso()
+	last = aso.get('last_overlay_command')
+	if last and last in l:
+		l.remove(last)
+		l.insert(0, last)
+
+	def f(i, win):
+		if i < 0:
+			return
+
+		nm = l[i]
+		win.run_command('gs9o_win_open', {
+			'run': [nm],
+			'focus_view': False,
+			'save_hist': True,
+		})
+
+		aso.set('last_overlay_command', nm)
+		gs.save_aso()
+
+	gs.show_quick_panel(l, f)
+
 
 ev.file_sync += lambda view: _hk(view, 'sync')
 ev.file_loaded += lambda view: _hk(view, 'load')
