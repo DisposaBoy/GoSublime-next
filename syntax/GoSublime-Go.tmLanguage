@@ -18,6 +18,27 @@
 	<array>
 		<dict>
 			<key>begin</key>
+			<string>//\s*(\+build)(.+)</string>
+			<key>beginCaptures</key>
+			<dict>
+				<key>1</key>
+				<dict>
+					<key>name</key>
+					<string>keyword.other.constant.build-constraint.go</string>
+				</dict>
+				<key>2</key>
+				<dict>
+					<key>name</key>
+					<string>string.build-constraint.go</string>
+				</dict>
+			</dict>
+			<key>end</key>
+			<string>\z</string>
+			<key>name</key>
+			<string>comment.build-constraint.go</string>
+		</dict>
+		<dict>
+			<key>begin</key>
 			<string>/\*</string>
 			<key>end</key>
 			<string>\*/</string>

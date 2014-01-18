@@ -8,6 +8,19 @@
 	"name": "GoSublime: Go",
 	"patterns": [
 		{
+			"begin": "//\\s*(\\+build)(.+)",
+			"beginCaptures": {
+				"1": {
+					"name": "keyword.other.constant.build-constraint.go"
+				},
+				"2": {
+					"name": "string.build-constraint.go"
+				}
+			},
+			"end": "\\z",
+			"name": "comment.build-constraint.go"
+		},
+		{
 			"begin": "/\\*",
 			"end": "\\*/",
 			"name": "comment.block.go"

@@ -88,6 +88,10 @@ class GoSublime(sublime_plugin.EventListener):
 		if ('source.go' not in scopes) or (gs.setting('gscomplete_enabled', False) is not True):
 			return []
 
+		# todo: add support for build constraint completion
+		if view.score_selector(pos, 'comment.build-constraint.go') > 0:
+			return ([], AC_OPTS)
+
 		if not scope_ok(view, pos):
 			return ([], AC_OPTS)
 
