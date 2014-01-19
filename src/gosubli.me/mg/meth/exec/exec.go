@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"gosubli.me/mg"
 	"gosubli.me/sink"
-	"io"
 	"os/exec"
 	"regexp"
 	"strings"
@@ -21,7 +20,14 @@ var (
 		sync.Mutex
 		m map[string]*regexp.Regexp
 	}{m: map[string]*regexp.Regexp{}}
+
+	virtualCmds = struct {
+		sync.Mutex
+		m map[string]cmdFactory
+	}{m: map[string]cmdFactory{}}
 )
+
+type cmdFactory func(*Exec) (*exec.Cmd, error)
 
 type StreamRes struct {
 	Chunks [][]byte
@@ -54,6 +60,7 @@ type Exec struct {
 	Stream string
 
 	Wd            string
+	Dirty         bool
 	Fn            string
 	Input         string
 	DiscardStdout bool
@@ -107,12 +114,14 @@ func (e *Exec) Call() (interface{}, string) {
 }
 
 func (e *Exec) cmd() (*exec.Cmd, error) {
-	switch e.Cmd {
-	case ".play":
-		return playCmd(e)
-	default:
-		return mkCmd(e, e.Input, e.Cmd, e.Args...), nil
+	virtualCmds.Lock()
+	f, ok := virtualCmds.m[e.Cmd]
+	virtualCmds.Unlock()
+
+	if ok {
+		return f(e)
 	}
+	return mkCmd(e, e.Input, e.Cmd, e.Args...), nil
 }
 
 func (e *Exec) stream(wg *sync.WaitGroup) {
