@@ -140,7 +140,7 @@ func (p *playState) mainCmd(pkg *build.Package) (*exec.Cmd, error) {
 }
 
 func (p *playState) testCmd(pkg *build.Package) (*exec.Cmd, error) {
-	args := append([]string{"test"}, p.Args...)
+	args := append([]string{"test", "-bench", "."}, p.Args...)
 	c := mkCmd(p.Exec, "", "go", args...)
 	c.Dir = pkg.Dir
 	return c, nil
