@@ -49,7 +49,7 @@ class Cmd(object):
 		self.cfg = {}
 		self.switch = []
 		self.switch_ok = True
-		self.overlay = ''
+		self.hidden = False
 		self.final = ''
 		self.cmd = ''
 		self.args = []
@@ -127,8 +127,7 @@ class Cmd(object):
 
 		self.switch_ok = bool(cn.get('switch_ok', self.switch_ok))
 
-		if not self.overlay:
-			self.overlay = cn.get('overlay') is True
+		self.hidden = cn.get('hidden') is True or self.hidden
 
 		for k in self.cl:
 			x = cn.get(k)
@@ -408,6 +407,9 @@ def chunk(s):
 	except Exception:
 		return s
 
+def _visible_c(c, basename):
+	return not (c.hidden or basename.startswith(('.', 'gs.')))
+
 def _exec_c(c):
 	if not c.cmd:
 		c.fail('invalid command')
@@ -507,8 +509,8 @@ def overlay_commands():
 	ss = Sess()
 	l = []
 	for nm in ss.cmds:
-		cn = ss.cmds[nm]
-		if gs.is_a(cn, {}) and cn.get('overlay') is True:
+		c = ss.cmd(nm)
+		if _visible_c(c, nm):
 			l.append(nm)
 
 	if not l:
