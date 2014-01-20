@@ -217,7 +217,8 @@
 	//
 	//      if a command is a string e.g. `/bin/echo` it will be translated into { "cmd": "/bin/echo" }
 	//
-	// if the command name starts with a dot e.g. `.go-lint`, it will be hidden from the ui, e.g. not autocompleted
+	// if the command name starts with a dot e.g. `.go-lint`, it will be hidden from the ui, e.g. not autocompleted.
+	// the prefix `gs.` is reserved for GoSublime's use and such commands are also hidden from the ui. See also, the `hidden` option (below)
 	"commands": {
 		"": {
 			// all cancellable command (excuted via margo) are uniquely identified
@@ -225,6 +226,9 @@
 			// any previous un-finished instance will be killed before starting a new one
 			// e.g. `"srv": {"cid": "my-id", "name": "web-srv"}` will kill the old server before starting a new one
 			"cid": "",
+
+			// if `true` this command will be hidden from the ui (e.g. autocompletion)
+			"hidden": false,
 
 			// a list of attr mappings to passed to the command
 			"attrs": [],
