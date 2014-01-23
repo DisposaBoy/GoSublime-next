@@ -110,7 +110,6 @@ class EV(sublime_plugin.EventListener):
 
 		hkey = _hkey(view.settings().get('9o.wd', ''))
 		cl.update((k, k+' ') for k in gs.dval(gs.aso().get(hkey), []))
-		cl.update((k, k+' ') for k in aliases())
 		cl.update((k, k+' ') for k in builtins())
 		cl.update(DEFAULT_CL)
 
@@ -441,28 +440,9 @@ def _exec(view, edit, save_hist=False):
 		view.run_command('gs9o_init')
 
 		nv = sh.env()
-		anv = nv.copy()
-		seen = {}
-		am = aliases()
-		while True:
-			cli = cmd.split(' ', 1)
-			nm = cli[0]
-			if not nm:
-				break
-
-			ag = cli[1].strip() if len(cli) == 2 else ''
-
-			alias = am.get(nm, '')
-			if not alias:
-				break
-
-			if alias in seen:
-				gs.error(DOMAIN, 'recursive alias detected: `%s`' % alias)
-				break
-
-			seen[alias] = True
-			anv['_args'] = ag
-			cmd = string.Template(alias).safe_substitute(anv)
+		cli = cmd.split(' ', 1)
+		nm = cli[0]
+		ag = cli[1].strip() if len(cli) == 2 else ''
 
 		if nm == 'sh':
 			cmd_9o(view, edit, sh.cmd(ag), wd, rkey)
@@ -523,9 +503,6 @@ class Gs9oRunManyCommand(sublime_plugin.TextCommand):
 				'save_hist': save_hist,
 				'focus_view': focus_view,
 			})
-
-def aliases():
-	return gs.setting('9o_aliases', {}).copy()
 
 def builtins():
 	m = gs.gs9o.copy()
@@ -612,14 +589,12 @@ def mk_cmd(view, wd, ctx, cn, f=None):
 
 def cmd_which(view, edit, args, wd, rkey):
 	def f(c):
-		am = aliases()
 		m = builtins()
 
 		a = args
 		if not a:
 			a = []
 			a.extend(sorted(m.keys()))
-			a.extend(sorted(am.keys()))
 
 		fm = '%{0}s: %s'.format(max(len(s) for s in a))
 
@@ -630,8 +605,6 @@ def cmd_which(view, edit, args, wd, rkey):
 				v = '9o builtin: %s' % sh.which(k)
 			elif k in m:
 				v = '9o builtin'
-			elif k in am:
-				v = '9o alias: `%s`' % am[k]
 			else:
 				v = sh.which(k)
 
