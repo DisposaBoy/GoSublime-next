@@ -92,7 +92,8 @@ def do_sync_active_view():
 		if fn.lower().endswith('.go'):
 			gs.set_attr('last_active_go_fn', fn)
 
-	if gs.is_pkg_view(view):
+	win = view.window()
+	if win is not None and view in win.views():
 		m = {}
 		psettings = view.settings().get('GoSublime')
 		if psettings and gs.is_a(psettings, {}):
