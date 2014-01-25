@@ -49,7 +49,7 @@ class Cmd(object):
 		self.cfg = {}
 		self.switch = []
 		self.switch_ok = True
-		self.hidden = False
+		self.ui = {}
 		self.final = ''
 		self.cmd = ''
 		self.args = []
@@ -127,8 +127,6 @@ class Cmd(object):
 
 		self.switch_ok = bool(cn.get('switch_ok', self.switch_ok))
 
-		self.hidden = cn.get('hidden') is True or self.hidden
-
 		for k in self.cl:
 			x = cn.get(k)
 			if x:
@@ -137,6 +135,7 @@ class Cmd(object):
 		if not self.wd:
 			self.wd = cn.get('wd') or ''
 
+		self.update_d(self.ui, cn, 'ui')
 		self.update_d(self.hl, cn, 'hl')
 		self.update_d(self.cfg, cn, 'cfg')
 		self.update_d(self.env, cn, 'env')
@@ -408,7 +407,7 @@ def chunk(s):
 		return s
 
 def _visible_c(c, basename):
-	return not (c.hidden or basename.startswith(('.', 'gs.')))
+	return not (basename.startswith(('.', 'gs.')) or c.ui.get('hidden'))
 
 def _exec_c(c):
 	if not c.cmd:
@@ -508,10 +507,13 @@ def _hk(view, e):
 def overlay_commands():
 	ss = Sess()
 	l = []
+	titles = {}
 	for nm in ss.cmds:
 		c = ss.cmd(nm)
 		if _visible_c(c, nm):
-			l.append(nm)
+			title = c.ui.get('title') or nm
+			titles[title] = nm
+			l.append(title)
 
 	if not l:
 		gs.show_quick_panel([['', 'No overlay commands found']])
@@ -528,7 +530,7 @@ def overlay_commands():
 		if i < 0:
 			return
 
-		nm = l[i]
+		nm = titles[l[i]]
 		win.run_command('gs9o_win_open', {
 			'run': [nm],
 			'focus_view': False,
