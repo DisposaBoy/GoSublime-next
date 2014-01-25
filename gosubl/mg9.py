@@ -250,7 +250,10 @@ def calltip(fn, src, pos, quiet, f):
 def complete(fn, src, pos):
 	builtins = (gs.setting('autocomplete_builtins') is True or gs.setting('complete_builtins') is True)
 	res, err = bcall('gocode_complete', _complete_opts(fn, src, pos, builtins))
-	res = gs.dval(res.get('Candidates'), [])
+	res = {
+		'Candidates': gs.dval(res.get('Candidates'), []),
+		'Suggestions': gs.dval(res.get('Suggestions'), []),
+	}
 	return res, err
 
 def _complete_opts(fn, src, pos, builtins):

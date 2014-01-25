@@ -181,38 +181,15 @@ class GsPaletteCommand(sublime_plugin.WindowCommand):
 					add_imports.append((s, m))
 
 			for i in sorted(delete_imports):
-				self.add_item(i[0], self.toggle_import, (view, i[1]))
+				self.add_item(i[0], toggle_import, (view, i[1]))
 			if len(delete_imports) > 0:
 				self.add_item(' ', self.show_palette, 'imports')
 			for i in sorted(add_imports):
-				self.add_item(i[0], self.toggle_import, (view, i[1]))
+				self.add_item(i[0], toggle_import, (view, i[1]))
 
 			self.do_show_panel()
 
 		mg9.import_paths(view.file_name(), src, f)
-
-	def toggle_import(self, a):
-		view, decl = a
-		im, err = mg9.imports(
-			view.file_name(),
-			view.substr(sublime.Region(0, view.size())),
-			[decl]
-		)
-
-		if err:
-			gs.notice(DOMAIN, err)
-		else:
-			src = im.get('src', '')
-			line_ref = im.get('lineRef', 0)
-			r = view.full_line(view.text_point(max(0, line_ref-1), 0))
-			if not src or line_ref < 1 or not r:
-				return
-
-			view.run_command('gs_patch_imports', {
-				'pos': r.end(),
-				'content': src,
-				'added_path': (decl.get('path') if decl.get('add') else '')
-			})
 
 	def jump_to(self, a):
 		view, loc = a
@@ -241,3 +218,27 @@ class GsPaletteCommand(sublime_plugin.WindowCommand):
 			self.do_show_panel()
 
 		mg9.declarations(gs.view_fn(view), gs.view_src(view), '', f)
+
+
+def toggle_import(a):
+	view, decl = a
+	im, err = mg9.imports(
+		view.file_name(),
+		view.substr(sublime.Region(0, view.size())),
+		[decl]
+	)
+
+	if err:
+		gs.notice(DOMAIN, err)
+	else:
+		src = im.get('src', '')
+		line_ref = im.get('lineRef', 0)
+		r = view.full_line(view.text_point(max(0, line_ref-1), 0))
+		if not src or line_ref < 1 or not r:
+			return
+
+		view.run_command('gs_patch_imports', {
+			'pos': r.end(),
+			'content': src,
+			'added_path': (decl.get('path') if decl.get('add') else '')
+		})

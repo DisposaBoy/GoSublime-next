@@ -1,8 +1,9 @@
+from gosubl import ev
 from gosubl import gs
 from gosubl import mg9
-from gosubl import ev
 from os.path import basename
 from os.path import dirname
+import gspalette
 import json
 import os
 import re
@@ -160,13 +161,32 @@ class GoSublime(sublime_plugin.EventListener):
 		r = view.find(pat, start, flags)
 		return r.end() if r and r.end() < end else -1
 
+	def suggest(self, sl):
+		if not sl:
+			return
+
+		def f(i, win):
+			if i < 0:
+				return
+
+			gspalette.toggle_import((win.active_view(), {
+				'path': sl[i],
+				'add': True,
+			}))
+
+		gs.show_quick_panel(sl, f)
+
 	def complete(self, fn, offset, src, func_name_only):
 		comps = []
 		autocomplete_tests = gs.setting('autocomplete_tests', False)
 		autocomplete_closures = gs.setting('autocomplete_closures', False)
-		ents, err = mg9.complete(fn, src, offset)
+		res, err = mg9.complete(fn, src, offset)
 		if err:
 			gs.notice(DOMAIN, err)
+
+		ents = res['Candidates']
+		if not ents and gs.setting('autocomplete_suggest_imports') is True:
+			self.suggest(res['Suggestions'])
 
 		name_fx = None
 		name_fx_pat = gs.setting('autocomplete_filter_name')
