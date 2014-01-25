@@ -21,8 +21,10 @@ SPLIT_FN_POS_PAT = re.compile(r'(.+?)(?:[:](\d+))?(?:[:](\d+))?$')
 URL_SCHEME_PAT = re.compile(r'^[\w.+-]+://')
 URL_PATH_PAT = re.compile(r'^(?:[\w.+-]+://|(?:www|(?:\w+\.)*(?:golang|pkgdoc|gosublime)\.org))')
 HIST_EXPAND_PAT = re.compile(r'^(\^+)\s*(\d+)$')
-
+WORD_SEPARATORS = "./\\()\"'-:,;<>~!@#$%&*|+=[]{}`~?"
 HOURGLASS = u'\u231B'
+
+word_sep_pat = re.compile('^([%s]+)' % re.escape(WORD_SEPARATORS))
 
 DEFAULT_COMMANDS = [
 	'help',
@@ -87,31 +89,38 @@ class EV(sublime_plugin.EventListener):
 		if view.substr(locations[0]-2) == '$':
 			return ([('$'+k, '\$'+k+' ') for k in sh.env()], AC_OPTS)
 
-		# the prefix passed tho us by definition doesn't contain os.path.sep because it's not a word char
-		pfx = view.substr(sublime.Region(view.line(pos).begin(), pos)).split()[-1]
-		if os.path.sep in pfx:
-			l = []
-			try:
-				pfxl = pfx.lower()
-				pfxi = len(pfxl)-1
-				for fn in glob.iglob(pfx+'*'):
-					sfx = fn
-					# i don't expect this to fail, but let's at least be safe
-					if fn.lower().startswith(pfxl):
-						sfx = sfx[pfxi:]
-
-					l.append((fn, sfx+' '))
-			except Exception:
-				pass
-
-			return (l, AC_OPTS)
-
 		cl = set()
 
-		hkey = _hkey(view.settings().get('9o.wd', ''))
-		cl.update((k, k+' ') for k in gs.dval(gs.aso().get(hkey), []))
-		cl.update((k, k+' ') for k in builtins())
-		cl.update(DEFAULT_CL)
+		slash = os.path.sep
+		# the prefix passed tho us by definition doesn't contain slash because it's not a word char
+		p = view.substr(sublime.Region(view.line(pos).begin(), pos))
+		p = p.split()[-1].lstrip(' #')
+		file_only_comp = p.startswith('.') or slash in p
+
+		if not p.startswith(('.', slash)):
+			p = '.'+slash+p
+
+		rm = ''
+		m = word_sep_pat.match(p)
+		if m:
+			rm = m.group(1)
+
+		try:
+			for fn in glob.iglob(p+'*'):
+				space = ' '
+				if os.path.isdir(fn):
+					space = ''
+					fn += '/'
+
+				cl.add((fn, fn[len(rm):]+space))
+		except Exception:
+			pass
+
+		if not file_only_comp:
+			hkey = _hkey(view.settings().get('9o.wd', ''))
+			cl.update((k, k+' ') for k in gs.dval(gs.aso().get(hkey), []))
+			cl.update((k, k+' ') for k in builtins())
+			cl.update(DEFAULT_CL)
 
 		return ([cl_esc(e) for e in sorted(cl)], AC_OPTS)
 
@@ -228,7 +237,7 @@ class Gs9oInitCommand(sublime_plugin.TextCommand):
 			"draw_indent_guides": True,
 			"scroll_past_end": True,
 			"indent_guide_options": ["draw_normal", "draw_active"],
-			"word_separators": "./\\()\"'-:,.;<>~!@#$%&*|+=[]{}`~?",
+			"word_separators": WORD_SEPARATORS,
 		}
 		opts.update(gs.setting('9o_settings'))
 
