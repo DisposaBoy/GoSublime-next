@@ -448,24 +448,19 @@ def _exec(view, edit, save_hist=False):
 		view.replace(edit, line, ('[`%s`]\n' % cmd))
 		view.run_command('gs9o_init')
 
-		nv = sh.env()
 		cli = cmd.split(' ', 1)
-		nm = cli[0]
-		ag = cli[1].strip() if len(cli) == 2 else ''
-
-		if nm == 'sh':
-			cmd_9o(view, edit, sh.cmd(ag), wd, rkey)
+		if cli[0] == 'sh':
+			a = cli[1].strip() if len(cli) == 2 else ''
+			cmd_9o(view, edit, sh.cmd(a), wd, rkey)
 			return
 
-		args = []
-		if ag:
-			args = [_exparg(s, nv) for s in shlex.split(gs.astr(ag))]
-
-		f = builtins().get(nm)
+		nv = sh.env()
+		a = [_exparg(s, nv) for s in shlex.split(gs.astr(cmd))]
+		f = builtins().get(a[0])
 		if f:
-			f(view, edit, args, wd, rkey)
+			f(view, edit, a[1:], wd, rkey)
 		else:
-			cmd_9o(view, edit, [nm]+args, wd, rkey)
+			cmd_9o(view, edit, a, wd, rkey)
 	else:
 		view.insert(edit, gs.sel(view).begin(), '\n')
 
