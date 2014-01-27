@@ -252,14 +252,19 @@
 			// whether or not to save all files in the wd before running the command (below)
 			"save": false,
 
-			// run the specified command iff this command succeeds
-			"and": {},
+			// run the specified list of commands iff this command succeeds
+			// each command is run iff, the one before it succeeds
+			// i.e. `this && cmd1 && cmd2 && cmd3`
+			"all": [],
 
-			// run the specified command iff this command fails
-			"or": {},
+			// run the specified list of commands iff this command fails
+			// each command is run iff, the one before it fails
+			// i.e. `this || cmd1 || cmd2 || cmd3`
+			"any": [],
 
-			// run the specified command after the this command completes whether or not it fails
-			"then": {},
+			// run the specified list of commands after this command completes whether or not it fails
+			// i.e. `this ; cmd1 ; cmd2 ; cmd3`
+			"each": [],
 
 			// run the command from this directory. by default it's the current 9o working directory
 			"wd": "",
