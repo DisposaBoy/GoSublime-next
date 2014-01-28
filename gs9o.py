@@ -647,7 +647,7 @@ def cmd_clear(view, edit, args, wd, rkey):
 def cmd_go(view, edit, args, wd, rkey):
 	save = set(('install', 'get', 'build')).intersection(args)
 	mk_cmd(view, wd, rkey, {
-		'save': save,
+		'save': bool(save),
 		'cmd': 'go',
 		'args': args,
 	}).start()
