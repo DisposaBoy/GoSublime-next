@@ -1,5 +1,6 @@
 from gosubl import ev
 from gosubl import gs
+from gosubl import cfg
 import gstest
 import sublime
 import sublime_plugin
@@ -82,6 +83,9 @@ def do_sync_active_view():
 	except Exception:
 		return
 
+	win = view.window()
+	cfg.folders = win.folders()
+
 	fn = view.file_name() or ''
 	vfn = gs.view_fn(view)
 	gs.set_attr('active_fn', fn)
@@ -92,7 +96,6 @@ def do_sync_active_view():
 		if fn.lower().endswith('.go'):
 			gs.set_attr('last_active_go_fn', fn)
 
-	win = view.window()
 	if win is not None and view in win.views():
 		m = {}
 		psettings = view.settings().get('GoSublime')
