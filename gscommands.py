@@ -81,7 +81,6 @@ class GsGotoRowColCommand(sublime_plugin.TextCommand):
 
 		def curs():
 			if vu.rowcol(self.view) == (row, col):
-				self.view.show(pt)
 				return True
 			return False
 
