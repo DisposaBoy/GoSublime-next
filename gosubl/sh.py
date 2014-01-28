@@ -1,5 +1,6 @@
 from . import about
 from . import ev
+from . import cfg
 from . import gs
 from collections import namedtuple
 import os
@@ -268,17 +269,6 @@ def _print(s):
 def getenv(name, default='', m={}):
 	return env(m).get(name, default)
 
-def gs_gopath(fn, roots=[]):
-	comps = fn.split(os.sep)
-	l = []
-	for i, s in enumerate(comps):
-		if s.lower() == "src":
-			p = os.path.normpath(os.sep.join(comps[:i]))
-			if p not in roots:
-				l.append(p)
-	l.reverse()
-	return psep.join(l)
-
 def env(m={}):
 	"""
 	Assemble environment information needed for correct operation. In particular,
@@ -289,7 +279,13 @@ def env(m={}):
 	e.update(m)
 
 	roots = [os.path.normpath(s) for s in gs.lst(e.get('GOPATH', '').split(psep), e.get('GOROOT', ''))]
-	e['GS_GOPATH'] = gs_gopath(gs.getwd(), roots) or gs_gopath(gs.attr('last_active_go_fn', ''), roots)
+	gp = []
+	for d in cfg.folders:
+		d = os.path.join(d, 'src')
+		if os.path.isdir(d):
+			gp.append(d)
+
+	e['GS_GOPATH'] = psep.join(gp)
 
 	uenv = gs.setting('env', {})
 	for k in uenv:
@@ -300,9 +296,6 @@ def env(m={}):
 
 	e.update(uenv)
 	e.update(m)
-
-	if e['GS_GOPATH'] and gs.setting('use_gs_gopath') is True:
-		e['GOPATH'] = e['GS_GOPATH']
 
 	# For custom values of GOPATH, installed binaries via go install
 	# will go into the "bin" dir of the corresponding GOPATH path.

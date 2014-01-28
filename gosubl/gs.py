@@ -3,6 +3,7 @@
 
 from . import about
 from . import kv
+from . import cfg
 from subprocess import Popen, PIPE
 import copy
 import datetime
@@ -89,7 +90,6 @@ _default_settings = {
 	"9o_show_end": False,
 	"set_extension_syntax": {},
 	"autoinst": False,
-	"use_gs_gopath": False,
 	"use_named_imports": False,
 	"use_legacy_imports": True,
 	"default_commands": {},
@@ -371,6 +371,7 @@ def mirror_settings(so):
 
 def sync_settings():
 	_settings.update(mirror_settings(settings_obj()))
+	cfg.folders = sublime.active_window().folders()
 
 def view_fn(view):
 	if view is not None:
