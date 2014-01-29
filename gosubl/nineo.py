@@ -324,6 +324,15 @@ class Cmd(object):
 			a = gs.dval(a, {})
 			message = a.get('message', '').strip()
 			fn = a.get('fn')
+			dnm = a.get('dirname')
+			bnm = a.get('basename')
+
+			if not fn and bnm:
+				if dnm:
+					fn = os.path.join(dnm, bnm)
+				else:
+					fn = bnm
+
 			if fn and fn != '<stdin>':
 				fn = gs.abspath(fn, self.sess.wd)
 			else:
