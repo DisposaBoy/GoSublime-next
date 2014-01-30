@@ -84,7 +84,8 @@ def do_sync_active_view():
 		return
 
 	win = view.window()
-	cfg.folders = win.folders()
+	win is not None:
+		cfg.folders = win.folders()
 
 	fn = view.file_name() or ''
 	vfn = gs.view_fn(view)
