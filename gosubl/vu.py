@@ -83,6 +83,12 @@ class V(object):
 
 		return []
 
+	def folders(self):
+		try:
+			return self.v.window().folders()
+		except Exception:
+			return []
+
 	def sel(self, i=0):
 		return sel(self.v, i)
 
