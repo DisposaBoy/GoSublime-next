@@ -83,6 +83,12 @@ class V(object):
 
 		return []
 
+	def setting(k, default=None):
+		if self.v is not None:
+			return self.v.settings().get(k, default)
+
+		return default
+
 	def folders(self):
 		try:
 			return self.v.window().folders()
