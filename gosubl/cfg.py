@@ -13,6 +13,7 @@ defaults = {
 	'env': {},
 	'fmt_enabled': False,
 	'fmt_cmd': [],
+	'shell': [],
 }
 
 def merge(base, ml):

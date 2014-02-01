@@ -141,7 +141,7 @@ def shl(m={}):
 	return _shl(env(m))
 
 def _shl(e):
-	l = gs.setting('shell', [])
+	l = cfg.shell.copy()
 	if not l:
 		fn = e.get('SHELL') or e.get('COMSPEC')
 		if fn:

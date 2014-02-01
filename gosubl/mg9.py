@@ -83,7 +83,7 @@ def sanity_check(env={}, error_log=False):
 		('GOROOT', '%s' % env.get('GOROOT', ns)),
 		('GOPATH', '%s' % env.get('GOPATH', ns)),
 		('GOBIN', env.get('GOBIN', ns)),
-		('set.shell', str(gs.lst(gs.setting('shell')))),
+		('cfg.shell', str(gs.lst(cfg.shell))),
 		('env.shell', env.get('SHELL', '')),
 		('shell.cmd', str(sh.cmd('${CMD}'))),
 	]

@@ -76,7 +76,6 @@ _default_settings = {
 	"autocomplete_filter_name": "",
 	"autocomplete_suggest_imports": False,
 	"on_save": [],
-	"shell": [],
 	"default_snippets": [],
 	"snippets": [],
 	"fn_exclude_prefixes": [".", "_"],
