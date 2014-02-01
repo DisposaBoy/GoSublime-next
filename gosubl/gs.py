@@ -69,8 +69,6 @@ _default_settings = {
 	"gscomplete_enabled": False,
 	"complete_builtins": False,
 	"autocomplete_builtins": False,
-	"fmt_enabled": False,
-	"fmt_cmd": [],
 	"calltips": True,
 	"autocomplete_snippets": False,
 	"autocomplete_tests": False,

@@ -11,6 +11,8 @@ defaults = {
 	'active_fn': '',
 	'active_vfn': '',
 	'env': {},
+	'fmt_enabled': False,
+	'fmt_cmd': [],
 }
 
 def merge(base, ml):

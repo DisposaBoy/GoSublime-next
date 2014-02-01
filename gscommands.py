@@ -1,3 +1,4 @@
+from gosubl import cfg
 from gosubl import gs
 from gosubl import gspatch
 from gosubl import hl
@@ -28,7 +29,7 @@ class GsFmtCommand(sublime_plugin.TextCommand):
 		else:
 			scope_ok = gs.is_go_source_view(self.view)
 
-		return scope_ok and gs.setting('fmt_enabled') is True
+		return scope_ok and cfg.fmt_enabled
 
 	def run(self, edit):
 		vsize = self.view.size()

@@ -1,3 +1,4 @@
+from gosubl import cfg
 from gosubl import about
 from gosubl import ev
 from gosubl import gs
@@ -279,10 +280,9 @@ def fmt(fn, src):
 		'Fn': fn or '',
 		'Src': src or '',
 	}
-	x = st.get('fmt_cmd')
-	if x:
-		a['Cmd'] = x[0]
-		a['Args'] = x[1:]
+	if cfg.fmt_cmd:
+		a['Cmd'] = cfg.fmt_cmd[0]
+		a['Args'] = cfg.fmt_cmd[1:]
 	res, err = bcall('fmt', a)
 	return res.get('Src', ''), err
 
