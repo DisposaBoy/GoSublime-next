@@ -16,7 +16,6 @@ class EV(sublime_plugin.EventListener):
 
 	def on_pre_save(self, view):
 		view.run_command('gs_fmt')
-		sublime.set_timeout(lambda: do_set_syntax(view), 0)
 
 	def on_post_save(self, view):
 		self._se('on_post_save', view)
@@ -29,15 +28,14 @@ class EV(sublime_plugin.EventListener):
 	def on_activated(self, view):
 		sublime.set_timeout(do_sync_active_view, 0)
 		self._se('on_activated', view)
-		sublime.set_timeout(lambda: do_set_syntax(view), 0)
 
 	def on_new(self, view):
+		self._se('on_new', view)
 		sublime.set_timeout(do_sync_active_view, 0)
 
 	def on_load(self, view):
 		sublime.set_timeout(do_sync_active_view, 0)
 		self._se('on_load', view)
-		sublime.set_timeout(lambda: do_set_syntax(view), 0)
 
 	def on_modified(self, view):
 		self._se('on_modified', view)
@@ -103,22 +101,3 @@ def do_sync_active_view():
 		if psettings and gs.is_a(psettings, {}):
 			m = gs.mirror_settings(psettings)
 		gs.set_attr('last_active_project_settings', gs.dval(m, {}))
-
-def do_set_syntax(view):
-	fn = view.file_name()
-	if not fn:
-		return
-
-	xm = gs.setting('set_extension_syntax', {})
-	xl = list(xm.keys())
-	xl.sort()
-	xl.sort(key=lambda k: -len(k))
-
-	fn = fn.lower()
-	for k in xl:
-		if fn.endswith(k):
-			v = xm[k]
-			v = gs.tm_path(v) or v
-			if v:
-				view.set_syntax_file(v)
-

@@ -88,7 +88,6 @@ _default_settings = {
 	"9o_color_scheme": "",
 	"9o_settings": {},
 	"9o_show_end": False,
-	"set_extension_syntax": {},
 	"autoinst": False,
 	"use_named_imports": False,
 	"use_legacy_imports": True,
