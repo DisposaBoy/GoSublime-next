@@ -33,14 +33,7 @@
 	// Whether or not gsfmt is enabled
 	"fmt_enabled": true,
 
-	// whether or not to indent with tabs (alignment is always done using spaces)
-	"fmt_tab_indent": true,
-
-	// the assumed width of the tab character (or number of spaces to indent with)
-	"fmt_tab_width": 8,
-
-	// by default fmt'ing is done by margo using `fmt_tab_intent` and `fmt_tab_width` (above)
-	// you may use a command of your choosing by setting `fmt_cmd`
+	// by default fmt'ing is done by margo. you may use a command of your choosing by setting `fmt_cmd`
 	// e.g. ["goimports"]
 	// the command will be passed, to its stdin, the contents of the file
 	// it must output the new file contents
