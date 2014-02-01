@@ -281,8 +281,7 @@ def env(m={}):
 	roots = [os.path.normpath(s) for s in gs.lst(e.get('GOPATH', '').split(psep), e.get('GOROOT', ''))]
 	gp = []
 	for d in cfg.folders:
-		d = os.path.join(d, 'src')
-		if os.path.isdir(d):
+		if os.path.isdir(os.path.join(d, 'src')):
 			gp.append(d)
 
 	e['GS_GOPATH'] = psep.join(gp)
