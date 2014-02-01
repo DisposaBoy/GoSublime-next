@@ -1,5 +1,6 @@
 from gosubl import gs
 from gosubl import gsq
+from gosubl import kv
 from gosubl import mg9
 import os
 import re
@@ -221,13 +222,13 @@ def ext_filter(pathname, basename, ext):
 
 	return True
 
-def show_pkgfiles(dirname):
+def show_pkgfiles(dirname, o=None):
 	ents = []
 	m = {}
 
 	try:
 		dirname = os.path.abspath(dirname)
-		for fn in gs.list_dir_tree(dirname, ext_filter, gs.setting('fn_exclude_prefixes', [])):
+		for fn in gs.list_dir_tree(dirname, ext_filter, gs.setting('fn_exclude_prefixes', []), o):
 			name = os.path.relpath(fn, dirname).replace('\\', '/')
 			m[name] = fn
 			ents.append(name)
@@ -257,7 +258,13 @@ def show_pkgfiles(dirname):
 
 class GsBrowseFilesCommand(sublime_plugin.WindowCommand):
 	def run(self, dir=''):
+		o = kv.O(cancelled=False)
+
+		def cancel():
+			o.cancelled = True
+
 		if not dir:
 			view = self.window.active_view()
 			dir = gs.basedir_or_cwd(view.file_name() if view is not None else None)
-		gsq.dispatch('*', lambda: show_pkgfiles(dir), 'scanning directory for package files')
+
+		gsq.do(DOMAIN, lambda: show_pkgfiles(dir, o), 'scanning directory for package files', cancel=cancel)

@@ -524,32 +524,39 @@ def show_quick_panel(items, cb=None):
 
 	sublime.set_timeout(f, 0)
 
-def list_dir_tree(dirname, filter, exclude_prefix=('.', '_')):
-	lst = []
+def list_dir_tree(dirname, filter, exclude_prefix=('.', '_'), o=None):
+	def walk(dirname, filter, exclude_prefix):
+		lst = []
 
-	try:
-		for fn in os.listdir(dirname):
-			if fn[0] in exclude_prefix:
-				continue
+		try:
+			for fn in os.listdir(dirname):
+				if o and o.cancelled:
+					break
 
-			basename = fn.lower()
-			fn = os.path.join(dirname, fn)
+				if fn[0] in exclude_prefix:
+					continue
 
-			if os.path.isdir(fn):
-				lst.extend(list_dir_tree(fn, filter, exclude_prefix))
-			else:
-				if filter:
-					pathname = fn.lower()
-					_, ext = os.path.splitext(basename)
-					ext = ext.lstrip('.')
-					if filter(pathname, basename, ext):
-						lst.append(fn)
+				basename = fn.lower()
+				fn = os.path.join(dirname, fn)
+
+				if os.path.isdir(fn):
+					lst.extend(walk(fn, filter, exclude_prefix))
 				else:
-					lst.append(fn)
-	except Exception:
-		pass
+					if filter:
+						pathname = fn.lower()
+						_, ext = os.path.splitext(basename)
+						ext = ext.lstrip('.')
+						if filter(pathname, basename, ext):
+							lst.append(fn)
+					else:
+						lst.append(fn)
+		except Exception:
+			pass
 
-	return lst
+		return lst
+
+	return walk(dirname, filter, exclude_prefix)
+
 
 def traceback(domain='GoSublime'):
 	return '%s: %s' % (domain, tbck.format_exc())
