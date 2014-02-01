@@ -1,11 +1,13 @@
 from gosubl import ev
+from gosubl import cfg
 from gosubl import gs
 import gstest
 import sublime_plugin
 
 class EV(sublime_plugin.EventListener):
 	def on_pre_save(self, view):
-		view.run_command('gs_fmt')
+		if cfg.fmt_on_save:
+			view.run_command('gs_fmt')
 
 	def on_post_save(self, view):
 		ev.sublime_event('on_post_save', view)

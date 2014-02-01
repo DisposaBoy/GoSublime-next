@@ -11,7 +11,7 @@ defaults = {
 	'active_fn': '',
 	'active_vfn': '',
 	'env': {},
-	'fmt_enabled': False,
+	'fmt_on_save': False,
 	'fmt_cmd': [],
 	'shell': [],
 	"autocomplete_snippets": False,

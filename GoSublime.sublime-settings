@@ -30,8 +30,8 @@
 	// Whether or not gscomplete(gocode) is enabled
 	"gscomplete_enabled": true,
 
-	// Whether or not gsfmt is enabled
-	"fmt_enabled": true,
+	// Whether or not fmt the file when it's saved
+	"fmt_on_save": true,
 
 	// by default fmt'ing is done by margo. you may use a command of your choosing by setting `fmt_cmd`
 	// e.g. ["goimports"]
