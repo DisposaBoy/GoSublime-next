@@ -22,6 +22,27 @@ SNIPPET_VAR_PAT = re.compile(r'\$\{([a-zA-Z]\w*)\}')
 
 HINT_KEY = '%s.completion-hint' % DOMAIN
 
+BUILD_TAGS = [
+	'386',
+	'arm',
+	'cgo',
+	'darwin',
+	'dragonfly',
+	'freebsd',
+	'go1',
+	'go1.1',
+	'go1.2',
+	'ignore',
+	'linux',
+	'netbsd',
+	'netgo',
+	'openbsd',
+	'plan9',
+	'race',
+	'windows',
+]
+BUILD_CL = [(tag, tag) for tag in BUILD_TAGS]
+
 def snippet_match(ctx, m):
 	try:
 		for k,p in m.get('match', {}).items():
@@ -90,9 +111,8 @@ class GoSublime(sublime_plugin.EventListener):
 		if ('source.go' not in scopes) or (gs.setting('gscomplete_enabled', False) is not True):
 			return []
 
-		# todo: add support for build constraint completion
 		if view.score_selector(pos, 'comment.build-constraint.go') > 0:
-			return ([], AC_OPTS)
+			return (BUILD_CL, AC_OPTS)
 
 		if not scope_ok(view, pos):
 			return ([], AC_OPTS)
