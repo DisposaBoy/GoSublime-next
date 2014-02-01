@@ -83,7 +83,7 @@ class V(object):
 
 		return []
 
-	def setting(k, default=None):
+	def setting(self, k, default=None):
 		if self.v is not None:
 			return self.v.settings().get(k, default)
 
