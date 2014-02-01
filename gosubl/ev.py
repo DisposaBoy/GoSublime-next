@@ -1,3 +1,4 @@
+from . import cfg
 from . import gs
 from . import kv
 from . import vu
@@ -190,6 +191,9 @@ def sig_lod(view):
 	sig()
 
 def sublime_event(k, view):
+	if k in ('on_activated', 'on_post_save', 'on_load', 'on_close'):
+		gs.do(DOMAIN, cfg.sync_vv(vu.active()))
+
 	if not opts.margo_ready and k in ('on_load', 'on_activated'):
 		return
 

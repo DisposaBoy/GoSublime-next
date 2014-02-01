@@ -21,6 +21,7 @@ except Exception:
 
 def plugin_loaded():
 	from gosubl import about
+	from gosubl import cfg
 	from gosubl import sh
 	from gosubl import ev
 	from gosubl import gs
@@ -47,6 +48,7 @@ def plugin_loaded():
 		return
 
 	mods = [
+		('cfg', cfg),
 		('gs', gs),
 		('sh', sh),
 		('mg9', mg9),

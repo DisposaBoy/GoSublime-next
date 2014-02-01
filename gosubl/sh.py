@@ -1,8 +1,9 @@
 from . import about
-from . import ev
 from . import cfg
+from . import ev
 from . import gs
 from collections import namedtuple
+import copy
 import os
 import re
 import string
@@ -286,7 +287,7 @@ def env(m={}):
 
 	e['GS_GOPATH'] = psep.join(gp)
 
-	uenv = gs.setting('env', {})
+	uenv = copy.deepcopy(cfg.env)
 	for k in uenv:
 		try:
 			uenv[k] = string.Template(uenv[k]).safe_substitute(e)
@@ -339,15 +340,14 @@ def env(m={}):
 
 	e['PATH'] = psep.join(add_path)
 
-	fn = gs.attr('active_fn', '')
 	wd =  gs.getwd()
 
 	e.update({
 		'PWD': wd,
 		'_wd': wd,
-		'_fn': fn,
-		'_vfn': gs.attr('active_vfn', ''),
-		'_nm': fn.replace('\\', '/').split('/')[-1],
+		'_fn': cfg.active_fn,
+		'_vfn': cfg.active_vfn,
+		'_nm': cfg.active_fn.replace('\\', '/').split('/')[-1],
 	})
 
 	# Ensure no unicode objects leak through. The reason is twofold:
