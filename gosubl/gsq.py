@@ -18,16 +18,17 @@ class Launcher(threading.Thread):
 			gs.notice(self.domain, gs.traceback())
 
 class Runner(threading.Thread):
-	def __init__(self, domain, f, msg='', set_status=False):
+	def __init__(self, domain, f, msg='', set_status=False, cancel=None):
 		threading.Thread.__init__(self)
 		self.daemon = True
 		self.domain = domain
 		self.f = f
 		self.msg = msg
 		self.set_status = set_status
+		self.cancel = cancel
 
 	def run(self):
-		tid = gs.begin(self.domain, self.msg, self.set_status)
+		tid = gs.begin(self.domain, self.msg, self.set_status, self.cancel)
 		try:
 			self.f()
 		except Exception:
@@ -79,8 +80,8 @@ def dispatch(domain, f, msg='', set_status=False):
 
 	q.dispatch(f, msg, set_status)
 
-def do(domain, f, msg='', set_status=False):
-	Runner(domain, f, msg, set_status).start()
+def do(domain, f, msg='', set_status=False, cancel=None):
+	Runner(domain, f, msg, set_status, cancel).start()
 
 def launch(domain, f):
 	Launcher(domain, f).start()
