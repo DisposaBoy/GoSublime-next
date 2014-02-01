@@ -1,9 +1,9 @@
-from gosubl import cfg
-from gosubl import about
-from gosubl import ev
-from gosubl import gs
-from gosubl import gsq
-from gosubl import sh
+from . import about
+from . import cfg
+from . import ev
+from . import gs
+from . import gsq
+from . import sh
 import atexit
 import base64
 import hashlib
