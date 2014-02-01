@@ -1,5 +1,6 @@
 from gosubl import ev
 from gosubl import gs
+from gosubl import cfg
 from gosubl import mg9
 from os.path import basename
 from os.path import dirname
@@ -52,8 +53,8 @@ def resolve_snippets(ctx):
 
 	try:
 		snips = []
-		snips.extend(gs.setting('default_snippets', []))
-		snips.extend(gs.setting('snippets', []))
+		snips.extend(cfg.default_snippets)
+		snips.extend(cfg.snippets)
 		for m in snips:
 			try:
 				if snippet_match(ctx, m):
@@ -130,7 +131,7 @@ class GoSublime(sublime_plugin.EventListener):
 			'default_pkgname': default_pkgname,
 			'fn': view.file_name() or '',
 		}
-		show_snippets = gs.setting('autocomplete_snippets', True) is True
+		show_snippets = cfg.autocomplete_snippets
 
 		if not pkgname:
 			return (resolve_snippets(ctx), AC_OPTS) if show_snippets else ([], AC_OPTS)

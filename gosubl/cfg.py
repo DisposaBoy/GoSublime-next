@@ -14,6 +14,9 @@ defaults = {
 	'fmt_enabled': False,
 	'fmt_cmd': [],
 	'shell': [],
+	"autocomplete_snippets": False,
+	"default_snippets": [],
+	"snippets": [],
 }
 
 def merge(base, ml):
