@@ -311,7 +311,11 @@
 						"pos": "",
 
 						// the message that should be added to status bar when the cursor is on `line`
-						"message": ""
+						"message": "",
+
+						// if `fn` is not set, it will be create by joining `dirname` and `basename`
+						"dirname": "",
+						"basename": ""
 					},
 
 					// whether or not to do a negative match
