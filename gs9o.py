@@ -300,7 +300,7 @@ class Gs9oWinOpenCommand(sublime_plugin.WindowCommand):
 		v.run_command('gs9o_init', {'wd': wd})
 
 		if run:
-			v.run_command('gs9o_paste_exec', {'cmd': ' '.join(run), 'save_hist': save_hist})
+			v.run_command('gs9o_paste_exec', {'cmd': ' '.join((shlex.quote(s) for s in run)), 'save_hist': save_hist})
 
 class Gs9oPasteExecCommand(sublime_plugin.TextCommand):
 	def run(self, edit, cmd, save_hist=False):
