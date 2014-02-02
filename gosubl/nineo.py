@@ -528,25 +528,31 @@ def quick_commands():
 		gs.show_quick_panel([['', 'No overlay commands found']])
 		return
 
-	l.sort()
 	aso = gs.aso()
-	last = aso.get('last_overlay_command')
-	if last and last in l:
-		l.remove(last)
-		l.insert(0, last)
+	qk = 'quick_commands_used'
+	qm = aso.get(qk, {})
+
+	def kf(k):
+		if k in qm:
+			return (0, len(qm) - qm[k], k)
+		return (1, 0, k)
+
+	l.sort(key=kf)
 
 	def f(i, win):
 		if i < 0:
 			return
 
-		nm = titles[l[i]]
+		k = l[i]
+		nm = titles[k]
 		win.run_command('gs9o_win_open', {
 			'run': [nm],
 			'focus_view': False,
 			'save_hist': True,
 		})
 
-		aso.set('last_overlay_command', nm)
+		qm[k] = qm.get(k, 0) + 1
+		aso.set(qk, qm)
 		gs.save_aso()
 
 	gs.show_quick_panel(l, f)
