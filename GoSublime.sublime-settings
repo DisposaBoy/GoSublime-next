@@ -295,6 +295,15 @@
 						// hard-coded, but they will also be used for highlighting
 						//
 						// a sample `case` that provides these values is `(?P<fn>\\S+\\.go):(?P<pos>[\\d:]+)(?P<message>.+)`
+						//
+						// some common patterns have been provided in simpler forms implemented
+						// implemented by simple string replacements:
+						//     $fn -> (?P<fn>\S+)
+						//     $pos -> (?P<pos>[:\d]+)
+						//     $message -> (?P<message>.+)
+						//     $dirname -> (?P<dirname>\S+)
+						//     $basename -> (?P<basename>\W+)
+
 
 						// the name of the. ideally this should be an absolute path,
 						// but that's not required as relative paths will resolved relative to `wd` (above).

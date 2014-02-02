@@ -25,6 +25,14 @@ var (
 		sync.Mutex
 		m map[string]cmdFactory
 	}{m: map[string]cmdFactory{}}
+
+	simpleRepl = strings.NewReplacer(
+		`$fn`, `(?P<fn>\S+)`,
+		`$pos`, `(?P<pos>[:\d]+)`,
+		`$message`, `(?P<message>.+)`,
+		`$dirname`, `(?P<dirname>\S+)`,
+		`$basename`, `(?P<basename>\W+)`,
+	)
 )
 
 type cmdFactory func(*Exec) (*exec.Cmd, error)
@@ -297,7 +305,7 @@ func rx(s string) (*regexp.Regexp, error) {
 		return rx, nil
 	}
 
-	rx, err := regexp.Compile(s)
+	rx, err := regexp.Compile(simpleRepl.Replace(s))
 	if err != nil {
 		return nil, fmt.Errorf("cannot compile regexp `%v`: %v", s, err.Error())
 	}
