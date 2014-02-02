@@ -127,7 +127,7 @@
 	},
 	{
 		"keys": ["super+.", "super+c"],
-		"command": "gs_overlay_commands"
+		"command": "gs_quick_commands"
 	},
 	{
 		"keys": ["super+9"],

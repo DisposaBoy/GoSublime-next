@@ -513,7 +513,7 @@ def _hk(view, e):
 					'hook': v,
 				})
 
-def overlay_commands():
+def quick_commands():
 	ss = Sess()
 	l = []
 	titles = {}
