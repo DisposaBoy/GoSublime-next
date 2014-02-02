@@ -10,6 +10,7 @@ import (
 	"go/printer"
 	"go/token"
 	"os"
+	"os/user"
 	"path/filepath"
 	"runtime"
 	"strconv"
@@ -21,6 +22,16 @@ import (
 var (
 	sRuneError = eRune()
 	osArch     = runtime.GOOS + "_" + runtime.GOARCH
+
+	tmpDirSfx = (func() string {
+		sfx := ""
+		if u, err := user.Current(); err != nil {
+			sfx = strconv.FormatInt(time.Now().Unix(), 10)
+		} else {
+			sfx = u.Username
+		}
+		return "margo-" + sfx
+	})()
 )
 
 type MsDuration struct {
@@ -217,25 +228,12 @@ func eRune() []byte {
 }
 
 func TempDir(env map[string]string, subDirs ...string) string {
-	dir := ""
-
-	if env != nil {
-		for _, k := range []string{"TMP", "TMPDIR"} {
-			dir = env[k]
-			if dir != "" {
-				break
-			}
-		}
-	}
-
-	if dir == "" {
-		dir = os.TempDir()
-	}
-
-	args := append([]string{dir, "GoSublime-temp"}, subDirs...)
-	dir = filepath.Join(args...)
-	os.MkdirAll(dir, 0777)
-
+	args := append([]string{
+		OrString(env["GS_TMPDIR"], env["TMPDIR"], env["TMP"], os.TempDir()),
+		tmpDirSfx,
+	}, subDirs...)
+	dir := filepath.Join(args...)
+	os.MkdirAll(dir, 0755)
 	return dir
 }
 

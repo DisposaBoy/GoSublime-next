@@ -277,6 +277,7 @@ def env(m={}):
 	"""
 	e = os.environ.copy()
 	e.update(_env_ext)
+	e['GS_TMPDIR'] = gs.TMPDIR
 	e.update(m)
 
 	roots = [os.path.normpath(s) for s in gs.lst(e.get('GOPATH', '').split(psep), e.get('GOROOT', ''))]

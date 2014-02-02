@@ -2,11 +2,12 @@
 # sublime: translate_tabs_to_spaces false; rulers [100,120]
 
 from . import about
-from . import kv
 from . import cfg
+from . import kv
 from subprocess import Popen, PIPE
 import copy
 import datetime
+import getpass
 import json
 import locale
 import os
@@ -134,6 +135,13 @@ ROWCOL_PAT = re.compile(r'^[:]*(\d+)(?:[:](\d+))?[:]*$')
 USER_DIR = os.path.expanduser('~')
 USER_DIR_PAT = re.compile(r'^%s/' % (re.escape(USER_DIR.replace('\\', '/').rstrip('/'))))
 
+try:
+	tmp_sfx = getpass.getuser()
+except Exception:
+	tmp_sfx = str(int(time.time()))
+
+TMPDIR = os.path.join(tempfile.gettempdir(), NAME+'-'+tmp_sfx)
+
 def simple_fn(fn):
 	return USER_DIR_PAT.sub('~/', '%s/' % fn.replace('\\', '/').rstrip('/'))
 
@@ -150,7 +158,7 @@ def apath(fn, cwd=None):
 	return os.path.normcase(os.path.normpath(fn))
 
 def temp_dir(subdir=''):
-	tmpdir = os.path.join(tempfile.gettempdir(), NAME, subdir)
+	tmpdir = os.path.join(TMPDIR, subdir)
 	err = ''
 	try:
 		os.makedirs(tmpdir)
