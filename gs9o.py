@@ -1,4 +1,5 @@
 from gosubl import about
+from gosubl import cfg
 from gosubl import gs
 from gosubl import mg9
 from gosubl import nineo
@@ -68,13 +69,13 @@ def active_wd(win=None):
 	return gs.basedir_or_cwd(v.file_name() if v else '')
 
 def _hkey(wd):
-	name = gs.setting("9o_instance")
+	name = cfg.nineo_instance
 	if name:
 		wd = name
 	return '9o.hist.%s' % wd
 
 def _wdid(wd):
-	name = gs.setting("9o_instance")
+	name = cfg.nineo_instance
 	if name:
 		return name
 	return '9o://%s' % wd
@@ -239,7 +240,7 @@ class Gs9oInitCommand(sublime_plugin.TextCommand):
 			"indent_guide_options": ["draw_normal", "draw_active"],
 			"word_separators": WORD_SEPARATORS,
 		}
-		opts.update(gs.setting('9o_settings'))
+		opts.update(cfg.nineo_settings)
 
 		for opt in opts:
 			vs.set(opt, opts[opt])
@@ -247,7 +248,7 @@ class Gs9oInitCommand(sublime_plugin.TextCommand):
 		vs.set("9o", True)
 		vs.set("9o.wd", wd)
 
-		color_scheme = gs.setting("9o_color_scheme", "")
+		color_scheme = cfg.nineo_color_scheme
 		if color_scheme:
 			if color_scheme == "default":
 				vs.erase("color_scheme")
@@ -483,7 +484,7 @@ class Gs9oPushOutput(sublime_plugin.TextCommand):
 			view.insert(edit, n, '\n%s' % output)
 			r = sublime.Region(n, view.size())
 
-		if gs.setting('9o_show_end') is True:
+		if cfg.nineo_show_end:
 			view.show(r.end())
 		else:
 			view.show(r.begin())
@@ -491,7 +492,7 @@ class Gs9oPushOutput(sublime_plugin.TextCommand):
 class Gs9oShowCtx(sublime_plugin.TextCommand):
 	def run(self, edit, ctx):
 		rl = self.view.get_regions(ctx) or [sublime.Region(0, self.view.size())]
-		if gs.setting('9o_show_end') is True:
+		if cfg.nineo_show_end:
 			pt = rl[-1].end()
 		else:
 			pt = rl[0].begin()

@@ -17,9 +17,13 @@ defaults = {
 	"autocomplete_snippets": False,
 	"default_snippets": [],
 	"snippets": [],
+	"nineo_instance": "",
+	"nineo_color_scheme": "",
+	"nineo_settings": {},
+	"nineo_show_end": False,
 }
 
-def merge(base, ml):
+def merge(base, ml, val=lambda m, k: m.get(k)):
 	d = {}
 
 	for m in ml:
@@ -27,8 +31,8 @@ def merge(base, ml):
 			continue
 
 		for bk in base:
-			dv = d.get(bk)
-			mv = m.get(bk)
+			dv = val(d, bk)
+			mv = val(m, bk)
 			if dv is None and isinstance(mv, type(base[bk])):
 				d[bk] = copy.deepcopy(mv)
 			elif isinstance(dv, dict) and isinstance(mv, dict):
@@ -52,8 +56,19 @@ def sync_vv(vv):
 
 	sync_all()
 
+def val(m, k):
+	if k.startswith('nineo_'):
+		k = '9o_'+k[6:]
+
+	return m.get(k)
+
 def sync_all():
-	globals().update(merge(defaults, [_view_settings, _project_settings, _sublime_settings, defaults]))
+	globals().update(merge(defaults, [
+		_view_settings,
+		_project_settings,
+		_sublime_settings,
+		defaults,
+	], val=val))
 
 def gs_init(m={}):
 	global _sublime_settings
