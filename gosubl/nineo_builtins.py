@@ -122,3 +122,9 @@ def bi_gs__synchk(c):
 			}
 
 	mg9.acall('synchk', {'Files': files}, f)
+
+def bi_go(c):
+	if c.args and c.args[0] in ('build', 'install', 'run'):
+		c.sess.save_all(c.wd)
+
+	nineo.exec_c(c)

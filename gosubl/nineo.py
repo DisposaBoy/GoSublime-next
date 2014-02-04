@@ -233,7 +233,7 @@ class Cmd(object):
 		self.resume()
 
 	def gen(self):
-		f = self.f or _exec_c
+		f = self.f or exec_c
 
 		ev.debug(DOMAIN, {
 			'k': 'start',
@@ -418,7 +418,7 @@ def chunk(s):
 def _visible_c(c, basename):
 	return not (basename.startswith(('.', 'gs.')) or c.ui.get('hidden'))
 
-def _exec_c(c):
+def exec_c(c):
 	if not c.cmd:
 		c.fail('invalid command')
 		return
