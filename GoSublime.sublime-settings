@@ -386,12 +386,10 @@
 			"input": true
 		},
 		"replay": {
-			"overlay": true,
 			"cid": "replay:$_wd",
 			"cmd": "play",
 		},
 		"go install": {
-			"overlay": true,
 			"cmd": "go",
 			"args": ["install"]
 		}
