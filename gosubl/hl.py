@@ -2,7 +2,7 @@ from . import ev
 from . import gs
 from . import kv
 from . import vu
-from os.path import relpath
+from os.path import relpath, dirname, normpath
 import re
 import sublime
 
@@ -185,8 +185,17 @@ def gs_init(m={}):
 
 def lc(vv):
 	row, _ = vv.rowcol()
-	m = kvs.m(vv.vfn())
+	vfn = vv.vfn()
+	m = kvs.m(vfn)
 	s = ''
+	ico = ''
+
+	d = vv.dir()
+	if d:
+		for fn in kvs.keys():
+			if fn != vfn and dirname(normpath(fn)) == d:
+				ico = u'\u272A'
+				break
 
 	if len(m) > 0:
 		nl = m.get(row)
@@ -196,10 +205,11 @@ def lc(vv):
 					s = ' %s' % (n.message)
 					break
 
-		s = u'\u2622%s' % s
+		if not ico:
+			ico = u'\u2605'
 
 	# todo: make this display globally as well
-	vv.view().set_status(STATUS_DOMAIN, s)
+	vv.view().set_status(STATUS_DOMAIN, ico+s)
 
 ev.line_changed += lambda view: lc(vu.V(view))
 ev.view_activated += refresh
