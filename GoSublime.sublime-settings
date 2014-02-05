@@ -381,6 +381,12 @@
 
 	"default_commands": {
 		"play": {
+			// keep this in sync with the `go` command below
+			"switch": [ "$fn:$pos $message" ],
+
+			"hl": {
+				"ctx": "go compile $_wd"
+			},
 			"save": true,
 			"cmd": ".play",
 			"input": true
@@ -389,9 +395,20 @@
 			"cid": "replay:$_wd",
 			"cmd": "play",
 		},
+		"go": {
+			// the default hl ctx is set in gosubl/nineo_builtins.py based on the subcommand
+			"switch": [ "$fn:$pos $message" ]
+		},
 		"go install": {
 			"cmd": "go",
 			"args": ["install"]
+		},
+		"gs.install-tmp": {
+			"cmd": "go",
+			"args": ["install"],
+			"env": {
+				"GOBIN": "$GS_TMPDIR/bin"
+			}
 		}
 	},
 

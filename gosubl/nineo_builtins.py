@@ -124,7 +124,14 @@ def bi_gs__synchk(c):
 	mg9.acall('synchk', {'Files': files}, f)
 
 def bi_go(c):
-	if c.args and c.args[0] in ('build', 'install', 'run'):
+	if c.args and c.args[0] in ('build', 'install', 'run', 'test', 'vet'):
 		c.sess.save_all(c.wd)
+		if not c.hl.get('ctx'):
+			s = 'compile'
+			if c.args[0] == 'vet':
+				s = 'vet'
 
+			c.hl['ctx'] = ' '.join(('go', s, c.wd))
+
+	# note: do *not* resume c, we're *switching* to exec_c, not *starting* a new command
 	nineo.exec_c(c)
