@@ -94,16 +94,19 @@ type Exec struct {
 func (e *Exec) Call() (interface{}, string) {
 	e.initSwitches()
 
-	c, err := e.cmd()
-	if err != nil {
-		return Res{}, err.Error()
-	}
-
+	res := Res{}
 	wg := &sync.WaitGroup{}
 	wg.Add(1)
 	go e.stream(wg)
 
-	err, dur := procs.Run(e.Cid, c)
+	c, err := e.cmd()
+	if err == nil {
+		var dur mg.MsDuration
+		err, dur = procs.Run(e.Cid, c)
+		res.Dur = dur.String()
+		res.Mem = maxRss(c.ProcessState)
+	}
+
 	if e.fini != nil {
 		e.fini()
 	}
@@ -111,11 +114,7 @@ func (e *Exec) Call() (interface{}, string) {
 	e.sink.Close()
 	wg.Wait()
 
-	res := Res{
-		Chunks: e.chunks(),
-		Mem:    maxRss(c.ProcessState),
-		Dur:    dur.String(),
-	}
+	res.Chunks = e.chunks()
 	res.Attrs, res.Ok = e.cmdAttrsOk(c)
 
 	return res, mg.Err(err)
@@ -227,7 +226,8 @@ func (e *Exec) cmdAttrsOk(c *exec.Cmd) ([]Attr, bool) {
 	if e.SwitchOk && len(e.Switch) > 0 {
 		return attrs, swOk
 	}
-	return attrs, c.ProcessState != nil && c.ProcessState.Success()
+	ok := c != nil && c.ProcessState != nil && c.ProcessState.Success()
+	return attrs, ok
 }
 
 func (e *Exec) collectAttrs() ([]Attr, bool) {
