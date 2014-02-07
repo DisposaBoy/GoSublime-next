@@ -85,9 +85,8 @@ type Exec struct {
 	brk      *mg.Broker
 	sink     *sink.Chan
 	buf      struct {
-		s     [][]byte
-		n     int
-		merge bool
+		s [][]byte
+		n int
 	}
 }
 
@@ -156,16 +155,14 @@ func (e *Exec) stream(wg *sync.WaitGroup) {
 	}
 }
 
+func crPfx(s []byte) bool {
+	return len(s) >= 1 && s[0] == '\r' && (len(s) == 1 || s[1] != '\n')
+}
+
 func (e *Exec) put(s []byte, eof bool) {
-	switch {
-	case crSuffix(s):
-		e.buf.merge = false
+	if len(e.buf.s) == 0 || crPfx(s) {
 		e.buf.s = append(e.buf.s, s)
-	case !e.buf.merge || len(e.buf.s) == 0:
-		e.buf.merge = true
-		e.buf.s = append(e.buf.s, zChunk)
-		fallthrough
-	default:
+	} else {
 		i := len(e.buf.s) - 1
 		e.buf.s[i] = append(e.buf.s[i], s...)
 	}
@@ -312,11 +309,6 @@ func rx(s string) (*regexp.Regexp, error) {
 
 	caseCache.m[s] = rx
 	return rx, nil
-}
-
-func crSuffix(s []byte) bool {
-	i := len(s) - 1
-	return i >= 0 && s[i] == '\r'
 }
 
 func mkCmd(e *Exec, input string, cmd string, args ...string) *exec.Cmd {

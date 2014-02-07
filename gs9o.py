@@ -208,10 +208,7 @@ class Gs9oInitCommand(sublime_plugin.TextCommand):
 		s = '[ %s ] # \n' % gs.simple_fn(wd).replace('#', '~')
 
 		if was_empty:
-			v.insert(edit, 0, 'GoSublime %s 9o: type `help` for help and command documentation\n\n' % about.VERSION)
-
-		if was_empty or v.substr(v.size()-1) == '\n':
-			v.insert(edit, v.size(), s)
+			v.insert(edit, 0, 'GoSublime %s 9o: type `help` for help and command documentation\n\n%s' % (about.VERSION, s))
 		else:
 			v.insert(edit, v.size(), '\n'+s)
 
@@ -445,9 +442,10 @@ def _exec(view, edit, save_hist=False):
 
 		line = view.full_line(pos)
 		rkey = '9o.exec.%s' % gs.uid()
-		view.add_regions(rkey, [line], '')
 		view.replace(edit, line, ('[`%s`]\n' % cmd))
 		view.run_command('gs9o_init')
+		ep = view.full_line(line.begin()).end()
+		view.add_regions(rkey, [sublime.Region(ep, ep)], 'comment', '', sublime.DRAW_OUTLINED|sublime.DRAW_EMPTY_AS_OVERWRITE)
 
 		cli = cmd.split(' ', 1)
 		if cli[0] == 'sh':
@@ -586,7 +584,7 @@ def mk_cmd(view, wd, ctx, cn, f=None):
 		if gs.is_a(c.res, {}):
 			s = ''.join('[ %s ]' % v for v in (c.res.get('Dur'), c.res.get('Mem')) if v)
 
-		wr.write('\n%s\n' % (s or '[ done ]'))
+		wr.write('%s\n' % (s or '[ done ]'))
 		view.run_command('gs9o_show_ctx', {'ctx': ctx})
 		c.resume()
 

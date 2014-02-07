@@ -126,10 +126,8 @@ def ve_write(view, edit, s, pt=-1, ctx='', interp=False, scope='', outlined=Fals
 		ep = rl[-1].end() if rl else n
 
 	# todo: maybe make this behave more like a real console and handle \b
-	if interp and s.endswith('\r') and '\n' not in s:
-		s = s.rstrip('\r')
-		r = view.line(ep)
-		view.replace(edit, r, s)
+	if interp and s.startswith('\r'):
+		view.replace(edit, view.line(ep), s[1:])
 	else:
 		view.insert(edit, ep, s)
 

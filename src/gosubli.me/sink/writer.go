@@ -57,15 +57,12 @@ func (w *writer) Write(p []byte) (int, error) {
 
 // cr splits p by carriage returns(not \r\n) and passes each chunk to put.
 func (w *writer) cr(p []byte) []byte {
-	for {
-		i := bytes.IndexByte(p, '\r')
-		if i < 0 || i == len(p)-1 || p[i+1] == '\n' {
-			break
-		}
-		i++
-		if err := w.put(p[:i]); err != nil {
+	for len(p) > 0 {
+		i := bytes.IndexByte(p[1:], '\r') + 1
+		if i <= 0 {
 			return p
 		}
+		w.put(p[:i])
 		p = p[i:]
 	}
 	return p
