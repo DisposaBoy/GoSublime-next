@@ -580,11 +580,18 @@ def mk_cmd(view, wd, ctx, cn, f=None):
 		if f:
 			f(c)
 
-		s = ''
-		if gs.is_a(c.res, {}):
-			s = ''.join('[ %s ]' % v for v in (c.res.get('Dur'), c.res.get('Mem')) if v)
+		rl = view.get_regions(ctx)
+		ep = rl[-1].end() if rl else view.size()
+		if view.substr(sublime.Region(ep-1, ep)) == '\n':
+			nl = ''
+		else:
+			nl = '\n'
 
-		wr.write('%s\n' % (s or '[ done ]'))
+		wr.write('%s[ %s ]\n' % (nl, u' \u00B7 '.join(s for s in (
+			'done',
+			c.res.get('Dur'),
+			c.res.get('Mem'),
+		) if s)))
 		view.run_command('gs9o_show_ctx', {'ctx': ctx})
 		c.resume()
 
