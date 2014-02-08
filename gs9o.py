@@ -445,7 +445,7 @@ def _exec(view, edit, save_hist=False):
 		view.replace(edit, line, ('[`%s`]\n' % cmd))
 		view.run_command('gs9o_init')
 		ep = view.full_line(line.begin()).end()
-		view.add_regions(rkey, [sublime.Region(ep, ep)], 'comment', '', sublime.DRAW_OUTLINED|sublime.DRAW_EMPTY_AS_OVERWRITE)
+		view.add_regions(rkey, [sublime.Region(ep, ep)], 'string', '', sublime.DRAW_EMPTY_AS_OVERWRITE)
 
 		cli = cmd.split(' ', 1)
 		if cli[0] == 'sh':
