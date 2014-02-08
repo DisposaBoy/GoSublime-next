@@ -14,10 +14,6 @@ type writer struct {
 		sync.RWMutex
 		closed bool
 	}
-	b struct {
-		sync.Mutex
-		buf []byte
-	}
 	put func([]byte) error
 }
 
@@ -29,43 +25,19 @@ func (w *writer) Write(p []byte) (int, error) {
 		return 0, ErrClosed
 	}
 
-	w.b.Lock()
-	defer w.b.Unlock()
-	n := len(p)
-
-	if len(w.b.buf) > 0 {
-		w.b.buf = append(w.b.buf, p...)
-		p = w.b.buf[:]
-	}
-
-	for len(p) > 0 {
-		i := bytes.IndexByte(p, '\n')
-		if i >= 0 {
-			i++
-			if err := w.put(w.cr(p[:i])); err != nil {
-				return n, err
-			}
-			p = p[i:]
+	for ep := 0; ep < len(p); {
+		sp := ep
+		if i := bytes.IndexByte(p[sp+1:], '\r'); i >= 0 {
+			ep += i + 1
 		} else {
-			p = w.cr(p)
-			break
+			ep = len(p)
 		}
-	}
-	w.b.buf = append(w.b.buf[:0], p...)
-	return n, nil
-}
 
-// cr splits p by carriage returns(not \r\n) and passes each chunk to put.
-func (w *writer) cr(p []byte) []byte {
-	for len(p) > 0 {
-		i := bytes.IndexByte(p[1:], '\r') + 1
-		if i <= 0 {
-			return p
+		if err := w.put(p[sp:ep]); err != nil {
+			return sp, err
 		}
-		w.put(p[:i])
-		p = p[i:]
 	}
-	return p
+	return len(p), nil
 }
 
 // closed returns true if the writer is closed.
@@ -84,13 +56,7 @@ func (w *writer) close() error {
 		return ErrClosed
 	}
 	w.c.closed = true
-
-	var err error
-	if len(w.b.buf) > 0 {
-		err = w.put(w.b.buf)
-		w.b.buf = nil
-	}
-	return err
+	return nil
 }
 
 // cp returns a copy of p.
