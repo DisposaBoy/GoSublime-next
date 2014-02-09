@@ -222,7 +222,7 @@ class GsPatchImportsCommand(sublime_plugin.TextCommand):
 		if err:
 			gs.notice_undo(DOMAIN, err, view, dirty)
 		elif dirty:
-			k = 'last_import_path.%s' % gs.view_fn(self.view)
+			k = 'last_import_path.%s' % vu.V(view).vfn()
 			if added_path:
 				gs.set_attr(k, added_path)
 			else:

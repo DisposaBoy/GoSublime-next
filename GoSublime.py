@@ -22,6 +22,7 @@ except Exception:
 def plugin_loaded():
 	from gosubl import about
 	from gosubl import cfg
+	from gosubl import vu
 	from gosubl import sh
 	from gosubl import ev
 	from gosubl import gs
@@ -49,6 +50,7 @@ def plugin_loaded():
 
 	mods = [
 		('cfg', cfg),
+		('vu', vu),
 		('gs', gs),
 		('sh', sh),
 		('mg9', mg9),
@@ -80,7 +82,7 @@ def plugin_loaded():
 		if about.ANN != aso.get('ann', ''):
 			aso.set('ann', about.ANN)
 			gs.save_aso()
-			gs.focus(gs.dist_path('CHANGELOG.md'))
+			vu.open(gs.dist_path('CHANGELOG.md'))
 
 	sublime.set_timeout(cb, 0)
 

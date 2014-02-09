@@ -1,7 +1,8 @@
+from gosubl import cfg
 from gosubl import ev
 from gosubl import gs
-from gosubl import cfg
 from gosubl import mg9
+from gosubl import vu
 from os.path import basename
 from os.path import dirname
 import gspalette
@@ -373,10 +374,8 @@ class GsShowCallTip(sublime_plugin.TextCommand):
 
 			sublime.set_timeout(lambda: f2(cl, err), 0)
 
-		fn = view.file_name()
-		src = gs.view_src(view)
-		pos = gs.sel(view).begin()
-		mg9.calltip(fn, src, pos, set_status, f)
+		vv = vu.V(view)
+		mg9.calltip(vv.vfn(), vv.src(), vv.sel().begin(), set_status, f)
 
 
 if not gs.checked(DOMAIN, '_ct'):

@@ -4,6 +4,7 @@ from gosubl import gs
 from gosubl import mg9
 from gosubl import nineo
 from gosubl import sh
+from gosubl import vu
 import datetime
 import glob
 import json
@@ -20,7 +21,7 @@ DOMAIN = "9o"
 AC_OPTS = sublime.INHIBIT_WORD_COMPLETIONS | sublime.INHIBIT_EXPLICIT_COMPLETIONS
 SPLIT_FN_POS_PAT = re.compile(r'(.+?)(?:[:](\d+))?(?:[:](\d+))?$')
 URL_SCHEME_PAT = re.compile(r'^[\w.+-]+://')
-URL_PATH_PAT = re.compile(r'^(?:[\w.+-]+://|(?:www|(?:\w+\.)*(?:golang|pkgdoc|gosublime)\.org))')
+URL_PATH_PAT = re.compile(r'^(?:[\w.+-]+://|(?:www|(?:\w+\.)*(?:golang.org|godoc.org|gosubli.me)))')
 HIST_EXPAND_PAT = re.compile(r'^(\^+)\s*(\d+)$')
 WORD_SEPARATORS = "./\\()\"'-:,;<>~!@#$%&*|+=[]{}`~?"
 HOURGLASS = u'\u231B'
@@ -65,8 +66,8 @@ stash = {}
 tid_alias = {}
 
 def active_wd(win=None):
-	_, v = gs.win_view(win=win)
-	return gs.basedir_or_cwd(v.file_name() if v else '')
+	vv = vu.active(win=win)
+	return vv.dir() or gs.getwd()
 
 def _hkey(wd):
 	name = cfg.nineo_instance
@@ -342,44 +343,27 @@ def act_on(view, actions):
 			break
 
 def act_on_path(view, path):
-	row = 0
-	col = 0
-
-	m = gs.VFN_ID_PAT.match(path)
-	if m:
-		path = 'gs.view://%s' % m.group(1)
-		m2 = gs.ROWCOL_PAT.match(m.group(2))
-		if m2:
-			row = int(m2.group(1))-1 if m2.group(1) else 0
-			col = int(m2.group(2))-1 if m2.group(2) else 0
-	else:
-		if URL_PATH_PAT.match(path):
-			if path.lower().startswith('gs.packages://'):
-				path = os.path.join(gs.packages_dir(), path[14:])
-			else:
-				try:
-					if not URL_SCHEME_PAT.match(path):
-						path = 'http://%s' % path
-					gs.notify(DOMAIN, 'open url: %s' % path)
-					webbrowser.open_new_tab(path)
-					return True
-				except Exception:
-					gs.error_traceback(DOMAIN)
-
-				return False
-
-		wd = view.settings().get('9o.wd') or active_wd()
-		m = SPLIT_FN_POS_PAT.match(path)
-		path = gs.apath((m.group(1) if m else path), wd)
-		row = max(0, int(m.group(2))-1 if (m and m.group(2)) else 0)
-		col = max(0, int(m.group(3))-1 if (m and m.group(3)) else 0)
-
-	if m or os.path.exists(path):
-		gs.focus(path, row, col, win=view.window())
+	vv = vu.open(fn=path, win=view.window())
+	if vv.has_view():
 		return True
-	else:
-		gs.notify(DOMAIN, "Invalid path `%s'" % path)
 
+	if URL_PATH_PAT.match(path):
+		if path.lower().startswith('gs.packages://'):
+			vv = vu.open(fn=os.path.join(gs.packages_dir(), path[14:]), win=view.window())
+			return vv.has_view()
+
+		try:
+			if not URL_SCHEME_PAT.match(path):
+				path = 'http://%s' % path
+			gs.notify(DOMAIN, 'open url: %s' % path)
+			webbrowser.open_new_tab(path)
+			return True
+		except Exception:
+			gs.error_traceback(DOMAIN)
+
+		return False
+
+	gs.notify(DOMAIN, "Invalid path `%s'" % path)
 	return False
 
 
@@ -676,10 +660,10 @@ def cmd_share(view, edit, args, wd, rkey):
 		s = '%s\n%s' % (err, res.get('Url', ''))
 		push_output(view, rkey, s.strip())
 
-	mg9.share(gs.view_src(view.window().active_view()), f)
+	mg9.share(vu.V(av).src(), f)
 
 def cmd_help(view, edit, args, wd, rkey):
-	gs.focus(gs.dist_path('9o.md'))
+	vu.open(gs.dist_path('9o.md'))
 	push_output(view, rkey, '')
 
 def cmd_tskill(view, edit, args, wd, rkey):

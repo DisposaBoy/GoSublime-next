@@ -1,9 +1,15 @@
-from os.path import dirname, normpath, splitext
+from . import kv
+from os.path import dirname, normpath, splitext, isfile
+import re
 import sublime
 
+_fn = re.compile(r'^(?P<fn>.+?)(?:[:](?P<line>[\d+]+)(?:[:](?P<column>[\d+]+))?)?\s*$')
+_vfn_id = re.compile(r'gs\.view#(\d+)')
+
 class V(object):
-	def __init__(self, view):
+	def __init__(self, view, win=None):
 		self.v = view
+		self.w = win
 
 	def temp(self):
 		if self.v is None:
@@ -41,10 +47,17 @@ class V(object):
 		return splitext(self.fn())[1]
 
 	def vfn(self):
-		if self.v is None:
-			return ''
+		fn = self.fn()
+		if fn:
+			return fn
 
-		return self.v.file_name() or 'gs.view://%s' % self.v.id()
+		fn = self.v.name()
+		if fn:
+			fn = fn.replace(' ', '_')
+		else:
+			fn = 'sublime.go'
+
+		return 'gs.view#%s,%s' % (self.v.id(), fn)
 
 	def dir(self):
 		return dirname(normpath(self.fn()))
@@ -54,6 +67,15 @@ class V(object):
 			return ''
 
 		return self.v.substr(sublime.Region(0, self.v.size()))
+
+	def size(self):
+		return self.v.size() if self.v is not None else 0
+
+	def is_empty(self):
+		if self.v is None:
+			return True
+
+		return self.v.find(r'\S', 0) is not None
 
 	def scope_name(self, pos=0):
 		if self.v is None:
@@ -66,7 +88,7 @@ class V(object):
 
 	def window(self):
 		if self.v is None:
-			return None
+			return self.w
 
 		return self.v.window()
 
@@ -91,7 +113,7 @@ class V(object):
 
 	def folders(self):
 		try:
-			return self.v.window().folders()
+			return self.window().folders()
 		except Exception:
 			return []
 
@@ -114,6 +136,28 @@ class V(object):
 			'outlined': outlined,
 		})
 		return True
+
+	def focus(self, row=0, col=0, pat='^package ', cb=None):
+		win = self.window()
+		view = self.view()
+		if None in (win, view):
+			if cb:
+				cb(False)
+			return
+
+		if self.v.is_loading():
+			sublime.set_timeout(lambda: self.focus(row=row, col=col, pat=pat, cb=cb), 100)
+			return
+
+		win.focus_view(view)
+		if row <= 0 and col <= 0 and pat:
+			r = view.find(pat, 0)
+			if r:
+				row, col = view.rowcol(r.begin())
+
+		view.run_command("gs_goto_row_col", { "row": row, "col": col })
+		if cb:
+			cb(True)
 
 def ve_write(view, edit, s, pt=-1, ctx='', interp=False, scope='', outlined=False):
 	if not s:
@@ -150,6 +194,49 @@ def active(win=None, view=None):
 
 	return V(view)
 
+def open(fn='', id=-1, view=None, win=None):
+	vv, loc = find_loc(fn=fn, id=id, view=view, win=win)
+	if not vv.has_view() and isfile(loc.fn):
+		if win is None:
+			win = sublime.active_window()
+		vv = V(win.open_file(loc.fn), win=win)
+
+	if vv.has_view():
+		vv.focus(loc.row, loc.col)
+
+	return vv
+
+def find(fn='', id=-1, view=None, win=None):
+	vv, _ = find_loc(fn=fn, id=id, view=view, win=win)
+	return vv
+
+def find_loc(fn='', id=-1, view=None, win=None):
+	loc = mk_loc()
+	if view is not None:
+		return (V(view, win=win), loc)
+
+	match = None
+	if id >= 0:
+		match = lambda v: v.id() == id
+	else:
+		loc = parse(fn)
+		if loc.ok:
+			if loc.id >= 0:
+				match = lambda v: v.id() == loc.id
+			else:
+				match = lambda v: v.file_name() == loc.fn
+		else:
+			match = lambda v: v.file_name() == fn
+
+	if win is None:
+		win = sublime.active_window()
+
+	for v in win.views():
+		if match(v):
+			return (V(v, win=win), loc)
+
+	return (V(None, win=win), loc)
+
 def sel(view, i=0):
 	try:
 		s = view.sel()
@@ -165,3 +252,44 @@ def rowcol(view):
 		return view.rowcol(sel(view).begin())
 	except Exception:
 		return (0, 0)
+
+def mk_loc():
+	return kv.O(
+		ok=False,
+		id=-1,
+		fn='',
+		row=0,
+		col=0,
+		pos=''
+	)
+
+def get_num(m, k):
+	try:
+		return int(m.get(k))
+	except Exception:
+		return 0
+
+def parse(s):
+	loc = mk_loc()
+	m = _fn.search(s or '')
+	if m:
+		m = m.groupdict()
+		loc.ok = True
+		loc.id = get_num(m, 'id')
+		loc.row = max(0, get_num(m, 'line')-1)
+		loc.col = max(0, get_num(m, 'column')-1)
+		loc.pos = '%s:%s' % (loc.row, loc.col)
+		loc.fn = m.get('fn', '')
+
+		vm = _vfn_id.search(loc.fn)
+		if vm:
+			loc.id = int(vm.group(1))
+			loc.fn = ''
+
+	return loc
+
+def is_vfn(s):
+	return 'gs.view#' in s
+
+def gs_init(m={}):
+	pass

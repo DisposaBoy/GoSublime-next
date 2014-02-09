@@ -121,7 +121,7 @@ def show_messages(view):
 	gotos = {}
 
 	def rel(s):
-		t = relpath(s, vv.dir())
+		t = gs.relpath(s, vv.dir())
 		if t.startswith('.'):
 			return s
 		return t
@@ -173,7 +173,7 @@ def show_messages(view):
 			p = gotos.get(i)
 			if p:
 				fn, row, col = p
-				gs.focus(fn, row=row, col=col, win=win)
+				vu.open(fn).focus(row=row, col=col)
 
 		gs.show_quick_panel(items, cb)
 	else:

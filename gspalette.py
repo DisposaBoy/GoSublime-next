@@ -1,6 +1,7 @@
 from gosubl import gs
 from gosubl import gspatch
 from gosubl import mg9
+from gosubl import vu
 from os.path import dirname, basename, relpath
 import re
 import sublime
@@ -108,14 +109,14 @@ class GsPaletteCommand(sublime_plugin.WindowCommand):
 			bks.append(loc)
 
 	def goto(self, loc):
-		gs.focus(loc.fn, loc.row, loc.col)
+		vu.open(fn=loc.fn).focus(row=loc.row, col=loc.col)
 
 	def jump_to_imports(self):
 		view = gs.active_valid_go_view()
 		if not view:
 			return
 
-		last_import = gs.attr('last_import_path.%s' % gs.view_fn(view), '')
+		last_import = gs.attr('last_import_path.%s' % vu.V(view).vfn(), '')
 		r = None
 		if last_import:
 			offset = len(last_import) + 2
@@ -217,7 +218,8 @@ class GsPaletteCommand(sublime_plugin.WindowCommand):
 
 			self.do_show_panel()
 
-		mg9.declarations(gs.view_fn(view), gs.view_src(view), '', f)
+		vv = vu.V(view)
+		mg9.declarations(vv.vfn(), vv.src(), '', f)
 
 
 def toggle_import(a):

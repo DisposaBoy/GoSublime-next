@@ -102,7 +102,7 @@ func (p *playState) Pkg() (*build.Package, error) {
 		return p.pkg, nil
 	}
 
-	if p.Fn == "" || strings.HasPrefix(p.Fn, "gs.view://") {
+	if p.Fn == "" || strings.Contains(p.Fn, "gs.view#") {
 		return p.pkgFromInput()
 	}
 

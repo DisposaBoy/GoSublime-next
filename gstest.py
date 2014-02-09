@@ -56,17 +56,9 @@ class GsTestCommand(sublime_plugin.WindowCommand):
 
 			gs.show_quick_panel(ents, cb)
 
-		win, view = gs.win_view(None, self.window)
-		if view is None:
-			return
-
-		vfn = gs.view_fn(view)
-		src = gs.view_src(view)
-		pkg_dir = ''
-		if view.file_name():
-			pkg_dir = os.path.dirname(view.file_name())
-
-		mg9.declarations(vfn, src, pkg_dir, f)
+		vv = vu.active(win=self.window)
+		if not vv.is_empty():
+			mg9.declarations(vv.vfn(), vv.src(), (vv.dir() or gs.getwd()), f)
 
 
 def match_prefix_name(s):

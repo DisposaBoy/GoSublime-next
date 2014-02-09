@@ -4,6 +4,7 @@
 from . import about
 from . import cfg
 from . import kv
+from . import vu
 from subprocess import Popen, PIPE
 import copy
 import datetime
@@ -145,13 +146,6 @@ def getwd():
 	if PY3K:
 		return os.getcwd()
 	return os.getcwdu()
-
-def apath(fn, cwd=None):
-	if not os.path.isabs(fn):
-		if not cwd:
-			cwd = getwd()
-		fn = os.path.join(cwd, fn)
-	return os.path.normcase(os.path.normpath(fn))
 
 def temp_dir(subdir=''):
 	tmpdir = os.path.join(TMPDIR, subdir)
@@ -370,61 +364,6 @@ def sync_settings():
 	_settings.update(mirror_settings(settings_obj()))
 	cfg.folders = sublime.active_window().folders()
 
-def view_fn(view):
-	if view is not None:
-		if view.file_name():
-			return view.file_name()
-		return 'gs.view://%s' % view.id()
-	return ''
-
-def view_src(view):
-	if view:
-		return view.substr(sublime.Region(0, view.size()))
-	return ''
-
-def win_view(vfn=None, win=None):
-	if not win:
-		win = sublime.active_window()
-
-	view = None
-	if win:
-		m = VFN_ID_PAT.match(vfn or '')
-		if m:
-			try:
-				vid = int(m.group(1))
-				for v in win.views():
-					if v.id() == vid:
-						view = v
-						break
-			except Exception:
-				error_traceback(NAME)
-		elif not vfn or vfn == "<stdin>":
-			view = win.active_view()
-		else:
-			view = win.open_file(vfn)
-	return (win, view)
-
-def do_focus(fn, row, col, win, focus_pat, cb):
-	win, view = win_view(fn, win)
-	if win is None or view is None:
-		notify(NAME, 'Cannot find file position %s:%s:%s' % (fn, row, col))
-		if cb:
-			cb(False)
-	elif view.is_loading():
-		focus(fn, row=row, col=col, win=win, focus_pat=focus_pat, cb=cb)
-	else:
-		win.focus_view(view)
-		if row <= 0 and col <= 0 and focus_pat:
-			r = view.find(focus_pat, 0)
-			if r:
-				row, col = view.rowcol(r.begin())
-		view.run_command("gs_goto_row_col", { "row": row, "col": col })
-		if cb:
-			cb(True)
-
-def focus(fn, row=0, col=0, win=None, timeout=100, focus_pat='^package ', cb=None):
-	sublime.set_timeout(lambda: do_focus(fn, row, col, win, focus_pat, cb), timeout)
-
 def sm_cb():
 	global sm_text
 	global sm_set_text
@@ -613,8 +552,13 @@ def dval(v, d):
 
 	return d
 
+def relpath(fn, dir=''):
+	if vu.is_vfn(fn):
+		return fn
+	return relpath(fn, (dir or getwd()))
+
 def abspath(fn, dir=''):
-	if os.path.isabs(fn):
+	if os.path.isabs(fn) or vu.is_vfn(fn):
 		return fn
 
 	return os.path.normpath(os.path.join((dir or getwd()), fn))

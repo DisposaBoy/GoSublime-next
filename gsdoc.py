@@ -2,6 +2,7 @@ from gosubl import gs
 from gosubl import gsq
 from gosubl import kv
 from gosubl import mg9
+from gosubl import vu
 import os
 import re
 import sublime
@@ -40,7 +41,7 @@ class GsPosdefCommand(sublime_plugin.TextCommand):
 				return
 
 			gs.println('opening %s:%s:%s' % (fn, row, col))
-			gs.focus(fn, row, col)
+			vu.open(fn=fn).focus(row=row, col=col)
 
 		mg9.a_posdef(view.file_name(), pt, f)
 
@@ -74,7 +75,7 @@ class GsDocCommand(sublime_plugin.TextCommand):
 						col = d.get('col', 0)
 						if fn:
 							gs.println('opening %s:%s:%s' % (fn, row, col))
-							gs.focus(fn, row, col)
+							vu.open(fn=fn).focus(row=row, col=col)
 							return
 					self.show_output("%s: cannot find definition" % DOMAIN)
 				elif mode == "hint":
@@ -126,17 +127,8 @@ class GsBrowseDeclarationsCommand(sublime_plugin.WindowCommand):
 			mg9.pkg_dirs(f)
 
 	def present_current(self):
-		pkg_dir = ''
-		view = gs.active_valid_go_view(win=self.window, strict=False)
-		if view:
-			if view.file_name():
-				pkg_dir = os.path.dirname(view.file_name())
-			vfn = gs.view_fn(view)
-			src = gs.view_src(view)
-		else:
-			vfn = ''
-			src = ''
-		self.present(vfn, src, pkg_dir)
+		vv = vu.V(gs.active_valid_go_view(win=self.window, strict=False))
+		self.present(vv.vfn(), vv.src(), vv.dir())
 
 	def present(self, vfn, src, pkg_dir):
 		win = self.window
@@ -172,7 +164,7 @@ class GsBrowseDeclarationsCommand(sublime_plugin.WindowCommand):
 			def cb(i, win):
 				if i >= 0:
 					d = decls[i]
-					gs.focus(d['fn'], d['row'], d['col'], win)
+					vu.open(fn=d['fn'], win=win).focus(row=d['row'], col=d['col'])
 
 			if ents:
 				gs.show_quick_panel(ents, cb)
@@ -251,7 +243,7 @@ def show_pkgfiles(dirname, o=None):
 				if os.path.isdir(fn):
 					win.run_command("gs_browse_files", {"dir": fn})
 				else:
-					gs.focus(fn, 0, 0, win)
+					vu.open(fn=fn, win=win)
 		gs.show_quick_panel(ents, cb)
 	else:
 		gs.show_quick_panel([['', 'No files found']])
