@@ -15,9 +15,6 @@ import sublime
 
 DOMAIN = '9o'
 
-views = kv.M()
-
-completions = []
 _builtins = {}
 
 class Wr(object):
