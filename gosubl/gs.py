@@ -555,7 +555,7 @@ def dval(v, d):
 def relpath(fn, dir=''):
 	if vu.is_vfn(fn):
 		return fn
-	return relpath(fn, (dir or getwd()))
+	return os.path.relpath(fn, (dir or getwd()))
 
 def abspath(fn, dir=''):
 	if os.path.isabs(fn) or vu.is_vfn(fn):
