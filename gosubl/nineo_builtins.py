@@ -131,7 +131,7 @@ def bi_go(c):
 			if c.args[0] == 'vet':
 				s = 'vet'
 
-			c.hl['ctx'] = ' '.join(('go', s, c.wd))
+			c.hl['ctx'] = ' '.join(('go', s, c.env.get('_wd_or_vfn', '')))
 
 	# note: do *not* resume c, we're *switching* to exec_c, not *starting* a new command
 	nineo.exec_c(c)

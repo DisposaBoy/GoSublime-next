@@ -385,14 +385,14 @@
 			"switch": [ "$fn:$pos $message" ],
 
 			"hl": {
-				"ctx": "go compile $_wd"
+				"ctx": "go compile $_wd_or_vfn"
 			},
 			"save": true,
 			"cmd": ".play",
 			"input": true
 		},
 		"replay": {
-			"cid": "replay:$_wd",
+			"cid": "replay $_wd_or_vfn",
 			"cmd": "play",
 		},
 		"go": {
