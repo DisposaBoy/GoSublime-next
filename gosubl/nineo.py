@@ -194,6 +194,9 @@ class Cmd(object):
 
 		self.env = sh.env(self.env)
 
+		vv = self.sess.vv
+		self.env['_wd_or_vfn'] = vv.dir() or vv.vfn()
+
 		for k in self.env:
 			self.env[k] = self.exp(self.env[k])
 
