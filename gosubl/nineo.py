@@ -408,9 +408,9 @@ def gs_init(_={}):
 
 def chunk(s):
 	try:
-		return gs.ustr(base64.b64decode(s))
+		return gs.ustr(base64.b64decode(s)) or ''
 	except Exception:
-		return s
+		return s or ''
 
 def _visible_c(c, basename):
 	return not (basename.startswith(('.', 'gs.')) or c.ui.get('hidden'))
