@@ -504,11 +504,23 @@ def _hk(view, e):
 			cn = ss.cmds.get(v)
 			# check for `None`, not `falsey value`; empty command objects refer to system commands and builtins
 			if cn is not None:
-				ss.cmd(cn, set_stream=False).start()
-				ev.debug(DOMAIN, {
-					'k': 'hk',
-					'hook': v,
-				})
+				def cb(c):
+					ev.debug(DOMAIN, {
+						'k': 'hk',
+						'hook': v,
+						'cmd': c.cmd,
+						'args': c.args,
+						'errs': c.errs,
+						'ok': c.ok,
+						'res': c.res,
+					})
+
+					if c.errs:
+						print('%s hook %s, errs: %s' % (DOMAIN, v, c.errs))
+
+					c.resume()
+
+				ss.cmd(cn, set_stream=False).start(cb=cb)
 
 def quick_commands():
 	ss = Sess()
