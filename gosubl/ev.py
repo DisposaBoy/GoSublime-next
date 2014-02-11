@@ -116,12 +116,23 @@ def df_mod_sig(view):
 	sig += f
 	return (sig, True)
 
+def df_mod_fast_sig(view):
+	def f():
+		gs.do(DOMAIN, lambda: view_updated_fast(view))
+
+	sig = Signal(250)
+	sig += f
+	return (sig, True)
+
 def sig_mod(view):
 	if ignore_view(view):
 		return
 
 	sig = kvm(view.id()).get('mod-sig', lambda: df_mod_sig(view))
 	sig()
+
+	fast_sig = kvm(view.id()).get('mod-fast-sig', lambda: df_mod_fast_sig(view))
+	fast_sig()
 
 def lc(view):
 	m = kvm(view.id())
@@ -222,6 +233,7 @@ opts = kv.O(
 debug = Event()
 init = Event()
 view_updated = Event()
+view_updated_fast = Event()
 view_activated = Event()
 file_saved = Event()
 file_loaded = Event()
