@@ -121,10 +121,6 @@
 					<key>include</key>
 					<string>source.gotemplate</string>
 				</dict>
-				<dict>
-					<key>include</key>
-					<string>text.html.gohtml</string>
-				</dict>
 			</array>
 		</dict>
 		<dict>

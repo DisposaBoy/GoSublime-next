@@ -73,9 +73,6 @@
 				},
 				{
 					"include": "source.gotemplate"
-				},
-				{
-					"include": "text.html.gohtml"
 				}
 			]
 		},
