@@ -356,12 +356,13 @@ class Sess(object):
 		d = gs.settings_dict()
 		self.cmds = d.get('default_commands', {})
 		self.cmds.update(cmds or d.get('commands', {}))
+		self.can_save = True
 
 	def cmd(self, cn, cb=None, set_stream=None):
 		return Cmd(self, cn, cb=cb, set_stream=set_stream)
 
 	def save_all(self, wd):
-		if self.vv.view() is None:
+		if not self.can_save or self.vv.view() is None:
 			return
 
 		if not wd:
@@ -374,7 +375,7 @@ class Sess(object):
 				self.save(view)
 
 	def save(self, view):
-		if view is not None and view.file_name() and view.is_dirty():
+		if self.can_save and view is not None and view.file_name() and view.is_dirty():
 			view.run_command('save')
 
 	def view_wd(self, view):
@@ -494,6 +495,7 @@ def exec_c(c):
 
 def _hk(view, e):
 	ss = Sess(view=view)
+	ss.can_save = False
 	fx = ss.vv.ext()
 
 	# file_sync is triggered for file_loaded and file_saved, so don't call `gs.on-lint` again
