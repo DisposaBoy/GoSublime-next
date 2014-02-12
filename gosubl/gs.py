@@ -67,7 +67,6 @@ _default_settings = {
 	"_debug": False,
 	"_build_flags": [],
 	"_av": False,
-	"env": {},
 	"gscomplete_enabled": False,
 	"complete_builtins": False,
 	"autocomplete_builtins": False,
@@ -83,8 +82,6 @@ _default_settings = {
 	"autoinst": False,
 	"use_named_imports": False,
 	"use_legacy_imports": True,
-	"default_commands": {},
-	"commands": {},
 	"installsuffix": "",
 }
 _settings = copy.copy(_default_settings)

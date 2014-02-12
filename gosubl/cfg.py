@@ -6,21 +6,23 @@ _project_settings = {}
 _view_settings = {}
 
 defaults = {
-	'suggest_packages': False,
-	'folders': [],
 	'active_fn': '',
 	'active_vfn': '',
+	'autocomplete_snippets': False,
+	'commands': {},
+	'default_commands': {},
+	'default_snippets': [],
 	'env': {},
-	'fmt_on_save': False,
 	'fmt_cmd': [],
+	'fmt_on_save': False,
+	'folders': [],
+	'nineo_color_scheme': '',
+	'nineo_instance': '',
+	'nineo_settings': {},
+	'nineo_show_end': False,
 	'shell': [],
-	"autocomplete_snippets": False,
-	"default_snippets": [],
-	"snippets": [],
-	"nineo_instance": "",
-	"nineo_color_scheme": "",
-	"nineo_settings": {},
-	"nineo_show_end": False,
+	'snippets': [],
+	'suggest_packages': False,
 }
 
 def merge(base, ml, val=lambda m, k: m.get(k)):

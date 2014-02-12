@@ -1,4 +1,5 @@
 from . import about
+from . import cfg
 from . import ev
 from . import gs
 from . import hl
@@ -58,7 +59,7 @@ class Cmd(object):
 			'each': [],
 		}
 		self.sess = sess
-		self.wd = sess.wd
+		self.wd = ''
 		self.cbl = []
 		self.errs = []
 		self.visited = []
@@ -200,6 +201,8 @@ class Cmd(object):
 		for k in self.env:
 			self.env[k] = self.exp(self.env[k])
 
+		self.wd = self.exp(self.wd or self.sess.wd)
+
 		for k in self.hl:
 			self.hl[k] = self.exp(self.hl[k])
 
@@ -334,7 +337,7 @@ class Cmd(object):
 					fn = bnm
 
 			if fn and fn != '<stdin>':
-				fn = gs.abspath(fn, self.sess.wd)
+				fn = gs.abspath(fn, self.wd)
 			else:
 				fn = self.sess.vv.vfn()
 
@@ -353,9 +356,8 @@ class Sess(object):
 		self.vv = vu.active(win=win, view=view)
 		self.wr = wr or Wr(None)
 		self.wd = wd or gs.basedir_or_cwd(self.vv.fn())
-		d = gs.settings_dict()
-		self.cmds = d.get('default_commands', {})
-		self.cmds.update(cmds or d.get('commands', {}))
+		self.cmds = copy.deepcopy(cfg.default_commands)
+		self.cmds.update(cmds or copy.deepcopy(cfg.commands))
 		self.can_save = True
 
 	def cmd(self, cn, cb=None, set_stream=None):
@@ -451,7 +453,7 @@ def exec_c(c):
 		'Fn': c.fn,
 		'Input': c.input,
 		'Env': c.env,
-		'Wd': c.sess.wd,
+		'Wd': c.wd,
 		'Cmd': c.cmd,
 		'Args': c.args,
 		'Switch': c.switch,
@@ -462,7 +464,7 @@ def exec_c(c):
 
 	tid = gs.begin(
 		DOMAIN,
-		'[ %s ] # %s %s' % (gs.simple_fn(c.sess.wd), c.cmd, c.args),
+		'[ %s ] # %s %s' % (gs.simple_fn(c.wd), c.cmd, c.args),
 		set_status=False,
 		cancel=lambda: mg9.acall('cancel', {'Cid': cid}, None)
 	)
