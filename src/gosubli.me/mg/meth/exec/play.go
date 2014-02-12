@@ -127,10 +127,7 @@ func (p *playState) mainCmd(pkg *build.Package) (*exec.Cmd, error) {
 
 	binFn := filepath.Join(tmpDir, filepath.Base(pkg.Dir)+".exe")
 	args := append([]string{"go", "build", "-o", binFn}, pkg.GoFiles...)
-	c := exec.Command(args[0], args[1:]...)
-	c.Dir = p.Wd
-	c.Stdout = p.sink
-	c.Stderr = p.sink
+	c := mkCmd(p.Exec, "", args[0], args[1:]...)
 	if err := c.Run(); err != nil {
 		return nil, fmt.Errorf("Build failed: %#q\nError: `%v`\n", args, err)
 	}
