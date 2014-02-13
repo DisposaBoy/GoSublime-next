@@ -202,6 +202,7 @@ class Cmd(object):
 			self.env[k] = self.exp(self.env[k])
 
 		self.wd = self.exp(self.wd or self.sess.wd)
+		self.cid = self.exp(self.cid)
 
 		for k in self.hl:
 			self.hl[k] = self.exp(self.hl[k])
