@@ -425,25 +425,30 @@ def _exec(view, edit, save_hist=False):
 			return
 
 		line = view.full_line(pos)
-		rkey = '9o.exec.%s' % gs.uid()
+		ctx = '9o.exec.%s' % gs.uid()
 		view.replace(edit, line, ('[`%s`]\n' % cmd))
 		view.run_command('gs9o_init')
 		ep = view.full_line(line.begin()).end()
-		view.add_regions(rkey, [sublime.Region(ep, ep)], 'string', '', sublime.DRAW_EMPTY_AS_OVERWRITE)
+		view.add_regions(ctx, [sublime.Region(ep, ep)], '')
+		hellip = u'[ \u22EF ]'
+		ep += 1
+		view.insert(edit, ep, hellip+'\n\n')
+		view.add_regions(ctx+'.done', [sublime.Region(ep, ep+len(hellip))], '')
 
 		cli = cmd.split(' ', 1)
 		if cli[0] == 'sh':
 			a = cli[1].strip() if len(cli) == 2 else ''
-			cmd_9o(view, edit, sh.cmd(a), wd, rkey)
+			mk_cmd(view, wd, ctx, sh.cmd(a)).start()
 			return
 
 		nv = sh.env()
 		a = [_exparg(s, nv) for s in shlex.split(gs.astr(cmd))]
 		f = builtins().get(a[0])
 		if f:
-			f(view, edit, a[1:], wd, rkey)
+			f(view, edit, a[1:], wd, ctx)
 		else:
-			cmd_9o(view, edit, a, wd, rkey)
+			mk_cmd(view, wd, ctx, a).start()
+
 	else:
 		view.insert(edit, gs.sel(view).begin(), '\n')
 
@@ -554,32 +559,43 @@ def _9_begin_call(name, view, edit, args, wd, rkey, cid):
 
 	return cid, cb
 
-def cmd_9o(view, edit, args, wd, rkey):
-	mk_cmd(view, wd, rkey, args).start()
+def end_c(c):
+	view = c.sess.wr.vv.view()
+	ctx = c.sess.wr.ctx
 
-def mk_cmd(view, wd, ctx, cn, f=None):
+	rl = view.get_regions(ctx)
+	ep = rl[-1].end() if rl else view.size()
+	if view.substr(sublime.Region(ep-1, ep)) == '\n':
+		nl = ''
+	else:
+		nl = '\n'
+
+	status = '%s[ %s ]' % (nl, u' \u00B7 '.join(s for s in (
+		'done',
+		c.res.get('Dur'),
+		c.res.get('Mem'),
+	) if s))
+
+	dctx = ctx+'.done'
+	rl = view.get_regions(dctx)
+	if rl:
+		r = view.line(rl[0].begin())
+		view.run_command('gs_replace', {
+			'begin': r.begin(),
+			'end': r.end(),
+			's': status,
+		})
+		view.add_regions(dctx, [view.line(r.begin())], '')
+	else:
+		wr.write(status+'\n')
+
+	view.run_command('gs9o_show_ctx', {'ctx': ctx})
+	c.resume()
+
+def mk_cmd(view, wd, ctx, cn):
 	wr = nineo.Wr(view=view, ctx=ctx)
 	ss = nineo.Sess(wd=wd, wr=wr)
-	def cb(c):
-		if f:
-			f(c)
-
-		rl = view.get_regions(ctx)
-		ep = rl[-1].end() if rl else view.size()
-		if view.substr(sublime.Region(ep-1, ep)) == '\n':
-			nl = ''
-		else:
-			nl = '\n'
-
-		wr.write('%s[ %s ]\n' % (nl, u' \u00B7 '.join(s for s in (
-			'done',
-			c.res.get('Dur'),
-			c.res.get('Mem'),
-		) if s)))
-		view.run_command('gs9o_show_ctx', {'ctx': ctx})
-		c.resume()
-
-	return ss.cmd(cn, cb=cb)
+	return ss.cmd(cn, cb=end_c)
 
 def cmd_which(view, edit, args, wd, rkey):
 	def f(c):
@@ -604,27 +620,9 @@ def cmd_which(view, edit, args, wd, rkey):
 
 			c.sess.writeln(fm % (k, v))
 
-	c = mk_cmd(view, wd, rkey, ['true'], f).start()
+		c.done()
 
-def cmd_cd(view, edit, args, wd, rkey):
-	try:
-		if args:
-			wd = args[0]
-			wd = string.Template(wd).safe_substitute(sh.env())
-			wd = os.path.expanduser(wd)
-			wd = os.path.abspath(wd)
-		else:
-			fn = view.window().active_view().file_name()
-			if fn:
-				wd = os.path.dirname(fn)
-
-		os.chdir(wd)
-	except Exception as ex:
-		push_output(view, rkey, 'Cannot chdir: %s' % ex)
-		return
-
-	push_output(view, rkey, '')
-	view.run_command('gs9o_init', {'wd': wd})
+	c = mk_cmd(view, wd, rkey, ['true']).start(cb=f)
 
 def cmd_reset(view, edit, args, wd, rkey):
 	push_output(view, rkey, '')

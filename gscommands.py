@@ -214,6 +214,11 @@ class GsWriteCommand(sublime_plugin.TextCommand):
 		# convert pt to an int because the api might(will) pass it as a float
 		vu.ve_write(self.view, edit, s, pt=int(pt), ctx=ctx, interp=interp, scope=scope, outlined=outlined)
 
+class GsReplaceCommand(sublime_plugin.TextCommand):
+	def run(self, edit, begin, end, s):
+		# convert begin and end to ints because the api might(will) pass them as a float
+		vu.ve_replace(self.view, edit, int(begin), int(end), s)
+
 class GsPatchImportsCommand(sublime_plugin.TextCommand):
 	def run(self, edit, pos, content, added_path=''):
 		pos = int(pos) # un-fucking-believable

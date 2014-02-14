@@ -2,6 +2,7 @@ from . import about
 from . import gs
 from . import mg9
 from . import nineo
+import os
 import pprint
 import sublime
 
@@ -135,3 +136,12 @@ def bi_go(c):
 
 	# note: do *not* resume c, we're *switching* to exec_c, not *starting* a new command
 	nineo.exec_c(c)
+
+def bi_cd(c):
+	try:
+		wd = ' '.join(c.args) or c.wd
+		os.chdir(wd)
+		c.sess.wr.vv.view().run_command('gs9o_init', {'wd': wd})
+		c.done(wd)
+	except Exception as ex:
+		c.fail('Cannot chdir: %s' % ex)

@@ -162,6 +162,9 @@ class V(object):
 		if cb:
 			cb(True)
 
+def ve_replace(view, edit, begin, end, s):
+	view.replace(edit, sublime.Region(begin, end), s)
+
 def ve_write(view, edit, s, pt=-1, ctx='', interp=False, scope='', outlined=False):
 	if not s:
 		return
