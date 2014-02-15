@@ -93,3 +93,17 @@ class Counter(object):
 		with self.lck:
 			self.n += 1
 			return self.n
+
+def filter_bool(it):
+	return [v for v in it if v]
+
+def filter_none(it):
+	return [v for v in it if v is not None]
+
+def id(v):
+	return v
+
+def filter_join(it, sep='', out=None):
+	if not out:
+		out = id
+	return sep.join((out(v) for v in it if v))
