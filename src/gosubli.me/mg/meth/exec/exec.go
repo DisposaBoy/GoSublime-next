@@ -85,8 +85,9 @@ type Exec struct {
 	brk      *mg.Broker
 	sink     *sink.Chan
 	buf      struct {
-		s [][]byte
-		n int
+		s  [][]byte
+		n  int
+		cr bool
 	}
 }
 
@@ -160,15 +161,28 @@ func crPfx(s []byte) bool {
 }
 
 func (e *Exec) put(s []byte, eof bool) {
-	if len(e.buf.s) == 0 || crPfx(s) {
-		e.buf.s = append(e.buf.s, s)
-	} else {
-		i := len(e.buf.s) - 1
-		e.buf.s[i] = append(e.buf.s[i], s...)
+	b := &e.buf
+	last := len(b.s) - 1
+	isCr := crPfx(s)
+	push := last < 0 || (isCr != b.cr)
+	b.cr = isCr
+	b.n += len(s)
+
+	switch {
+	case push:
+		b.s = append(b.s, s)
+	case isCr:
+		if b.cr && len(s) <= len(b.s[last]) {
+			b.n -= len(s)
+			copy(b.s[last], s)
+		} else {
+			b.s[last] = s
+		}
+	default:
+		b.s[last] = append(b.s[last], s...)
 	}
 
-	e.buf.n += len(s)
-	if eof || e.buf.n >= 32*1024 {
+	if eof || b.n >= 32*1024 {
 		e.flush(eof)
 	}
 }
@@ -194,11 +208,9 @@ func (e *Exec) flush(eof bool) {
 		},
 	})
 
-	for i, s := range e.buf.s {
-		e.buf.s[i] = s[:0]
-	}
-	e.buf.s = e.buf.s[:0]
+	e.buf.s = nil
 	e.buf.n = 0
+	e.buf.cr = false
 }
 
 func (e *Exec) initSwitches() error {
