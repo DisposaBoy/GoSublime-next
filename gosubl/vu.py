@@ -177,10 +177,7 @@ def ve_write(view, edit, s, pt=-1, ctx='', interp=False, scope='', outlined=Fals
 
 	# todo: maybe make this behave more like a real console and handle \b
 	if interp and s.startswith('\r'):
-		s = s[1:]
-		lr = view.line(ep)
-		r = sublime.Region(lr.begin(), min(lr.begin()+len(s), lr.end()))
-		view.replace(edit, r, s)
+		view.replace(edit, view.line(ep), s[1:])
 	else:
 		view.insert(edit, ep, s)
 
