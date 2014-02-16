@@ -13,7 +13,6 @@ func main() {
 	flag.Bool("env", false, "")
 	flag.Bool("wait", false, "")
 	flag.Int("poll", 0, "")
-	flag.String("do", "", "")
 	flag.Int("oom", 0, "")
 
 	// we're only interested in `tag` so all others ar ignored

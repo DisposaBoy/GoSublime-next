@@ -1,12 +1,9 @@
 package mg
 
 import (
-	"bytes"
-	"encoding/base64"
 	"encoding/json"
 	"flag"
 	"fmt"
-	"io"
 	"log"
 	"os"
 	"runtime"
@@ -63,7 +60,6 @@ func Defer(f func()) {
 }
 
 func Run(args []string) {
-	do := "-"
 	poll := 0
 	wait := false
 	dump_env := false
@@ -74,9 +70,10 @@ func Run(args []string) {
 	flags.BoolVar(&dump_env, "env", dump_env, "if true, dump all environment variables as a json map to stdout and exit")
 	flags.BoolVar(&wait, "wait", wait, "Whether or not to wait for outstanding requests (which may be hanging forever) when exiting")
 	flags.IntVar(&poll, "poll", poll, "If N is greater than zero, send a response every N seconds. The token will be `margo.poll`")
-	flags.StringVar(&do, "do", "-", "Process the specified operations(lines) and exit. `-` means operate as normal (`-do` implies `-wait=true`)")
 	flags.StringVar(&tag, "tag", tag, "Requests will include a member `tag' with this value")
 	flags.IntVar(&maxMem, "oom", maxMemDefault, "The maximum amount of memory MarGo is allowed to use. If memory use reaches this value, MarGo dies :'(")
+	in := flags.String("in", "-", "A filename to read input from. `-` or empty string for stdin")
+	out := flags.String("out", "-", "A filename to write output to. `-` or empty string for stdout")
 	flags.Parse(args)
 
 	// 4 is arbitrary,
@@ -101,19 +98,12 @@ func Run(args []string) {
 		os.Exit(0)
 	}
 
-	var in io.Reader = os.Stdin
-	doCall := do != "-"
-	if doCall {
-		b64 := "base64:"
-		if strings.HasPrefix(do, b64) {
-			s, _ := base64.StdEncoding.DecodeString(do[len(b64):])
-			in = bytes.NewReader(s)
-		} else {
-			in = strings.NewReader(do)
-		}
-	}
+	r := stdFileOrExit(os.Stdin, *in, os.O_RDONLY, 0)
+	defer r.Close()
+	w := stdFileOrExit(os.Stdout, *out, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+	defer w.Close()
+	broker := NewBroker(r, w, tag)
 
-	broker := NewBroker(in, os.Stdout, tag)
 	if poll > 0 {
 		pollSeconds := time.Second * time.Duration(poll)
 		pollCounter := &counter{}
@@ -137,7 +127,7 @@ func Run(args []string) {
 		}
 	}()
 
-	broker.Loop(!doCall, (wait || doCall))
+	broker.Loop(true, wait)
 
 	byeLck.Lock()
 	defer byeLck.Unlock() // keep this here for the sake of code correctness
@@ -155,4 +145,16 @@ func Run(args []string) {
 	}
 
 	os.Exit(0)
+}
+
+func stdFileOrExit(std *os.File, fn string, flags int, perm os.FileMode) *os.File {
+	if fn == "-" || fn == "" {
+		return std
+	}
+	f, err := os.OpenFile(fn, flags, perm)
+	if err != nil {
+		fmt.Println("margo:", err)
+		os.Exit(1)
+	}
+	return f
 }
