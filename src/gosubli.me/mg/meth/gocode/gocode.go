@@ -25,6 +25,11 @@ type mGocode struct {
 	calltip bool
 }
 
+type Res struct {
+	Candidates  []gocode.MargoCandidate
+	Suggestions []string
+}
+
 type calltipVisitor struct {
 	offset int
 	fset   *token.FileSet
@@ -87,10 +92,7 @@ func (m *mGocode) Call() (interface{}, string) {
 		fn = filepath.Join(mg.OrString(m.Dir, m.Home), mg.OrString(fn, "_.go"))
 	}
 
-	res := struct {
-		Candidates []gocode.MargoCandidate
-	}{}
-
+	res := Res{}
 	if m.calltip {
 		res.Candidates = m.calltips(src, fn, pos)
 	} else {
