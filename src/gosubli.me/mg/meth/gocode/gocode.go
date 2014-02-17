@@ -70,7 +70,11 @@ func (v *calltipVisitor) Visit(node ast.Node) (w ast.Visitor) {
 	return v
 }
 
-func (m *mGocode) Call() (interface{}, string) {
+func (m *mGocode) init() string {
+	if !filepath.IsAbs(m.Fn) {
+		m.Fn = filepath.Join(mg.OrString(m.Dir, m.Home), mg.OrString(m.Fn, "_.go"))
+	}
+
 	if m.Src == "" {
 		// this is here for testing, the client should always send the src
 		s, _ := ioutil.ReadFile(m.Fn)
@@ -78,25 +82,27 @@ func (m *mGocode) Call() (interface{}, string) {
 	}
 
 	if m.Src == "" {
-		return nil, "No source"
+		return "No source"
 	}
 
-	pos := mg.BytePos(m.Src, m.Pos)
+	m.Pos = mg.BytePos(m.Src, m.Pos)
 	if m.Pos < 0 {
-		return nil, "Invalid offset"
+		return "Invalid offset"
 	}
 
-	src := []byte(m.Src)
-	fn := m.Fn
-	if !filepath.IsAbs(fn) {
-		fn = filepath.Join(mg.OrString(m.Dir, m.Home), mg.OrString(fn, "_.go"))
+	return ""
+}
+
+func (m *mGocode) Call() (interface{}, string) {
+	if e := m.init(); e != "" {
+		return nil, e
 	}
 
 	res := Res{}
 	if m.calltip {
-		res.Candidates = m.calltips(src, fn, pos)
+		res.Candidates = m.calltips([]byte(m.Src), m.Fn, m.Pos)
 	} else {
-		res.Candidates = m.completions(src, fn, pos)
+		res.Candidates = m.completions([]byte(m.Src), m.Fn, m.Pos)
 	}
 
 	if m.Autoinst && len(res.Candidates) == 0 {
