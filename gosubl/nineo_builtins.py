@@ -87,11 +87,7 @@ def bi_gs__cmdebug(c):
 	c.sess.cmd(args, cb=cb, set_stream=c.set_stream).start()
 
 def bi_echo(c, ok=True):
-	if c.args and c.args[0] == '-n':
-		c.sess.write(' '.join(c.args[1:]))
-	else:
-		c.sess.writeln(' '.join(c.args))
-
+	c.sess.write(' '.join(c.args))
 	c.resume(ok)
 
 def bi_fail(c):
