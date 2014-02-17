@@ -1,6 +1,7 @@
 from gosubl import about
 from gosubl import cfg
 from gosubl import gs
+from gosubl import kv
 from gosubl import mg9
 from gosubl import nineo
 from gosubl import sh
@@ -61,9 +62,15 @@ DEFAULT_COMMANDS = [
 	'cd',
 ]
 DEFAULT_CL = [(s, s+' ') for s in DEFAULT_COMMANDS]
+MIDDOT = u' \u00B7 '
 
 stash = {}
 tid_alias = {}
+
+class Sess(nineo.Sess):
+	def error(self, s):
+		# the display of errors will be handled by end_c()
+		pass
 
 def active_wd(win=None):
 	vv = vu.active(win=win)
@@ -560,26 +567,33 @@ def _9_begin_call(name, view, edit, args, wd, rkey, cid):
 	return cid, cb
 
 def end_c(c):
-	view = c.sess.wr.vv.view()
-	ctx = c.sess.wr.ctx
+	err = kv.filter_join(c.errs, '\n')
+	if c.errs:
+		err = 'Error: %s\n' % err
+
+	st = kv.filter_join((c.res.get('Dur'), c.res.get('Mem')), MIDDOT)
+	if st:
+		st = '[ %s ]\n' % st
+
+	status = ''.join((err, st))
+	ss = c.sess
+	ctx = ss.wr.ctx
+	dctx = ctx+'.done'
+	view = ss.wr.vv.view()
 
 	rl = view.get_regions(ctx)
-	ep = rl[-1].end() if rl else view.size()
-	if view.substr(sublime.Region(ep-1, ep)) == '\n':
-		nl = ''
-	else:
-		nl = '\n'
+	if rl:
+		r = view.full_line(rl[-1])
+		if not view.substr(r).strip():
+			view.run_command('gs_replace', {
+				'begin': r.begin(),
+				'end': r.end(),
+				's': '',
+			})
 
-	status = '%s[ %s ]' % (nl, u' \u00B7 '.join(s for s in (
-		'done',
-		c.res.get('Dur'),
-		c.res.get('Mem'),
-	) if s))
-
-	dctx = ctx+'.done'
 	rl = view.get_regions(dctx)
 	if rl:
-		r = view.line(rl[0].begin())
+		r = view.full_line(rl[-1])
 		view.run_command('gs_replace', {
 			'begin': r.begin(),
 			'end': r.end(),
@@ -587,14 +601,14 @@ def end_c(c):
 		})
 		view.add_regions(dctx, [view.line(r.begin())], '')
 	else:
-		wr.write(status+'\n')
+		ss.write(status)
 
 	view.run_command('gs9o_show_ctx', {'ctx': ctx})
 	c.resume()
 
 def mk_cmd(view, wd, ctx, cn):
 	wr = nineo.Wr(view=view, ctx=ctx)
-	ss = nineo.Sess(wd=wd, wr=wr)
+	ss = Sess(wd=wd, wr=wr)
 	return ss.cmd(cn, cb=end_c)
 
 def cmd_which(view, edit, args, wd, rkey):
