@@ -183,7 +183,7 @@ func findUnderlyingObj(fset *token.FileSet, af *ast.File, pkg *ast.Package, pkgs
 			return obj, pkg, pkgs
 		}
 		fn := filepath.Join(runtime.GOROOT(), "src", "pkg", "builtin")
-		if pkgBuiltin, _, err := parsePkg(fset, fn, parser.ParseComments); err == nil {
+		if pkgBuiltin, _, err := ParsePkg(fset, fn, parser.ParseComments); err == nil {
 			if obj := pkgBuiltin.Scope.Lookup(id.Name); obj != nil {
 				return obj, pkgBuiltin, pkgs
 			}
@@ -215,7 +215,7 @@ func findUnderlyingObj(fset *token.FileSet, af *ast.File, pkg *ast.Package, pkgs
 					if pkgAlias == x.Name {
 						if id == x {
 							// where do we go as the first place of a package?
-							pkg, pkgs, _ = findPkg(fset, importPath, srcRootDirs, parser.ParseComments|parser.PackageClauseOnly)
+							pkg, pkgs, _ = FindPkg(fset, importPath, srcRootDirs, parser.ParseComments|parser.PackageClauseOnly)
 							if pkg != nil {
 								// we'll just match the behaviour of package browsing
 								// we will visit some file within the package
@@ -267,7 +267,7 @@ func findUnderlyingObj(fset *token.FileSet, af *ast.File, pkg *ast.Package, pkgs
 							return nil, pkg, pkgs
 						}
 
-						if pkg, pkgs, _ = findPkg(fset, importPath, srcRootDirs, parser.ParseComments); pkg != nil {
+						if pkg, pkgs, _ = FindPkg(fset, importPath, srcRootDirs, parser.ParseComments); pkg != nil {
 							obj := pkg.Scope.Lookup(id.Name)
 							return obj, pkg, pkgs
 						}

@@ -4,6 +4,7 @@ package main
 
 import (
 	"gosubli.me/mg"
+	_ "gosubli.me/mg/meth/declarations"
 	_ "gosubli.me/mg/meth/env"
 	_ "gosubli.me/mg/meth/exec" // cancel and exec
 	_ "gosubli.me/mg/meth/fmt"

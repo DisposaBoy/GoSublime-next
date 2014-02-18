@@ -155,7 +155,7 @@ func fiHasGoExt(fi os.FileInfo) bool {
 	return strings.HasSuffix(fi.Name(), ".go")
 }
 
-func parsePkg(fset *token.FileSet, srcDir string, mode parser.Mode) (pkg *ast.Package, pkgs map[string]*ast.Package, err error) {
+func ParsePkg(fset *token.FileSet, srcDir string, mode parser.Mode) (pkg *ast.Package, pkgs map[string]*ast.Package, err error) {
 	if pkgs, err = parser.ParseDir(fset, srcDir, fiHasGoExt, mode); pkgs != nil {
 		_, pkgName := filepath.Split(srcDir)
 		// we aren't going to support package whose name don't match the directory unless it's main
@@ -210,10 +210,10 @@ func rootDirs(env map[string]string) []string {
 	return dirs
 }
 
-func findPkg(fset *token.FileSet, importPath string, dirs []string, mode parser.Mode) (pkg *ast.Package, pkgs map[string]*ast.Package, err error) {
+func FindPkg(fset *token.FileSet, importPath string, dirs []string, mode parser.Mode) (pkg *ast.Package, pkgs map[string]*ast.Package, err error) {
 	for _, dir := range dirs {
 		srcDir := filepath.Join(dir, importPath)
-		if pkg, pkgs, err = parsePkg(fset, srcDir, mode); pkg != nil {
+		if pkg, pkgs, err = ParsePkg(fset, srcDir, mode); pkg != nil {
 			return
 		}
 	}
