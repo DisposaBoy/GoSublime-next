@@ -111,6 +111,7 @@ func (p *playState) Pkg() (*build.Package, error) {
 		return nil, err
 	}
 
+	pkg.GoFiles = append(pkg.GoFiles, pkg.CgoFiles...)
 	for i, fn := range pkg.GoFiles {
 		pkg.GoFiles[i] = filepath.Join(pkg.Dir, fn)
 	}
