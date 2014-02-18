@@ -194,19 +194,17 @@ def lc(vv):
 	if d:
 		for fn in kvs.keys():
 			if fn != vfn and dirname(normpath(fn)) == d:
-				ico = u'\u272A'
+				ico += u'\u272A '
 				break
 
 	if len(m) > 0:
+		ico += u'\u2605 '
 		nl = m.get(row)
 		if nl:
 			for n in nl:
 				if n:
-					s = ' %s' % (n.message)
+					s = n.message+' '
 					break
-
-		if not ico:
-			ico = u'\u2605'
 
 	# todo: make this display globally as well
 	vv.view().set_status(STATUS_DOMAIN, ico+s)
