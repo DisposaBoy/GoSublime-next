@@ -201,12 +201,12 @@ class GsPaletteCommand(sublime_plugin.WindowCommand):
 
 	def palette_declarations(self, view, direct=False):
 		def f(res, err):
+			added = 0
 			if err:
 				gs.notify('GsDeclarations', err)
 			else:
 				decls = res.get('file_decls', [])
 				decls.sort(key=lambda v: v.get('row', 0))
-				added = 0
 				for i, v in enumerate(decls):
 					loc = Loc(v['fn'], v['row'], v['col'])
 					s = '%s %s' % (v['kind'], (v['repr'] or v['name']))
