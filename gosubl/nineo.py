@@ -29,6 +29,9 @@ class Wr(object):
 	def write(self, s):
 		self.vv.write(s=s, ctx=self.ctx, interp=self.interp, scope=self.scope, outlined=self.outlined)
 
+	def write_all(self, sl):
+		self.vv.write_all(sl, ctx=self.ctx, interp=self.interp, scope=self.scope, outlined=self.outlined)
+
 class Cmd(object):
 	def __init__(self, sess, cn, cb=None, set_stream=None):
 		self.cid = ''
@@ -394,6 +397,13 @@ class Sess(object):
 	def dir(self, fn):
 		return os.path.dirname(os.path.normpath(fn))
 
+	def write_all(self, sl):
+		try:
+			self.wr.write_all(sl)
+		except AttributeError:
+			for s in sl:
+				self.wr.write('%s' % s)
+
 	def write(self, s):
 		self.wr.write('%s' % s)
 
@@ -436,9 +446,7 @@ def exec_c(c):
 	if stream:
 		st = '%s.exec.stream' % uid
 		def stream_f(res, err):
-			for s in res.get('Chunks', []):
-				c.sess.write(chunk(s))
-
+			c.sess.write_all([chunk(s) for s in res.get('Chunks', [])])
 			return not res.get('End')
 
 		mg9.on(st, stream_f)
@@ -474,17 +482,7 @@ def exec_c(c):
 		try:
 			c.attrs.extend(gs.dval(res.get('Attrs'), []))
 			c.res = res
-			chunks = res.get('Chunks', [])
-			if chunks:
-				for s in chunks[:-1]:
-					c.sess.write(chunk(s))
-
-				s = chunk(chunks[-1])
-				if s.endswith('\n'):
-					c.sess.write(s)
-				else:
-					c.sess.writeln(s)
-
+			c.sess.write_all([chunk(s) for s in res.get('Chunks', [])])
 			if err:
 				c.fail(err)
 			else:

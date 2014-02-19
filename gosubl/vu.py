@@ -127,11 +127,14 @@ class V(object):
 		return rowcol(self.v)
 
 	def write(self, s, pt=-1, ctx='', interp=False, scope='', outlined=False):
+		return self.write_all([s], pt, ctx, interp, scope, outlined)
+
+	def write_all(self, sl, pt=-1, ctx='', interp=False, scope='', outlined=False):
 		if not self.has_view():
 			return False
 
-		self.v.run_command('gs_write', {
-			's': s,
+		self.v.run_command('gs_write_all', {
+			'sl': sl,
 			'pt': pt,
 			'ctx': ctx,
 			'interp': interp,
@@ -165,8 +168,8 @@ class V(object):
 def ve_replace(view, edit, begin, end, s):
 	view.replace(edit, sublime.Region(begin, end), s)
 
-def ve_write(view, edit, s, pt=-1, ctx='', interp=False, scope='', outlined=False):
-	if not s:
+def ve_write(view, edit, sl, pt=-1, ctx='', interp=False, scope='', outlined=False):
+	if not sl:
 		return
 
 	n = view.size()
@@ -175,14 +178,19 @@ def ve_write(view, edit, s, pt=-1, ctx='', interp=False, scope='', outlined=Fals
 	if ep < 0:
 		ep = rl[-1].end() if rl else n
 
-	# todo: maybe make this behave more like a real console and handle \b
-	if interp and s.startswith('\r'):
-		view.replace(edit, view.line(ep), s[1:])
-	else:
-		view.insert(edit, ep, s)
+	lr = view.line(ep)
+	out = [view.substr(lr)]
+	for s in sl:
+		# todo: maybe make this behave more like a real console and handle \b
+		if interp and s.startswith('\r'):
+			out[-1] = s.lstrip('\r')
+		else:
+			out.append(s)
+
+	view.replace(edit, lr, ''.join(out))
 
 	if ctx:
-		sp = rl[0].begin() if rl else ep
+		sp = rl[0].begin() if rl else lr.begin()
 		ep += view.size() - n
 		flags = sublime.DRAW_OUTLINED if outlined else sublime.HIDDEN
 		view.add_regions(ctx, [sublime.Region(sp, ep)], scope, '', flags)

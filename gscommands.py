@@ -209,10 +209,13 @@ class GsInsertContentCommand(sublime_plugin.TextCommand):
 		pos = int(pos) # un-fucking-believable
 		self.view.insert(edit, pos, content)
 
+class GsWriteAllCommand(sublime_plugin.TextCommand):
+	def run(self, edit, sl, pt=-1, ctx='', interp=False, scope='', outlined=False):
+		vu.ve_write(self.view, edit, sl, pt=int(pt), ctx=ctx, interp=interp, scope=scope, outlined=outlined)
+
 class GsWriteCommand(sublime_plugin.TextCommand):
 	def run(self, edit, s, pt=-1, ctx='', interp=False, scope='', outlined=False):
-		# convert pt to an int because the api might(will) pass it as a float
-		vu.ve_write(self.view, edit, s, pt=int(pt), ctx=ctx, interp=interp, scope=scope, outlined=outlined)
+		vu.ve_write(self.view, edit, [s], pt=int(pt), ctx=ctx, interp=interp, scope=scope, outlined=outlined)
 
 class GsReplaceCommand(sublime_plugin.TextCommand):
 	def run(self, edit, begin, end, s):
