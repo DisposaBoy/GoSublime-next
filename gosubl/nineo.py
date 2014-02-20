@@ -521,7 +521,7 @@ def _hk(view, e):
 						'res': c.res,
 					})
 
-					if c.errs:
+					if c.errs and not c.attrs:
 						print('%s hook %s, errs: %s' % (DOMAIN, v, c.errs))
 
 					c.resume()
