@@ -10,12 +10,19 @@ import (
 	"syscall"
 )
 
+func killPG(c *exec.Cmd, sig syscall.Signal) error {
+	if c == nil || c.Process == nil {
+		return nil
+	}
+	return syscall.Kill(-c.Process.Pid, sig)
+}
+
 func kill(c *exec.Cmd) error {
-	return syscall.Kill(-c.Process.Pid, syscall.SIGKILL)
+	return killPG(c, syscall.SIGKILL)
 }
 
 func interrupt(c *exec.Cmd) error {
-	return syscall.Kill(-c.Process.Pid, syscall.SIGINT)
+	return killPG(c, syscall.SIGINT)
 }
 
 func setsid(c *exec.Cmd) {
