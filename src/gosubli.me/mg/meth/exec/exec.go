@@ -39,7 +39,6 @@ type cmdFactory func(*Exec) (*exec.Cmd, error)
 
 type StreamRes struct {
 	Chunks [][]byte
-	Stream string
 	End    bool
 }
 
