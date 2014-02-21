@@ -91,8 +91,10 @@ func init() {
 		defer procs.Unlock()
 
 		for _, c := range procs.m {
-			c.Process.Kill()
-			c.Process.Release()
+			if c != nil && c.Process != nil {
+				c.Process.Kill()
+				c.Process.Release()
+			}
 		}
 	})
 }
