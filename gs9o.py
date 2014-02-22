@@ -606,10 +606,6 @@ def cmd_share(view, edit, args, wd, rkey):
 
 	mg9.share(vu.V(av).src(), f)
 
-def cmd_help(view, edit, args, wd, rkey):
-	vu.open(gs.dist_path('9o.md'))
-	push_output(view, rkey, '')
-
 def cmd_tskill(view, edit, args, wd, rkey):
 	if len(args) == 0:
 		sublime.set_timeout(lambda: sublime.active_window().run_command("gs_show_tasks"), 0)

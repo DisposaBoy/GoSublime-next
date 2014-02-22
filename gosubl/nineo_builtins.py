@@ -2,6 +2,7 @@ from . import about
 from . import gs
 from . import mg9
 from . import nineo
+from . import vu
 import os
 import pprint
 import sublime
@@ -141,3 +142,8 @@ def bi_cd(c):
 		c.done(wd)
 	except Exception as ex:
 		c.fail('Cannot chdir: %s' % ex)
+
+def bi_help(c):
+	vu.open(gs.dist_path('9o.md'))
+	c.done()
+
