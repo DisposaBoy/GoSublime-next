@@ -147,3 +147,22 @@ def bi_help(c):
 	vu.open(gs.dist_path('9o.md'))
 	c.done()
 
+def bi_share(c):
+	vv = vu.active()
+	view = vv.view()
+	if view is None or view.score_selector(0, 'source.go') <= 0:
+		c.fail('not sharing non-go src')
+		return
+
+	def f(res, err):
+		if err:
+			c.fail(err)
+		else:
+			s = res.get('Url', '').strip()
+			if s:
+				sublime.set_clipboard(s)
+				c.done(s + ' (url copied to the clipboard)')
+			else:
+				c.fail('no url received')
+
+	mg9.share(vv.src(), f)

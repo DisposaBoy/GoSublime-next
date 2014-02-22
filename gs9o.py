@@ -594,18 +594,6 @@ def cmd_cancel_replay(view, edit, args, wd, rkey):
 	mg9.acall('kill', {'cid': cid}, None)
 	push_output(view, rkey, '')
 
-def cmd_share(view, edit, args, wd, rkey):
-	av = gs.active_valid_go_view(win=view.window())
-	if av is None:
-		push_output(view, rkey, 'not sharing non-go src')
-		return
-
-	def f(res, err):
-		s = '%s\n%s' % (err, res.get('Url', ''))
-		push_output(view, rkey, s.strip())
-
-	mg9.share(vu.V(av).src(), f)
-
 def cmd_tskill(view, edit, args, wd, rkey):
 	if len(args) == 0:
 		sublime.set_timeout(lambda: sublime.active_window().run_command("gs_show_tasks"), 0)
