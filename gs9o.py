@@ -578,22 +578,6 @@ def cmd_reset(view, edit, args, wd, rkey):
 def cmd_clear(view, edit, args, wd, rkey):
 	cmd_reset(view, edit, args, wd, rkey)
 
-def cmd_cancel_replay(view, edit, args, wd, rkey):
-	cid = ''
-	av = None
-	win = view.window()
-	if win is not None:
-		av = win.active_view()
-
-		if av is not None and not av.file_name():
-			cid = '9replayv-%s' % av.id()
-
-	if not cid:
-		cid = '9replay-%s' % wd
-
-	mg9.acall('kill', {'cid': cid}, None)
-	push_output(view, rkey, '')
-
 def cmd_tskill(view, edit, args, wd, rkey):
 	if len(args) == 0:
 		sublime.set_timeout(lambda: sublime.active_window().run_command("gs_show_tasks"), 0)
