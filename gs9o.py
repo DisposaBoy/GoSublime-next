@@ -525,16 +525,6 @@ def push_output(view, rkey, output, hourglass_repl=''):
 
 	sublime.set_timeout(f, 0)
 
-def _save_all(win, wd):
-	if gs.setting('autosave') is True and win is not None:
-		for v in win.views():
-			try:
-				fn = v.file_name()
-				if fn and v.is_dirty() and fn.endswith('.go') and os.path.dirname(fn) == wd:
-					v.run_command('gs_fmt_save')
-			except Exception:
-				gs.error_traceback(DOMAIN)
-
 def end_c(c):
 	err = kv.filter_join(c.errs, '\n')
 	if c.errs:
