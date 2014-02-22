@@ -570,33 +570,6 @@ def mk_cmd(view, wd, ctx, cn):
 	ss = Sess(wd=wd, wr=wr)
 	return ss.cmd(cn, cb=end_c)
 
-def cmd_which(view, edit, args, wd, rkey):
-	def f(c):
-		m = builtins()
-
-		a = args
-		if not a:
-			a = []
-			a.extend(sorted(m.keys()))
-
-		fm = '%{0}s: %s'.format(max(len(s) for s in a))
-
-		for k in a:
-			if k == 'sh':
-				v = '9o builtin: %s' % sh.cmd('${CMD}')
-			elif k in ('go'):
-				v = '9o builtin: %s' % sh.which(k)
-			elif k in m:
-				v = '9o builtin'
-			else:
-				v = sh.which(k)
-
-			c.sess.writeln(fm % (k, v))
-
-		c.done()
-
-	c = mk_cmd(view, wd, rkey, ['true']).start(cb=f)
-
 def cmd_reset(view, edit, args, wd, rkey):
 	push_output(view, rkey, '')
 	view.erase(edit, sublime.Region(0, view.size()))
