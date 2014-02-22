@@ -535,37 +535,6 @@ def _save_all(win, wd):
 			except Exception:
 				gs.error_traceback(DOMAIN)
 
-def _9_begin_call(name, view, edit, args, wd, rkey, cid):
-	dmn = '%s: 9 %s' % (DOMAIN, name)
-	msg = '[ %s ] # 9 %s' % (gs.simple_fn(wd), ' '.join(args))
-	if not cid:
-		cid = '9%s-%s' % (name, uuid.uuid4())
-	tid = gs.begin(dmn, msg, set_status=False, cancel=lambda: mg9.acall('kill', {'cid': cid}, None))
-	tid_alias['%s-%s' % (name, wd)] = tid
-
-	def cb(res, err):
-		out = '\n'.join(s for s in (res.get('out'), res.get('err'), err) if s)
-
-		tmp_fn = res.get('tmpFn')
-		fn = res.get('fn')
-		if fn and tmp_fn:
-			bfn = os.path.basename(tmp_fn)
-			repls = [
-				'./%s' % bfn,
-				'.\\%s' % bfn,
-				tmp_fn,
-			]
-			for s in repls:
-				out = out.replace(s, fn)
-
-		def f():
-			gs.end(tid)
-			push_output(view, rkey, out, hourglass_repl='| done: %s' % res.get('dur', ''))
-
-		sublime.set_timeout(f, 0)
-
-	return cid, cb
-
 def end_c(c):
 	err = kv.filter_join(c.errs, '\n')
 	if c.errs:
