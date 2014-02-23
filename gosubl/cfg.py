@@ -25,6 +25,8 @@ defaults = {
 	'suggest_packages': False,
 }
 
+globals().update(defaults)
+
 def merge(base, ml, val=lambda m, k: m.get(k)):
 	d = {}
 
