@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
+	"gosubli.me/counter"
 	"io"
 	"runtime"
 	"sync"
@@ -33,7 +34,7 @@ type Broker struct {
 	sync.Mutex
 
 	tag    string
-	served counter
+	served counter.N
 	start  time.Time
 	r      io.Reader
 	w      io.Writer
@@ -95,7 +96,7 @@ func (b *Broker) SendNoLog(resp Response) error {
 }
 
 func (b *Broker) call(req *Request, cl Caller) {
-	b.served.next()
+	b.served.Next()
 
 	defer func() {
 		err := recover()
@@ -226,7 +227,7 @@ func (b *Broker) Loop(decorate bool, wait bool) {
 		b.SendNoLog(Response{
 			Token: "margo.bye-ni",
 			Data: M{
-				"served": b.served.val(),
+				"served": b.served.Current(),
 				"uptime": Since(b.start).String(),
 			},
 		})

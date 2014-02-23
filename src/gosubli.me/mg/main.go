@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"gosubli.me/counter"
 	"log"
 	"os"
 	"runtime"
@@ -15,35 +16,9 @@ import (
 var (
 	byeLck            = sync.Mutex{}
 	byeFuncs *byeFunc = nil
-	numbers           = &counter{}
 	logger            = log.New(os.Stderr, "margo: ", log.Ldate|log.Ltime|log.Lshortfile)
 	sendCh            = make(chan Response, 100)
 )
-
-type counter struct {
-	lck sync.Mutex
-	n   uint64
-}
-
-func (c *counter) next() uint64 {
-	c.lck.Lock()
-	defer c.lck.Unlock()
-	c.n += 1
-	return c.n
-}
-
-func (c *counter) val() uint64 {
-	c.lck.Lock()
-	defer c.lck.Unlock()
-	return c.n
-}
-
-func (c *counter) nextString() string {
-	c.lck.Lock()
-	defer c.lck.Unlock()
-	c.n += 1
-	return fmt.Sprint(c.n)
-}
 
 type byeFunc struct {
 	prev *byeFunc
@@ -106,7 +81,7 @@ func Run(args []string) {
 
 	if poll > 0 {
 		pollSeconds := time.Second * time.Duration(poll)
-		pollCounter := &counter{}
+		pollCounter := counter.New()
 		go func() {
 			for {
 				time.Sleep(pollSeconds)
@@ -114,7 +89,7 @@ func Run(args []string) {
 					Token: "margo.poll",
 					Data: M{
 						"time": time.Now().String(),
-						"seq":  pollCounter.nextString(),
+						"seq":  pollCounter.NextString(),
 					},
 				})
 			}

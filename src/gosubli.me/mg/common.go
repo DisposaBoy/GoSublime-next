@@ -9,6 +9,7 @@ import (
 	"go/parser"
 	"go/printer"
 	"go/token"
+	"gosubli.me/counter"
 	"os"
 	"os/user"
 	"path/filepath"
@@ -20,6 +21,8 @@ import (
 )
 
 var (
+	numbers = counter.New()
+
 	sRuneError = eRune()
 	osArch     = runtime.GOOS + "_" + runtime.GOARCH
 
@@ -87,7 +90,7 @@ func (d MsDuration) String() string {
 }
 
 func Uid() string {
-	return "mg#" + strconv.FormatUint(numbers.next(), 16)
+	return "mg#" + numbers.NextStringBase(16)
 }
 
 func Err(err error) string {
