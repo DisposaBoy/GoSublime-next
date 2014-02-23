@@ -268,6 +268,7 @@ def _complete_opts(fn, src, pos, builtins):
 		'Pos': pos or 0,
 		'Home': sh.vdir(),
 		'Autoinst': gs.setting('autoinst'),
+		'InstallSuffix': gs.setting('installsuffix'),
 		'Env': {
 			'GOROOT': nv.get('GOROOT', ''),
 			'GOPATH': nv.get('GOPATH', ''),
