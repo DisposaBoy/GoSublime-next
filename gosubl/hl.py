@@ -104,6 +104,11 @@ def add(*nl):
 		if n.is_valid():
 			kvs.m(n.fn).l(n.row).append(n)
 
+def clear_view(view):
+	vv = vu.V(view)
+	fl = (vv.fn(), vv.vfn())
+	kvs.filter(lambda k, v: None if k in fl else v)
+
 def clear(*cl):
 	def filter_rows(_, nl):
 		return [n for n in nl if n.ctx not in cl]
@@ -212,5 +217,6 @@ def lc(vv):
 ev.line_changed += lambda view: lc(vu.V(view))
 ev.view_activated += refresh
 ev.file_sync += refresh
+ev.view_closed += clear_view
 # note-to-self: don't cleanup the old views when they close...
 # we want to preserve the old errors so they're highlighted after they're re-opened

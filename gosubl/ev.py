@@ -211,6 +211,8 @@ def sublime_event(k, view):
 	sig = ev_map.get(k)
 	if sig:
 		sig(view)
+	elif k == 'on_close':
+		view_closed(view)
 
 def margo_ready():
 	opts.margo_ready = True
@@ -235,6 +237,7 @@ init = Event()
 view_updated = Event()
 view_updated_fast = Event()
 view_activated = Event()
+view_closed = Event()
 file_saved = Event()
 file_loaded = Event()
 file_sync = Event()
@@ -249,7 +252,3 @@ ev_map = {
 	'on_modified': sig_mod,
 	'on_selection_modified': sig_mov,
 }
-
-# todo: maybe impl view_closed... it's a little complex because closed views are treated as temp
-# view and thus ignored...
-
