@@ -139,7 +139,7 @@ def bi_cd(c):
 		wd = ' '.join(c.args) or c.wd
 		os.chdir(wd)
 		c.sess.wr.vv.view().run_command('gs9o_init', {'wd': wd})
-		c.done(wd)
+		c.done()
 	except Exception as ex:
 		c.fail('Cannot chdir: %s' % ex)
 
