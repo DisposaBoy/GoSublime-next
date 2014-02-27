@@ -212,6 +212,7 @@ class Gs9oInitCommand(sublime_plugin.TextCommand):
 		if not wd:
 			wd = vs.get('9o.wd', active_wd(win=v.window()))
 
+		wd = gs.abspath(wd)
 		was_empty = v.size() == 0
 		s = '[ %s ] # \n' % gs.simple_fn(wd).replace('#', '~')
 
