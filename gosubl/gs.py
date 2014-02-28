@@ -281,7 +281,7 @@ def notice_undo(domain, txt, view, should_undo):
 		notice(domain, txt)
 	sublime.set_timeout(cb, 0)
 
-def show_output(domain, s, print_output=True, syntax_file='', replace=True, merge_domain=False, scroll_end=False):
+def show_output(domain, s, print_output=True, syntax_file='', replace=True, merge_domain=False, scroll_end=False, overlay=True):
 	def cb(domain, s, print_output, syntax_file):
 		panel_name = '%s-output' % domain
 		if merge_domain:
@@ -293,7 +293,13 @@ def show_output(domain, s, print_output=True, syntax_file='', replace=True, merg
 
 		win = sublime.active_window()
 		if win:
-			win.get_output_panel(panel_name).run_command('gs_set_output_panel_content', {
+			if overlay:
+				panel = win.get_output_panel(panel_name)
+			else:
+				panel = win.new_file()
+				panel.set_scratch(True)
+
+			panel.run_command('gs_set_output_panel_content', {
 				'content': s,
 				'syntax_file': syntax_file,
 				'scroll_end': scroll_end,
