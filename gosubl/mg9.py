@@ -173,7 +173,7 @@ def build_mg(force=False):
 		)))
 	]
 	sl.extend(sanity_check({}, False))
-	gs.show_output('GoSublime', '\n'.join(sanity_check_sl(sl)))
+	gs.show_output('GoSublime', '\n'.join(sanity_check_sl(sl)), overlay=False)
 
 	return m_out
 
