@@ -62,14 +62,16 @@ def plugin_loaded():
 	gs.set_attr('about.version', VERSION)
 	gs.set_attr('about.ann', ANN)
 
+	m = {
+		'version': VERSION,
+		'ann': ANN,
+	}
+
 	for mod_name, mod in mods:
 		print('GoSublime %s: init mod(%s)' % (about.VERSION, mod_name))
 
 		try:
-			mod.gs_init({
-				'version': VERSION,
-				'ann': ANN,
-			})
+			mod.gs_init(m)
 		except TypeError:
 			# old versions didn't take an arg
 			mod.gs_init()
@@ -86,6 +88,17 @@ def plugin_loaded():
 
 	sublime.set_timeout(cb, 0)
 
+	pd = os.path.join(gs.packages_dir(), 'User')
+	sys.path.insert(0, pd)
+	try:
+		import MyGoSublime
+		MyGoSublime.gs_init(m)
+	except AttributeError:
+		pass
+	except ImportError:
+		pass
+	finally:
+		sys.path.remove(pd)
 
 if st2:
 	sublime.set_timeout(plugin_loaded, 0)
