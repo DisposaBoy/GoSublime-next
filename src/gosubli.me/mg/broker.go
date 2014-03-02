@@ -25,11 +25,6 @@ type Response struct {
 	Data  interface{} `json:"data"`
 }
 
-type Job struct {
-	Req *Request
-	Cl  Caller
-}
-
 type Broker struct {
 	sync.Mutex
 
@@ -40,6 +35,7 @@ type Broker struct {
 	w      io.Writer
 	in     *bufio.Reader
 	out    *json.Encoder
+	wg     sync.WaitGroup
 }
 
 func NewBroker(r io.Reader, w io.Writer, tag string) *Broker {
@@ -96,12 +92,14 @@ func (b *Broker) SendNoLog(resp Response) error {
 }
 
 func (b *Broker) call(req *Request, cl Caller) {
+	defer b.wg.Done()
+
 	b.served.Next()
 
 	defer func() {
 		err := recover()
 		if err != nil {
-			buf := make([]byte, 64*1024*1024)
+			buf := make([]byte, 1*1024*1024)
 			n := runtime.Stack(buf, true)
 			logger.Printf("%v#%v PANIC: %v\n%s\n\n", req.Method, req.Token, err, buf[:n])
 			b.Send(Response{
@@ -125,7 +123,7 @@ func (b *Broker) call(req *Request, cl Caller) {
 	})
 }
 
-func (b *Broker) accept(jobsCh chan Job) (stopLooping bool) {
+func (b *Broker) accept() (stopLooping bool) {
 	line, err := b.in.ReadBytes('\n')
 
 	if err == io.EOF {
@@ -175,19 +173,10 @@ func (b *Broker) accept(jobsCh chan Job) (stopLooping bool) {
 		return
 	}
 
-	jobsCh <- Job{
-		Req: req,
-		Cl:  cl,
-	}
+	b.wg.Add(1)
+	go b.call(req, cl)
 
 	return
-}
-
-func (b *Broker) worker(wg *sync.WaitGroup, jobsCh chan Job) {
-	defer wg.Done()
-	for job := range jobsCh {
-		b.call(job.Req, job.Cl)
-	}
 }
 
 func (b *Broker) Loop(decorate bool, wait bool) {
@@ -202,25 +191,16 @@ func (b *Broker) Loop(decorate bool, wait bool) {
 		})
 	}
 
-	const workers = 20
-	wg := &sync.WaitGroup{}
-	jobsCh := make(chan Job, 1000)
-	for i := 0; i < workers; i += 1 {
-		wg.Add(1)
-		go b.worker(wg, jobsCh)
-	}
-
 	for {
-		stopLooping := b.accept(jobsCh)
+		stopLooping := b.accept()
 		if stopLooping {
 			break
 		}
 		runtime.Gosched()
 	}
-	close(jobsCh)
 
 	if wait {
-		wg.Wait()
+		b.wg.Wait()
 	}
 
 	if decorate {
