@@ -148,15 +148,18 @@ def build_mg(force=False):
 
 	cr = build.run()
 
-	if cr.ok and _mg_exists():
-		return 'ok'
-
 	m_out = 'cmd: `%s`\nstdout: `%s`\nstderr: `%s`\nexception: `%s`' % (
 		cr.cmd_lst,
 		cr.out.strip(),
 		cr.err.strip(),
 		cr.exc,
 	)
+
+	if cr.ok and _mg_exists():
+		if cfg._dev:
+			print('GoSublime MarGo build: %s\n' % m_out)
+
+		return 'ok'
 
 	err_prefix = 'MarGo build failed'
 	gs.error(DOMAIN, '%s\n%s' % (err_prefix, m_out))

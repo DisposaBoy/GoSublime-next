@@ -6,6 +6,7 @@ _project_settings = {}
 _view_settings = {}
 
 defaults = {
+	'_dev': False,
 	'active_fn': '',
 	'active_vfn': '',
 	'autocomplete_snippets': False,
