@@ -2,25 +2,15 @@ package exec
 
 import (
 	"bytes"
-	"fmt"
 	"gosubli.me/mg"
 	"gosubli.me/sink"
 	"os/exec"
 	"regexp"
 	"strings"
 	"sync"
-	"time"
 )
 
 var (
-	zChunk  = []byte{}
-	zChunks = [][]byte{}
-
-	caseCache = struct {
-		sync.Mutex
-		m map[string]*regexp.Regexp
-	}{m: map[string]*regexp.Regexp{}}
-
 	virtualCmds = struct {
 		sync.Mutex
 		m map[string]cmdFactory
@@ -36,11 +26,6 @@ var (
 )
 
 type cmdFactory func(*Exec) (*exec.Cmd, error)
-
-type StreamRes struct {
-	Chunks [][]byte
-	End    bool
-}
 
 type Res struct {
 	Attrs  []Attr
@@ -82,22 +67,16 @@ type Exec struct {
 	fini     func()
 	switches []*Switch
 	brk      *mg.Broker
-	sink     *sink.Chan
-	buf      struct {
-		s  [][]byte
-		n  int
-		cr bool
-	}
+	sink     *sink.Sink
+	stream   *Stream
 }
 
 func (e *Exec) Call() (interface{}, string) {
+	e.stream = NewStream(e)
+	e.sink = sink.NewSink(e.stream)
 	e.initSwitches()
 
 	res := Res{}
-	wg := &sync.WaitGroup{}
-	wg.Add(1)
-	go e.stream(wg)
-
 	c, err := e.cmd()
 	if err == nil {
 		var dur mg.MsDuration
@@ -111,9 +90,9 @@ func (e *Exec) Call() (interface{}, string) {
 	}
 
 	e.sink.Close()
-	wg.Wait()
+	<-e.stream.closed
 
-	res.Chunks = e.chunks()
+	res.Chunks = e.stream.chunks()
 	res.Attrs, res.Ok = e.cmdAttrsOk(c)
 
 	return res, mg.Err(err)
@@ -128,88 +107,6 @@ func (e *Exec) cmd() (*exec.Cmd, error) {
 		return f(e)
 	}
 	return mkCmd(e, e.Input, e.Cmd, e.Args...), nil
-}
-
-func (e *Exec) stream(wg *sync.WaitGroup) {
-	defer wg.Done()
-
-	tck := time.NewTicker(500 * time.Millisecond)
-	for {
-		select {
-		case s, ok := <-e.sink.C:
-			if e.filter != nil {
-				s = e.filter(s)
-			}
-
-			eof := !ok
-			s = e.sw(s)
-			e.put(s, eof)
-			if eof {
-				return
-			}
-		case <-tck.C:
-			if len(e.buf.s) != 0 {
-				e.flush(false)
-			}
-		}
-	}
-}
-
-func crPfx(s []byte) bool {
-	return len(s) >= 1 && s[0] == '\r' && (len(s) == 1 || s[1] != '\n')
-}
-
-func (e *Exec) put(s []byte, eof bool) {
-	b := &e.buf
-	last := len(b.s) - 1
-	isCr := crPfx(s)
-	push := last < 0 || (isCr != b.cr)
-	b.cr = isCr
-	b.n += len(s)
-
-	switch {
-	case push:
-		b.s = append(b.s, s)
-	case isCr:
-		if b.cr && len(s) <= len(b.s[last]) {
-			b.n -= len(s)
-			copy(b.s[last], s)
-		} else {
-			b.s[last] = s
-		}
-	default:
-		b.s[last] = append(b.s[last], s...)
-	}
-
-	if eof || b.n >= 32*1024 {
-		e.flush(eof)
-	}
-}
-
-func (e *Exec) chunks() [][]byte {
-	if e.buf.s != nil {
-		return e.buf.s
-	}
-	// be nice to the client by not sending them `null` when they expect an array
-	return zChunks
-}
-
-func (e *Exec) flush(eof bool) {
-	if e.Stream == "" {
-		return
-	}
-
-	e.brk.Send(mg.Response{
-		Token: e.Stream,
-		Data: StreamRes{
-			Chunks: e.chunks(),
-			End:    eof,
-		},
-	})
-
-	e.buf.s = nil
-	e.buf.n = 0
-	e.buf.cr = false
 }
 
 func (e *Exec) initSwitches() error {
@@ -305,23 +202,6 @@ func (s *Switch) match(p []byte) ([]Attr, bool) {
 	return nil, false
 }
 
-func rx(s string) (*regexp.Regexp, error) {
-	caseCache.Lock()
-	defer caseCache.Unlock()
-
-	if rx, ok := caseCache.m[s]; ok {
-		return rx, nil
-	}
-
-	rx, err := regexp.Compile(simpleRepl.Replace(s))
-	if err != nil {
-		return nil, fmt.Errorf("cannot compile regexp `%v`: %v", s, err.Error())
-	}
-
-	caseCache.m[s] = rx
-	return rx, nil
-}
-
 func mkCmd(e *Exec, input string, cmd string, args ...string) *exec.Cmd {
 	c := exec.Command(cmd, args...)
 	c.Dir = e.Wd
@@ -341,8 +221,7 @@ func mkCmd(e *Exec, input string, cmd string, args ...string) *exec.Cmd {
 func init() {
 	mg.Register("exec", func(b *mg.Broker) mg.Caller {
 		return &Exec{
-			brk:  b,
-			sink: sink.NewBufferedChan(100),
+			brk: b,
 		}
 	})
 }

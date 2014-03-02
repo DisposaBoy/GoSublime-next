@@ -37,11 +37,12 @@ func (p *playState) saveInput(fn string) error {
 	}
 	newName := []byte(p.Fn)
 
-	p.filter = func(s []byte) []byte {
+	f := p.filter
+	p.stream.filter = func(s []byte) []byte {
 		for _, old := range oldNames {
 			s = bytes.Replace(s, old, newName, -1)
 		}
-		return s
+		return f(s)
 	}
 
 	return nil
