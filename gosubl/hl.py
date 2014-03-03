@@ -148,8 +148,15 @@ def show_messages(view):
 			gotos[len(items)] = (fn, row, col)
 			items.append(ents)
 
+	def key(k):
+		if k in (vv.fn(), vfn):
+			return (1, k)
+		if dirname(normpath(k)) == vv.dir():
+			return (2, k)
+		return (3, k)
+
 	d = kvs.dict()
-	for fn in sorted(d.keys(), key=lambda k: '' if k == vfn else rel(k)):
+	for fn in sorted(d.keys(), key=key):
 		notes = d[fn].dict()
 		rows = sorted(notes.keys())
 		if rows:
