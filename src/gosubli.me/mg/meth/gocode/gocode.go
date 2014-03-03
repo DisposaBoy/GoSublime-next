@@ -87,7 +87,7 @@ func (m *mGocode) init() string {
 
 	m.Pos = mg.BytePos(m.Src, m.Pos)
 	if m.Pos < 0 {
-		return "Invalid offset"
+		m.Pos = len(m.Src) - 1
 	}
 
 	return ""
