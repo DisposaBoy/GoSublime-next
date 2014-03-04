@@ -63,7 +63,6 @@ type Exec struct {
 	Switch        []Switch
 	SwitchOk      bool
 
-	filter   func([]byte) []byte
 	fini     func()
 	switches []*Switch
 	brk      *mg.Broker
