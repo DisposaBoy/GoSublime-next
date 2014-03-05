@@ -38,7 +38,7 @@ func (m *mDeclarations) Call() (interface{}, string) {
 		PkgDecls:  []*mDeclarationsDecl{},
 	}
 
-	if fset, af, err := mg.ParseFile(m.Fn, m.Src, 0); err == nil {
+	if fset, af, _ := mg.ParseFile(m.Fn, m.Src, 0); af != nil {
 		res.FileDecls = m.collectDecls(fset, af, res.FileDecls)
 	}
 
