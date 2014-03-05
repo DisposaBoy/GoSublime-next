@@ -136,7 +136,7 @@ def bi_go(c):
 
 def bi_cd(c):
 	try:
-		wd = ' '.join(c.args) or c.wd
+		wd = gs.abspath(' '.join(c.args), dir=c.wd)
 		os.chdir(wd)
 		c.sess.wr.vv.view().run_command('gs9o_init', {'wd': wd})
 		c.done()
