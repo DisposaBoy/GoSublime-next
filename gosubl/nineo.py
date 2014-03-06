@@ -455,7 +455,7 @@ def exec_c(c):
 			c.sess.write_all([chunk(s) for s in res.get('Chunks', [])])
 			attrs = res.get('Attrs')
 			if attrs:
-				c.do_hl(attrs)
+				gs.do(DOMAIN, lambda: c.do_hl(attrs))
 			return not res.get('End')
 
 		mg9.on(st, stream_f)
