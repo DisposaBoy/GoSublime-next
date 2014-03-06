@@ -235,6 +235,11 @@ class Cmd(object):
 		elif not gs.is_a_string(self.input):
 			self.input = ''
 
+		ctx = self.hl.get('ctx')
+		if ctx:
+			hl.clear(ctx)
+			hl.refresh()
+
 		self.cb(cb)
 		self.g = self.gen()
 		self.resume()
@@ -283,13 +288,13 @@ class Cmd(object):
 			})
 			yield f(self)
 
-		if self.hl:
+		if self.hl and self.attrs:
 			ev.debug(DOMAIN, {
 				'k': 'hl',
 				'hl': self.hl,
 				'attrs': self.attrs,
 			})
-			gs.do(DOMAIN, self.do_hl)
+			gs.do(DOMAIN, lambda: self.do_hl(self.attrs))
 
 	def resume(self, ok=None):
 		if ok in (True, False):
@@ -320,14 +325,15 @@ class Cmd(object):
 
 		return s
 
-	def do_hl(self):
+	def do_hl(self, attrs):
+		if not attrs:
+			return
+
 		ctx = self.hl.get('ctx')
 		if not ctx:
 			return
 
-		hl.clear(ctx)
-
-		for a in self.attrs:
+		for a in attrs:
 			a = gs.dval(a, {})
 			message = a.get('message', '').strip()
 			fn = a.get('fn')
@@ -447,6 +453,9 @@ def exec_c(c):
 		st = '%s.exec.stream' % uid
 		def stream_f(res, err):
 			c.sess.write_all([chunk(s) for s in res.get('Chunks', [])])
+			attrs = res.get('Attrs')
+			if attrs:
+				c.do_hl(attrs)
 			return not res.get('End')
 
 		mg9.on(st, stream_f)
