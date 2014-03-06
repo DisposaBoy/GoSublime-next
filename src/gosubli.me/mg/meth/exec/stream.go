@@ -19,11 +19,13 @@ type Stream struct {
 	brk    *mg.Broker
 	filter func([]byte) []byte
 	tmr    *time.Timer
+	e      *Exec
 	closed chan struct{}
 }
 
 type StreamRes struct {
 	Chunks [][]byte
+	Attrs  []Attr
 	End    bool
 }
 
@@ -53,11 +55,13 @@ func (s *Stream) flush(eof bool) {
 	}
 
 	s.tmr.Reset(streamTimeout)
+	attrs, _ := s.e.collectAttrs()
 	if eof || len(s.buf) != 0 {
 		s.brk.Send(mg.Response{
 			Token: s.token,
 			Data: StreamRes{
 				Chunks: s.chunks(),
+				Attrs: attrs,
 				End:    eof,
 			},
 		})
@@ -117,6 +121,7 @@ func NewStream(e *Exec) *Stream {
 		brk:    e.brk,
 		token:  e.Stream,
 		filter: e.sw,
+		e:      e,
 		closed: make(chan struct{}),
 	}
 

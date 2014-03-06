@@ -68,6 +68,12 @@ type Exec struct {
 	brk      *mg.Broker
 	sink     *sink.Sink
 	stream   *Stream
+
+	attrs struct {
+		sync.Mutex
+		matched bool
+		list    []Attr
+	}
 }
 
 func (e *Exec) Call() (interface{}, string) {
@@ -135,15 +141,21 @@ func (e *Exec) cmdAttrsOk(c *exec.Cmd) ([]Attr, bool) {
 }
 
 func (e *Exec) collectAttrs() ([]Attr, bool) {
-	attrs := []Attr{}
-	ok := true
-	for _, sw := range e.switches {
-		if len(sw.attrs) > 0 {
-			ok = false
-			attrs = append(attrs, sw.attrs...)
-		}
+	e.attrs.Lock()
+	defer e.attrs.Unlock()
+	attrs := e.attrs.list
+	e.attrs.list = nil
+	return attrs, !e.attrs.matched
+}
+
+func (e *Exec) addAttrs(al []Attr) {
+	if len(al) == 0 {
+		return
 	}
-	return attrs, ok
+	e.attrs.Lock()
+	defer e.attrs.Unlock()
+	e.attrs.matched = true
+	e.attrs.list = append(e.attrs.list, al...)
 }
 
 func (e *Exec) sw(s []byte) []byte {
@@ -151,8 +163,7 @@ func (e *Exec) sw(s []byte) []byte {
 
 	for _, sw := range e.switches {
 		al, matched := sw.match(s)
-		sw.attrs = append(sw.attrs, al...)
-
+		e.addAttrs(al)
 		if matched != sw.Negative {
 			if sw.Discard {
 				discard = true
