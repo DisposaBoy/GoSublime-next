@@ -87,7 +87,7 @@ func (m *mGocode) init() string {
 
 	m.Pos = mg.BytePos(m.Src, m.Pos)
 	if m.Pos < 0 {
-		m.Pos = len(m.Src) - 1
+		m.Pos = len(m.Src)
 	}
 
 	return ""
