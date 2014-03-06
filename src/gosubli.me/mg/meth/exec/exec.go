@@ -17,7 +17,7 @@ var (
 	}{m: map[string]cmdFactory{}}
 
 	simpleRepl = strings.NewReplacer(
-		`$fn`, `(?P<fn>\S+)`,
+		`$fn`, `(?P<fn>\S+?)`,
 		`$pos`, `(?P<pos>[:\d]+)`,
 		`$message`, `(?P<message>.+)`,
 		`$dirname`, `(?P<dirname>\S+)`,
