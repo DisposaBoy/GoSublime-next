@@ -1,3 +1,4 @@
+from . import cfg
 from . import ev
 from . import gs
 from . import kv
@@ -10,11 +11,17 @@ DOMAIN = 'GoSublime: Highlights'
 STATUS_DOMAIN = 'gs-hl-status'
 REGION_DOMAIN_NORM = 'gs-hl-region-norm'
 REGION_DOMAIN_EMPTY = 'gs-hl-region-empty'
+REGION_DOMAIN_VERBOSE = 'gs-hl-region-verbose'
 
 REGION_DOMAINS = {
 	REGION_DOMAIN_NORM: sublime.DRAW_EMPTY_AS_OVERWRITE,
 	REGION_DOMAIN_EMPTY: sublime.HIDDEN,
 }
+
+if gs.ST3:
+	REGION_DOMAINS[REGION_DOMAIN_VERBOSE] = sublime.DRAW_SQUIGGLY_UNDERLINE | sublime.DRAW_NO_OUTLINE | sublime.DRAW_NO_FILL
+else:
+	REGION_DOMAINS[REGION_DOMAIN_VERBOSE] = sublime.DRAW_OUTLINED
 
 _pos_rx = re.compile(r'([0-9]+)')
 
@@ -64,6 +71,7 @@ def refresh(view=None):
 	regions = {
 		REGION_DOMAIN_NORM: [],
 		REGION_DOMAIN_EMPTY: [],
+		REGION_DOMAIN_VERBOSE: [],
 	}
 
 	for nl in kvs.m(vv.vfn()).values():
@@ -88,6 +96,8 @@ def refresh(view=None):
 
 				if pt < sp or pt > ep:
 					regions[REGION_DOMAIN_EMPTY].append(r)
+				elif cfg.hl_verbose:
+					regions[REGION_DOMAIN_VERBOSE].append(sublime.Region(pt, line.end()))
 				else:
 					regions[REGION_DOMAIN_NORM].append(r)
 

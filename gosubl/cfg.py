@@ -24,6 +24,7 @@ defaults = {
 	'shell': [],
 	'snippets': [],
 	'suggest_packages': False,
+	'hl_verbose': False,
 }
 
 globals().update(defaults)
