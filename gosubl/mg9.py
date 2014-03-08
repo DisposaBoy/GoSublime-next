@@ -504,7 +504,6 @@ def _send():
 					c = sh.Command(cmd)
 					c.stderr = gs.LOGFILE
 					c.env = {
-						'GOGC': 10,
 						'XDG_CONFIG_HOME': sh.vdir(),
 					}
 
