@@ -344,6 +344,7 @@ class Cmd(object):
 				return seq
 
 			hl.clear(ctx)
+			hl.refresh()
 			return self.seq
 
 		_clr.filter(f, [ctx])
