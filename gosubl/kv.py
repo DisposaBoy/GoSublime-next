@@ -67,14 +67,20 @@ class M(object):
 		with self.lck:
 			self.d = m
 
-	def filter(self, f):
+	def filter(self, f, keys=[]):
 		with self.lck:
-			for k in list(self.d.keys()):
-				v = f(k, self.d[k])
+			if not keys:
+				keys = list(self.d.keys())
+
+			for k in keys:
+				v = f(k, self.d.get(k))
 				if v:
 					self.d[k] = v
 				else:
-					del self.d[k]
+					try:
+						del self.d[k]
+					except KeyError:
+						pass
 
 	def __len__(self):
 		with self.lck:
