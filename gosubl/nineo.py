@@ -36,6 +36,7 @@ class Cmd(object):
 	def __init__(self, sess, cn, cb=None, set_stream=None):
 		self.cid = ''
 		self.uid = ''
+		self.seq = ''
 		self.attrs = []
 		self.input = ''
 		self.dirty = False
@@ -197,7 +198,7 @@ class Cmd(object):
 			self.fail('\n'.join(self.errs))
 			return
 
-		self.uid = gs.uid()
+		self.uid, self.seq = gs.uid_seq()
 		self.env = sh.env(self.env)
 
 		vv = self.sess.vv
