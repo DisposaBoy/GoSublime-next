@@ -17,6 +17,7 @@ import sublime
 DOMAIN = '9o'
 
 _builtins = {}
+_clr = kv.M()
 
 class Wr(object):
 	def __init__(self, view, ctx='', interp=True, scope='', outlined=False):
@@ -238,11 +239,6 @@ class Cmd(object):
 		elif not gs.is_a_string(self.input):
 			self.input = ''
 
-		ctx = self.hl.get('ctx')
-		if ctx:
-			hl.clear(ctx)
-			hl.refresh()
-
 		self.cb(cb)
 		self.g = self.gen()
 		self.resume()
@@ -291,7 +287,7 @@ class Cmd(object):
 			})
 			yield f(self)
 
-		if self.hl and self.attrs:
+		if self.hl:
 			ev.debug(DOMAIN, {
 				'k': 'hl',
 				'hl': self.hl,
@@ -329,11 +325,30 @@ class Cmd(object):
 		return s
 
 	def do_hl(self, attrs):
-		if not attrs:
-			return
+		# It's possible for an older instance of a command to finish after a newer one.
+		# If that happens, we might end up clearing new and valid highlights or replacing then with
+		# old and invalid ones.
 
 		ctx = self.hl.get('ctx')
-		if not ctx:
+		if not ctx or self.hl.get('_stale') is True:
+			return
+
+		def f(_, seq):
+			if seq == self.seq:
+				return seq
+
+			# we might be the first, so we must check for `None`
+			if seq is not None and seq > self.seq:
+				# our highlights are stale, so bail out
+				self.hl['_stale'] = True
+				return seq
+
+			hl.clear(ctx)
+			return self.seq
+
+		_clr.filter(f, [ctx])
+
+		if not attrs or self.hl.get('_stale') is True:
 			return
 
 		for a in attrs:
@@ -455,9 +470,7 @@ def exec_c(c):
 		st = '%s.exec.stream' % c.uid
 		def stream_f(res, err):
 			c.sess.write_all([chunk(s) for s in res.get('Chunks', [])])
-			attrs = res.get('Attrs')
-			if attrs:
-				gs.do(DOMAIN, lambda: c.do_hl(attrs))
+			gs.do(DOMAIN, lambda: c.do_hl(res.get('Attrs')))
 			return not res.get('End')
 
 		mg9.on(st, stream_f)
