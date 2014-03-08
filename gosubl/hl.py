@@ -68,11 +68,9 @@ def refresh(view=None):
 
 	view = vv.view()
 	seen = {}
-	regions = {
-		REGION_DOMAIN_NORM: [],
-		REGION_DOMAIN_EMPTY: [],
-		REGION_DOMAIN_VERBOSE: [],
-	}
+	# we must define an entry for each type of region as defined by REGION_DOMAINS,
+	# otherwise we risk not clearing old highlights
+	regions = dict((k, []) for k in REGION_DOMAINS)
 
 	for nl in kvs.m(vv.vfn()).values():
 		if nl:
