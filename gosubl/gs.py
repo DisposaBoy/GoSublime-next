@@ -667,6 +667,10 @@ def sel(view, i=0):
 def uid():
 	return 'gs#%x' % _uid.next()
 
+def uid_seq():
+	n = _uid.next()
+	return ('gs#%x' % n, n)
+
 try:
 	st2_status_message
 except:
