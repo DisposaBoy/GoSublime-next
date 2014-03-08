@@ -35,6 +35,7 @@ class Wr(object):
 class Cmd(object):
 	def __init__(self, sess, cn, cb=None, set_stream=None):
 		self.cid = ''
+		self.uid = ''
 		self.attrs = []
 		self.input = ''
 		self.dirty = False
@@ -196,6 +197,7 @@ class Cmd(object):
 			self.fail('\n'.join(self.errs))
 			return
 
+		self.uid = gs.uid()
 		self.env = sh.env(self.env)
 
 		vv = self.sess.vv
@@ -443,14 +445,13 @@ def exec_c(c):
 		c.fail('invalid command')
 		return
 
-	uid = gs.uid()
 	st = ''
 	stream = c.set_stream
 	if stream is None:
 		stream = c.stream
 
 	if stream:
-		st = '%s.exec.stream' % uid
+		st = '%s.exec.stream' % c.uid
 		def stream_f(res, err):
 			c.sess.write_all([chunk(s) for s in res.get('Chunks', [])])
 			attrs = res.get('Attrs')
@@ -462,7 +463,7 @@ def exec_c(c):
 
 	cid = c.cid
 	if not cid:
-		cid = '%s.exec.cid' % uid
+		cid = '%s.exec.cid' % c.uid
 
 	c.exec_opts = {
 		'Stream': st,
