@@ -44,7 +44,7 @@ class V(object):
 		return splitext(self.fn())
 
 	def ext(self):
-		return splitext(self.fn())[1]
+		return splitext(self.vfn())[1]
 
 	def vfn(self):
 		if self.v is None:
