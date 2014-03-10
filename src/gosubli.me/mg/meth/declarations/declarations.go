@@ -9,6 +9,7 @@ import (
 	"gosubli.me/mg"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 type Res struct {
@@ -143,6 +144,9 @@ func (m *mDeclarations) collectDecls(fset *token.FileSet, af *ast.File, decls []
 func (d *mDeclarations) appendFields(decls []*mDeclarationsDecl, fset *token.FileSet, fields *ast.FieldList, parent *mDeclarationsDecl) []*mDeclarationsDecl {
 	// [2:] strip the +/- prefix
 	k := parent.Kind[2:]
+	if strings.HasPrefix(k, "type ") {
+		k = "     " + k[5:]
+	}
 	for _, f := range fields.List {
 		for _, id := range f.Names {
 			decls = d.appendDecl(decls, fset, id, parent.Name+": "+id.Name, k)
