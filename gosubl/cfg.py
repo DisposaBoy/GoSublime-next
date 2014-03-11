@@ -5,6 +5,8 @@ _sublime_settings = None
 _project_settings = {}
 _view_settings = {}
 
+ST3 = sublime.version().startswith('3')
+
 defaults = {
 	'_dev': False,
 	'active_fn': '',
@@ -24,7 +26,7 @@ defaults = {
 	'shell': [],
 	'snippets': [],
 	'suggest_packages': False,
-	'hl_verbose': False,
+	'hl_verbose': ST3,
 }
 
 globals().update(defaults)
