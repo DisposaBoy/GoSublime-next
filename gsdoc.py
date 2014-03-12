@@ -157,7 +157,6 @@ class GsBrowseDeclarationsCommand(sublime_plugin.WindowCommand):
 				d['ent'] = '%s %s%s' % (d['kind'], dname, trailer)
 
 			ents = []
-			decls.sort(key=lambda d: d['ent'])
 			for d in decls:
 				ents.append(d['ent'])
 
