@@ -206,7 +206,6 @@ class GsPaletteCommand(sublime_plugin.WindowCommand):
 				gs.notify('GsDeclarations', err)
 			else:
 				decls = res.get('file_decls', [])
-				decls.sort(key=lambda v: v.get('row', 0))
 				for i, v in enumerate(decls):
 					loc = Loc(v['fn'], v['row'], v['col'])
 					s = '%s %s' % (v['kind'], (v['repr'] or v['name']))
