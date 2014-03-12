@@ -1,5 +1,6 @@
 from gosubl import gs
 from gosubl import mg9
+from gosubl import vu
 import os
 import re
 import sublime
