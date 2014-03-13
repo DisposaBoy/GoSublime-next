@@ -91,11 +91,19 @@ func nextChunk(p []byte) int {
 		switch {
 		case c == '\r' && i > 0:
 			return i
-		case c == '\n' && i > 1:
+		case c == '\n' && i > 1 && !isIndent(p, i+1):
 			return i
 		}
 	}
 	return -1
+}
+
+func isIndent(p []byte, i int) bool {
+	if i >= len(p) {
+		return false
+	}
+	c := p[i]
+	return c == ' ' || c == '\t'
 }
 
 // cp returns a copy of p.
