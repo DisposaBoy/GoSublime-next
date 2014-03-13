@@ -15,14 +15,6 @@ var (
 		sync.Mutex
 		m map[string]cmdFactory
 	}{m: map[string]cmdFactory{}}
-
-	simpleRepl = strings.NewReplacer(
-		`$fn`, `(?P<fn>\S+?)`,
-		`$pos`, `(?P<pos>[:\d]+)`,
-		`$message`, `(?P<message>.+)`,
-		`$dirname`, `(?P<dirname>\S+)`,
-		`$basename`, `(?P<basename>\W+)`,
-	)
 )
 
 type cmdFactory func(*Exec) (*exec.Cmd, error)
