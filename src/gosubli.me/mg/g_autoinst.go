@@ -105,7 +105,7 @@ func (a *AutoInstOptions) install() {
 	}
 
 	if len(installed) > 0 {
-		postMessage("auto-installed: %v", strings.Join(installed, ", "))
+		PostMessage("auto-installed: %v", strings.Join(installed, ", "))
 	}
 }
 

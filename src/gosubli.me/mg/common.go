@@ -244,11 +244,11 @@ func post(r Response) {
 	sendCh <- r
 }
 
-func dbg(format string, a ...interface{}) {
-	postMessage("dbg: "+format, a...)
+func Dbg(format string, a ...interface{}) {
+	PostMessage("dbg: "+format, a...)
 }
 
-func postMessage(format string, a ...interface{}) {
+func PostMessage(format string, a ...interface{}) {
 	post(Response{
 		Token: "margo.message",
 		Data: M{
