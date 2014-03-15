@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"gosubli.me/counter"
 	"io"
+	"io/ioutil"
 	"runtime"
 	"sync"
 	"time"
@@ -16,6 +17,7 @@ type M map[string]interface{}
 type Request struct {
 	Method string
 	Token  string
+	OOB    bool `json:"oob"`
 }
 
 type Response struct {
@@ -23,6 +25,8 @@ type Response struct {
 	Error string      `json:"error"`
 	Tag   string      `json:"tag"`
 	Data  interface{} `json:"data"`
+	OOB   bool        `json:"oob"`
+	OOBFn string      `json:"oob_fn"`
 }
 
 type Broker struct {
@@ -66,6 +70,16 @@ func (b *Broker) SendNoLog(resp Response) error {
 
 	if resp.Tag == "" {
 		resp.Tag = b.tag
+	}
+
+	if resp.OOB {
+		if f, err := ioutil.TempFile(TempDir(nil), "margo.oob."); err == nil {
+			defer f.Close()
+			if err := json.NewEncoder(f).Encode(resp.Data); err == nil {
+				resp.OOBFn = f.Name()
+				resp.Data = M{}
+			}
+		}
 	}
 
 	s, err := json.Marshal(resp)
@@ -120,6 +134,7 @@ func (b *Broker) call(req *Request, cl Caller) {
 		Token: req.Token,
 		Error: err,
 		Data:  res,
+		OOB:   req.OOB,
 	})
 }
 

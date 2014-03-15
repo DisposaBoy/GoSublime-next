@@ -37,10 +37,11 @@ class Request(object):
 		else:
 			self.token = gs.uid()
 
-	def header(self):
+	def header(self, arg={}):
 		return {
 			'method': self.method,
 			'token': self.token,
+			'oob': gs.is_a(arg, {}) and arg.get('oob') is True,
 		}
 
 def _inst_state():
@@ -297,6 +298,7 @@ def import_paths(fn, src, f):
 		f(res, err)
 
 	acall('import_paths', {
+		'oob': True,
 		'fn': fn or '',
 		'src': src or '',
 		'env': sh.env(),
@@ -463,8 +465,31 @@ def _recv():
 							'size': '%0.1fK' % (len(ln)/1024.0),
 						})
 
-						dat = expand_jdata(r.get('data', {}))
 						try:
+							oob_fn = r.get('oob_fn')
+							if oob_fn:
+								ev.debug(DOMAIN, {
+									'_mode': 'oob-response',
+									'method': req.method,
+									'token': token,
+									'oob_fn': oob_fn,
+								})
+
+								try:
+									with open(oob_fn) as f:
+										dat = json.load(f) or {}
+								except Exception:
+									dat = {}
+									gs.error_traceback(DOMAIN)
+								finally:
+									try:
+										os.remove(oob_fn)
+									except Exception:
+										gs.error_traceback(DOMAIN)
+							else:
+								dat = r.get('data', {})
+
+							dat = expand_jdata(dat)
 							keep = req.f(dat, err) is True
 							if keep:
 								req.tm = time.time()
@@ -527,7 +552,7 @@ def _send():
 				req = Request(f=cb, method=method)
 				gs.set_attr(REQUEST_PREFIX+req.token, req)
 
-				header, err = gs.json_encode(req.header())
+				header, err = gs.json_encode(req.header(arg))
 				if err:
 					_cb_err(cb, 'Failed to construct ipc header: %s' % err)
 					continue
