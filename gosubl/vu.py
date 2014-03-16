@@ -54,13 +54,8 @@ class V(object):
 		if fn:
 			return fn
 
-		fn = self.v.name()
-		if fn:
-			fn = fn.replace(' ', '_')
-		else:
-			fn = 'sublime.go'
-
-		return 'gs.view#%s,%s' % (self.v.id(), fn)
+		fn = self.v.name() or ''
+		return 'gs.view#%s,%s' % (self.v.id(), fn.replace(' ', '_'))
 
 	def dir(self):
 		return dirname(normpath(self.fn()))
