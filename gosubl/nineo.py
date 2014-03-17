@@ -211,6 +211,12 @@ class Cmd(object):
 		self.wd = self.exp(self.wd or self.sess.wd)
 		self.cid = self.exp(self.cid)
 
+		self.env['PWD'] = self.wd
+		self.env['_wd'] = self.wd
+		self.env['_fn'] = vv.fn()
+		self.env['_vfn'] = vv.vfn()
+		self.env['_nm'] = os.path.basename(vv.fn())
+
 		for k in self.hl:
 			self.hl[k] = self.exp(self.hl[k])
 
