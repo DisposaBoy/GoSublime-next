@@ -28,6 +28,10 @@ func ls(fn string) ([]string, bool) {
 		return nil, false
 	}
 
+	if fi, err := os.Lstat(fn); err != nil || !fi.IsDir() {
+		return nil, false
+	}
+
 	d, err := os.Open(fn)
 	if err != nil {
 		return nil, false
