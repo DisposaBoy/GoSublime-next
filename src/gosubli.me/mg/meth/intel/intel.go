@@ -27,17 +27,15 @@ type Res struct {
 }
 
 func (i *Intel) Call() (interface{}, string) {
+	var err error
+	i.Pos = mg.BytePos(i.Src, i.Pos)
+	i.fset, i.af, err = mg.ParseFile(i.Fn, i.Src, parser.ParseComments)
 	r := Res{}
 	r.Global, r.Func = i.gf()
 	if i.af != nil {
 		r.Pkg = i.af.Name.String()
 	}
-	return r, ""
-}
-
-func (i *Intel) init() {
-	i.Pos = mg.BytePos(i.Src, i.Pos)
-	i.fset, i.af, _ = mg.ParseFile(i.Fn, i.Src, parser.ParseComments)
+	return r, mg.Err(err)
 }
 
 func init() {
