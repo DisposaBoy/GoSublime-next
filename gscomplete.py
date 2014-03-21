@@ -157,6 +157,7 @@ class GoSublime(sublime_plugin.EventListener):
 
 		ctx = {
 			'global': intel.get('Global'),
+			'local': not intel.get('Global'),
 			'pkgname': pkgname,
 			'types': types or [''],
 			'has_types': len(types) > 0,
@@ -175,8 +176,6 @@ class GoSublime(sublime_plugin.EventListener):
 			if scopes[-1] == 'source.go':
 				cl.extend(resolve_snippets(ctx))
 			elif scopes[-1] == 'meta.block.go' and ('meta.function.plain.go' in scopes or 'meta.function.receiver.go' in scopes):
-				ctx['global'] = False
-				ctx['local'] = True
 				cl.extend(resolve_snippets(ctx))
 		return (cl, AC_OPTS)
 
