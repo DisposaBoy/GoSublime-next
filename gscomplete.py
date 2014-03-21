@@ -138,39 +138,40 @@ class GoSublime(sublime_plugin.EventListener):
 		if not REASONABLE_PKGNAME_PAT.match(default_pkgname):
 			default_pkgname = ''
 
-		r = view.find('package\s+(\w+)', 0)
-		pkgname = view.substr(view.word(r.end())) if r else ''
+		offset = pos - len(prefix)
+		vv = vu.V(view)
+		src = vv.src()
 
+		if not src:
+			return ([], AC_OPTS)
+
+		intel, _ = mg9.bcall('intel', {
+			'Fn': vv.vfn(),
+			'Src': src,
+			'Pos': pos,
+		})
+
+		pkgname = intel.get('Pkg')
 		if not default_pkgname:
 			default_pkgname = pkgname if pkgname else 'main'
 
 		ctx = {
-			'global': bool(pkgname and pos > view.line(r).end()),
+			'global': intel.get('Global'),
 			'pkgname': pkgname,
 			'types': types or [''],
 			'has_types': len(types) > 0,
 			'default_pkgname': default_pkgname,
-			'fn': view.file_name() or '',
+			'fn': vv.fn(),
 		}
-		show_snippets = cfg.autocomplete_snippets
 
 		if not pkgname:
-			return (resolve_snippets(ctx), AC_OPTS) if show_snippets else ([], AC_OPTS)
-
-		# gocode is case-sesitive so push the location back to the 'dot' so it gives
-		# gives us everything then st2 can pick the matches for us
-		offset = pos - len(prefix)
-		src = view.substr(sublime.Region(0, view.size()))
-
-		fn = view.file_name() or '<stdin>'
-		if not src:
-			return ([], AC_OPTS)
+			return (resolve_snippets(ctx), AC_OPTS) if cfg.autocomplete_snippets else ([], AC_OPTS)
 
 		nc = view.substr(sublime.Region(pos, pos+1))
-		cl = self.complete(fn, offset, src, nc.isalpha() or nc == "(")
+		cl = self.complete(vv.fn() or '<stdin>', offset, src, nc.isalpha() or nc == "(")
 
 		pc = view.substr(sublime.Region(pos-1, pos))
-		if show_snippets and (pc.isspace() or pc.isalpha()):
+		if cfg.autocomplete_snippets and (pc.isspace() or pc.isalpha()):
 			if scopes[-1] == 'source.go':
 				cl.extend(resolve_snippets(ctx))
 			elif scopes[-1] == 'meta.block.go' and ('meta.function.plain.go' in scopes or 'meta.function.receiver.go' in scopes):
