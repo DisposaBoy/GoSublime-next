@@ -24,16 +24,34 @@ type Res struct {
 	Global bool
 	Func   string
 	Pkg    string
+	Types  []string
 }
 
 func (i *Intel) Call() (interface{}, string) {
 	var err error
 	i.Pos = mg.BytePos(i.Src, i.Pos)
 	i.fset, i.af, err = mg.ParseFile(i.Fn, i.Src, parser.ParseComments)
-	r := Res{}
-	r.Global, r.Func = i.gf()
-	if i.af != nil {
-		r.Pkg = i.af.Name.String()
+	r := &Res{Global: true}
+	r.Pkg = i.af.Name.String()
+	for _, d := range i.af.Decls {
+		switch t := d.(type) {
+		case *ast.GenDecl:
+			for _, sp := range t.Specs {
+				if t, ok := sp.(*ast.TypeSpec); ok && t.Name != nil {
+					if _, ignore := t.Type.(*ast.InterfaceType); !ignore {
+						r.Types = append(r.Types, t.Name.Name)
+					}
+				}
+			}
+		case *ast.FuncDecl:
+			p := i.fset.Position(t.Body.Pos()).Offset
+			e := i.fset.Position(t.Body.End()).Offset
+			if i.Pos >= p && i.Pos <= e {
+				r.Global = false
+				r.Func = i.funcName(t)
+				break
+			}
+		}
 	}
 	return r, mg.Err(err)
 }
@@ -44,37 +62,25 @@ func init() {
 	})
 }
 
-func (i *Intel) gf() (bool, string) {
-	g := true
-	f := ""
-
-	if i.af == nil {
-		return g, f
+func (i *Intel) funcName(fun *ast.FuncDecl) string {
+	r := fun.Recv
+	if r == nil || len(r.List) == 0 {
+		return ""
 	}
 
-	for _, d := range i.af.Decls {
-		switch fun := d.(type) {
-		case *ast.FuncDecl:
-			p := i.fset.Position(fun.Body.Pos()).Offset
-			e := i.fset.Position(fun.Body.End()).Offset
-			if i.Pos >= p && i.Pos <= e {
-				g = false
-				if r := fun.Recv; r != nil && len(r.List) > 0 {
-					switch t := r.List[0].Type.(type) {
-					case *ast.StarExpr:
-						switch t := t.X.(type) {
-						case *ast.Ident:
-							f = t.Name + "."
-						}
-					case *ast.Ident:
-						f = t.Name + "."
-					}
-				}
-				f += fun.Name.String()
-				break
-			}
+	var id *ast.Ident
+	switch t := r.List[0].Type.(type) {
+	case *ast.StarExpr:
+		switch t := t.X.(type) {
+		case *ast.Ident:
+			id = t
 		}
+	case *ast.Ident:
+		id = t
 	}
 
-	return g, f
+	if id != nil {
+		return id.Name + "." + fun.Name.Name
+	}
+	return fun.Name.Name
 }
