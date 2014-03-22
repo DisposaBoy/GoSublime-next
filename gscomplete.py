@@ -118,15 +118,6 @@ class GoSublime(sublime_plugin.EventListener):
 		if not scope_ok(view, pos):
 			return ([], AC_OPTS)
 
-		types = []
-		for r in view.find_by_selector('source.go keyword.'):
-			if view.substr(r) == 'type':
-				end = r.end()
-				r = view.find(r'\s+(\w+)', end)
-				if r.begin() == end:
-					types.append(view.substr(r).lstrip())
-
-
 		try:
 			if basename(view.file_name()) == "main.go":
 				default_pkgname = 'main'
@@ -155,6 +146,7 @@ class GoSublime(sublime_plugin.EventListener):
 		if not default_pkgname:
 			default_pkgname = pkgname if pkgname else 'main'
 
+		types = intel.get('Types')  or []
 		ctx = {
 			'global': intel.get('Global'),
 			'local': not intel.get('Global'),
