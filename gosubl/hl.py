@@ -3,7 +3,7 @@ from . import ev
 from . import gs
 from . import kv
 from . import vu
-from os.path import relpath, dirname, normpath
+from os.path import relpath, dirname, normpath, exists
 import re
 import sublime
 
@@ -109,7 +109,7 @@ def refresh(view=None):
 
 def add(*nl):
 	for n in nl:
-		if n.is_valid():
+		if n.is_valid() and (vu.is_vfn(n.fn) or exists(n.fn)):
 			kvs.m(n.fn).l(n.row).append(n)
 
 def clear_view(view):
