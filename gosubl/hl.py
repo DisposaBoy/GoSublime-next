@@ -53,7 +53,7 @@ class Note(object):
 		self.message = kw.get('message', '').strip()
 
 	def is_valid(self):
-		return self.message and self.ctx and self.row >= 0 and self.col >= 0
+		return self.message and self.ctx and self.row >= 0 and self.col >= 0 and (vu.is_vfn(self.fn) or exists(self.fn))
 
 def df_l():
 	return ([], True)
@@ -109,7 +109,7 @@ def refresh(view=None):
 
 def add(*nl):
 	for n in nl:
-		if n.is_valid() and (vu.is_vfn(n.fn) or exists(n.fn)):
+		if n.is_valid():
 			kvs.m(n.fn).l(n.row).append(n)
 
 def clear_view(view):
@@ -147,7 +147,7 @@ def show_messages(view):
 
 		col = -1
 		for n in notes.get(row, []):
-			if n.message:
+			if n.is_valid():
 				ents.extend(n.message.split('\n'))
 				if col < 0:
 					col = n.col
