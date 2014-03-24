@@ -97,6 +97,17 @@ def df_act_sig(view):
 		gs.do(DOMAIN, lambda: view_activated(view))
 		gs.do(DOMAIN, lambda: lc(view))
 
+		fn = view.file_name()
+		if fn:
+			vs = view.settings()
+			old_fn = vs.get('gs.ev.file_name')
+			vs.set('gs.ev.old_file_name', old_fn)
+			vs.set('gs.ev.file_name', fn)
+			if old_fn and old_fn != fn:
+				gs.do(DOMAIN, lambda: file_renamed(view))
+				gs.do(DOMAIN, lambda: file_sync(view))
+
+
 	sig = Signal(1000)
 	sig += f
 	return (sig, True)
@@ -241,6 +252,7 @@ view_closed = Event()
 file_saved = Event()
 file_loaded = Event()
 file_sync = Event()
+file_renamed = Event()
 line_changed = Event()
 cursor_moved = Event()
 ready = Event()
