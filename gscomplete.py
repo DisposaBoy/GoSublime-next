@@ -336,6 +336,10 @@ class GsShowCallTip(sublime_plugin.TextCommand):
 
 	def run(self, edit, set_status=False):
 		view = self.view
+		vv = vu.V(view)
+		fn = vv.vfn()
+		src = vv.src()
+		pos = vv.sel().begin()
 
 		def f(cl, err):
 			def f2(cl, err):
@@ -344,6 +348,13 @@ class GsShowCallTip(sublime_plugin.TextCommand):
 					c = cl[0]
 
 				if set_status:
+					intel, _ = mg9.bcall('intel', {
+						'Fn': fn,
+						'Src': src,
+						'Pos': pos,
+					})
+
+					s = ''
 					if c:
 						pfx = 'func('
 						typ = c['type']
@@ -352,7 +363,11 @@ class GsShowCallTip(sublime_plugin.TextCommand):
 						else:
 							s = '%s: %s' % (c['name'], typ)
 
+					func = intel.get('Func')
+					if func:
+						s = u'%s \u00B7 %s > %s' % (s, intel.get('Pkg'), func)
 
+					if s:
 						view.set_status(HINT_KEY, s)
 					else:
 						view.erase_status(HINT_KEY)
@@ -366,8 +381,7 @@ class GsShowCallTip(sublime_plugin.TextCommand):
 
 			sublime.set_timeout(lambda: f2(cl, err), 0)
 
-		vv = vu.V(view)
-		mg9.calltip(vv.vfn(), vv.src(), vv.sel().begin(), set_status, f)
+		mg9.calltip(fn, src, pos, set_status, f)
 
 
 if not gs.checked(DOMAIN, '_ct'):
