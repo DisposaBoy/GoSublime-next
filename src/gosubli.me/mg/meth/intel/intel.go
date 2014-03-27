@@ -2,9 +2,8 @@ package intel
 
 import (
 	"go/ast"
-	"go/parser"
-	"go/token"
 	"gosubli.me/mg"
+	"gosubli.me/mg/sa"
 )
 
 type Intel struct {
@@ -16,8 +15,7 @@ type Intel struct {
 	Src           string
 	Pos           int
 
-	fset *token.FileSet
-	af   *ast.File
+	f *sa.File
 }
 
 type Res struct {
@@ -30,10 +28,10 @@ type Res struct {
 func (i *Intel) Call() (interface{}, string) {
 	var err error
 	i.Pos = mg.BytePos(i.Src, i.Pos)
-	i.fset, i.af, err = mg.ParseFile(i.Fn, i.Src, parser.ParseComments)
+	i.f, err = sa.Parse(i.Fn, []byte(i.Src))
 	r := &Res{Global: true}
-	r.Pkg = i.af.Name.String()
-	for _, d := range i.af.Decls {
+	r.Pkg = i.f.Name.String()
+	for _, d := range i.f.Decls {
 		switch t := d.(type) {
 		case *ast.GenDecl:
 			for _, sp := range t.Specs {
@@ -44,9 +42,7 @@ func (i *Intel) Call() (interface{}, string) {
 				}
 			}
 		case *ast.FuncDecl:
-			p := i.fset.Position(t.Body.Pos()).Offset
-			e := i.fset.Position(t.Body.End()).Offset
-			if i.Pos >= p && i.Pos <= e {
+			if i.f.OffsetIn(i.Pos, t.Body) {
 				r.Global = false
 				r.Func = i.funcName(t)
 				break
