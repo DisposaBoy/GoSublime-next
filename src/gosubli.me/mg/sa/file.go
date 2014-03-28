@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	DefaultMode = parser.ParseComments | parser.DeclarationErrors
+	DefaultMode = parser.ParseComments | parser.DeclarationErrors | parser.AllErrors
 )
 
 var (
