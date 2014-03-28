@@ -1,7 +1,7 @@
 import re
 import sublime
 
-ANN = 'a14.02.25-1'
+ANN = 'a14.03.28-1'
 VERSION = 'r13.12.26-3'
 VERSION_PAT = re.compile(r'\d{2}[.]\d{2}[.]\d{2}-\d+', re.IGNORECASE)
 DEFAULT_GO_VERSION = 'go?'

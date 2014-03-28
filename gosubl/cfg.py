@@ -8,7 +8,7 @@ _view_settings = {}
 ST3 = sublime.version().startswith('3')
 
 defaults = {
-	'_dev': False,
+	'_dev': True,
 	'active_fn': '',
 	'active_vfn': '',
 	'autocomplete_snippets': False,

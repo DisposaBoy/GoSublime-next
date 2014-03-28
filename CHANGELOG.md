@@ -7,6 +7,15 @@ GoSublime Changes
 
 Note: you may need to restart Sublime Text after GoSublime updates
 
+## 14.03.28-1
+	* Please be aware that the undocumented `_dev` setting has been set to `true` by default.
+	  It should ideally *not* be changed. The side-effect is that the internal GS
+	  version is monkey-patched when GS starts to match the format `2006.01.02-15:04:05`.
+	  I.e. MarGo will now be rebuilt when Sublime Text is restarted.
+	  Hopefully this will fix any oddities you might have experienced.
+	  E.g. autocompletion that suddenly stops working because you did a `git pull`.
+
+
 ## 14.02.25-1
 	* added setting `installsuffix`. this should help enabling completion and pkg importing
 	  for appengine. set this to `appengine` and add the appengine goroot to your GOPATH e.g.
