@@ -31,13 +31,21 @@ type (
 	cFile struct {
 		*ast.File
 		Fset   *token.FileSet
-		Errors scanner.ErrorList
+		Errors []*Error
 	}
 
 	File struct {
 		*cFile
 		Fn  string
 		Src []byte
+	}
+
+	Error struct {
+		Fn      string
+		Line    int
+		Column  int
+		Offset  int
+		Message string
 	}
 )
 
@@ -90,7 +98,16 @@ func mk(k cKey, fn string, s []byte) (*cFile, error) {
 	}
 
 	if el, ok := err.(scanner.ErrorList); ok {
-		f.Errors = el
+		f.Errors = make([]*Error, len(el))
+		for i, e := range el {
+			f.Errors[i] = &Error{
+				Fn:      e.Pos.Filename,
+				Line:    e.Pos.Line,
+				Column:  e.Pos.Column,
+				Offset:  e.Pos.Offset,
+				Message: e.Msg,
+			}
+		}
 	}
 
 	cache.Lock()
