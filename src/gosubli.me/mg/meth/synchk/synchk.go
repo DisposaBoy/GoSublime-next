@@ -1,10 +1,8 @@
 package synchk
 
 import (
-	"go/parser"
-	"go/scanner"
-	"go/token"
 	"gosubli.me/mg"
+	"gosubli.me/mg/sa"
 )
 
 type SynChk struct {
@@ -16,46 +14,17 @@ type FileRef struct {
 	Src string
 }
 
-type Error struct {
-	Fn      string
-	Line    int
-	Column  int
-	Message string
-}
-
 type Res struct {
-	Errors []Error
+	Errors []*sa.Error
 }
 
 func (s *SynChk) Call() (interface{}, string) {
-	fset := token.NewFileSet()
-	res := Res{
-		Errors: []Error{},
-	}
-
+	res := Res{}
 	for _, f := range s.Files {
-		if f.Fn == "" && f.Src == "" {
-			continue
-		}
-
-		var src []byte
-		if f.Src != "" {
-			src = []byte(f.Src)
-		}
-
-		_, err := parser.ParseFile(fset, f.Fn, src, parser.DeclarationErrors)
-		if el, ok := err.(scanner.ErrorList); ok {
-			for _, e := range el {
-				res.Errors = append(res.Errors, Error{
-					Fn:      e.Pos.Filename,
-					Line:    e.Pos.Line,
-					Column:  e.Pos.Column,
-					Message: e.Msg,
-				})
-			}
+		if f, _ := sa.Parse(f.Fn, []byte(f.Src)); f != nil {
+			res.Errors = append(res.Errors, f.Errors...)
 		}
 	}
-
 	return res, ""
 }
 
