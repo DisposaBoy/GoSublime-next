@@ -3,6 +3,7 @@ package sa
 import (
 	"go/ast"
 	"go/parser"
+	"go/scanner"
 	"go/token"
 	"gosubli.me/something-borrowed/blake2b"
 	"io/ioutil"
@@ -28,7 +29,8 @@ type fileMap map[cKey]*cFile
 
 type cFile struct {
 	*ast.File
-	Fset *token.FileSet
+	Fset   *token.FileSet
+	Errors scanner.ErrorList
 }
 
 type File struct {
@@ -84,8 +86,13 @@ func mk(k cKey, fn string, s []byte) (*cFile, error) {
 		File: af,
 		Fset: fset,
 	}
+
+	if el, ok := err.(scanner.ErrorList); ok {
+		f.Errors = el
+	}
+
 	cache.Lock()
 	cache.files[k] = f
 	cache.Unlock()
-	return f, err
+	return f, nil
 }
