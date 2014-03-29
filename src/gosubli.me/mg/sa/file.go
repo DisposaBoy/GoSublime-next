@@ -23,21 +23,23 @@ var (
 	}
 )
 
-type cKey [64]byte
+type (
+	cKey [64]byte
 
-type fileMap map[cKey]*cFile
+	fileMap map[cKey]*cFile
 
-type cFile struct {
-	*ast.File
-	Fset   *token.FileSet
-	Errors scanner.ErrorList
-}
+	cFile struct {
+		*ast.File
+		Fset   *token.FileSet
+		Errors scanner.ErrorList
+	}
 
-type File struct {
-	*cFile
-	Fn  string
-	Src []byte
-}
+	File struct {
+		*cFile
+		Fn  string
+		Src []byte
+	}
+)
 
 func (f *File) Position(p token.Pos) token.Position {
 	return f.Fset.Position(p)
