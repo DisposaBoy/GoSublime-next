@@ -113,7 +113,12 @@ def bi_gs__synchk(c):
 		files = [{'Fn': fn} for fn in c.args]
 	else:
 		vv = c.sess.vv
-		files = [{'Src': vv.src()}]
+		fn = vv.fn()
+		if fn and not vv.view().is_dirty():
+			files = [{'Fn': fn}]
+		else:
+			files = [{'Src': vv.src()}]
+
 		if not c.hl:
 			c.hl = {
 				'ctx': 'gs.synchk:%s' % vv.vfn(),
