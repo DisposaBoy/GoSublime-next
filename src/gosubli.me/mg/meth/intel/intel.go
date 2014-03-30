@@ -61,7 +61,7 @@ func init() {
 func (i *Intel) funcName(fun *ast.FuncDecl) string {
 	r := fun.Recv
 	if r == nil || len(r.List) == 0 {
-		return ""
+		return fun.Name.String()
 	}
 
 	var id *ast.Ident
