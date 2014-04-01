@@ -92,6 +92,11 @@ func mk(k cKey, fn string, s []byte) (*cFile, error) {
 	if af == nil {
 		return nil, err
 	}
+
+	if err == nil {
+		ast.SortImports(fset, af)
+	}
+
 	f := &cFile{
 		File: af,
 		Fset: fset,
