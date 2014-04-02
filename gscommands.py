@@ -38,7 +38,6 @@ class GsFmtCommand(sublime_plugin.TextCommand):
 			return
 
 		if not src.strip():
-			gs.println(DOMAIN, "cannot fmt file. it appears to be empty")
 			return
 
 		_, err = gspatch.merge(self.view, vsize, src, edit)

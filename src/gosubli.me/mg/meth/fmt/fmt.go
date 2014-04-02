@@ -2,9 +2,8 @@ package mg
 
 import (
 	"bytes"
-	"go/ast"
-	"go/parser"
 	"gosubli.me/mg"
+	"gosubli.me/mg/sa"
 	"os"
 	"os/exec"
 	"strings"
@@ -26,13 +25,16 @@ func (f *Fmt) Call() (interface{}, string) {
 		return f.gofmt()
 	}
 
-	res := Res{}
-	fset, af, err := mg.ParseFile(f.Fn, f.Src, parser.ParseComments)
-	if err == nil {
-		ast.SortImports(fset, af)
-		res.Src, err = mg.Src(fset, af)
+	sf, err := sa.Parse(f.Fn, []byte(f.Src))
+	if err != nil {
+		return nil, err.Error()
 	}
-	return res, mg.Err(err)
+
+	s := string(sf.Src)
+	if s == f.Src {
+		s = ""
+	}
+	return Res{Src: s}, ""
 }
 
 func (f *Fmt) gofmt() (Res, string) {
