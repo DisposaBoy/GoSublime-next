@@ -1,8 +1,10 @@
 package sa
 
 import (
+	"bytes"
 	"go/ast"
 	"go/parser"
+	"go/printer"
 	"go/scanner"
 	"go/token"
 	"gosubli.me/something-borrowed/blake2b"
@@ -32,12 +34,12 @@ type (
 		*ast.File
 		Fset   *token.FileSet
 		Errors []*Error
+		Src    []byte
 	}
 
 	File struct {
 		*cFile
-		Fn  string
-		Src []byte
+		Fn string
 	}
 
 	Error struct {
@@ -70,7 +72,6 @@ func Parse(fn string, s []byte) (*File, error) {
 	f := &File{
 		cFile: cf,
 		Fn:    fn,
-		Src:   s,
 	}
 	return f, err
 }
@@ -95,11 +96,20 @@ func mk(k cKey, fn string, s []byte) (*cFile, error) {
 
 	if err == nil {
 		ast.SortImports(fset, af)
+		p := &printer.Config{
+			Mode:     printer.UseSpaces | printer.TabIndent,
+			Tabwidth: 8,
+		}
+		buf := &bytes.Buffer{}
+		if err := p.Fprint(buf, fset, af); err == nil {
+			s = buf.Bytes()
+		}
 	}
 
 	f := &cFile{
 		File: af,
 		Fset: fset,
+		Src:  s,
 	}
 
 	if el, ok := err.(scanner.ErrorList); ok {
