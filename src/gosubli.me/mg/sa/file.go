@@ -9,6 +9,7 @@ import (
 	"go/token"
 	"gosubli.me/something-borrowed/blake2b"
 	"io/ioutil"
+	"reflect"
 	"sync"
 )
 
@@ -56,6 +57,9 @@ func (f *File) Position(p token.Pos) token.Position {
 }
 
 func (f *File) OffsetIn(i int, n ast.Node) bool {
+	if n == nil || !reflect.ValueOf(n).Elem().IsValid() {
+		return false
+	}
 	p := f.Fset.Position(n.Pos()).Offset
 	e := f.Fset.Position(n.End()).Offset
 	return i >= p && i <= e
