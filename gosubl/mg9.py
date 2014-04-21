@@ -439,7 +439,9 @@ def _recv():
 			try:
 				ln = ln.strip()
 				if ln:
+					res_tm = time.time()
 					r, _ = gs.json_decode(ln, {})
+					dec_tm = time.time()
 					token = r.get('token', '')
 					tag = r.get('tag', '')
 					k = REQUEST_PREFIX+token
@@ -460,7 +462,8 @@ def _recv():
 							'method': req.method,
 							'tag': tag,
 							'token': token,
-							'dur': '%0.3fs' % (time.time() - req.tm),
+							'req dur': '%0.3fs' % (res_tm - req.tm),
+							'dec dur': '%0.3fs' % (dec_tm - res_tm),
 							'err': err,
 							'size': '%0.1fK' % (len(ln)/1024.0),
 						})
