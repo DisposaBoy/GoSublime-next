@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"gosubli.me/counter"
 	"io"
 	"io/ioutil"
@@ -168,7 +169,7 @@ func (b *Broker) accept() (stopLooping bool) {
 
 	m := registry.Lookup(req.Method)
 	if m == nil {
-		e := "Invalid method " + req.Method
+		e := fmt.Sprintf("Invalid method %s, expected one %v", req.Method, registry.methods)
 		logger.Println(e)
 		b.Send(Response{
 			Token: req.Token,

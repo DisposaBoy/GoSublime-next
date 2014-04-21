@@ -22,8 +22,9 @@ type registration struct {
 }
 
 type Registry struct {
-	m   map[string]registration
-	lck sync.RWMutex
+	m       map[string]registration
+	methods []string
+	lck     sync.RWMutex
 }
 
 func Register(name string, method Method) {
@@ -48,6 +49,7 @@ func (r *Registry) register(name string, method Method, skip int) {
 		logger.Panicf("Method %v is already registered (from %v:%v)\n", name, reg.fn, reg.line)
 	}
 
+	r.methods = append(r.methods, name)
 	reg := registration{
 		Method: method,
 	}
