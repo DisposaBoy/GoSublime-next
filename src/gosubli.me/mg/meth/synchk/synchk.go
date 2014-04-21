@@ -21,8 +21,16 @@ type Res struct {
 func (s *SynChk) Call() (interface{}, string) {
 	res := Res{}
 	for _, f := range s.Files {
-		if f, _ := sa.Parse(f.Fn, []byte(f.Src)); f != nil {
-			res.Errors = append(res.Errors, f.Errors...)
+		if sf, _ := sa.Parse(f.Fn, []byte(f.Src)); sf != nil {
+			for _, e := range sf.Errors {
+				res.Errors = append(res.Errors, &sa.Error{
+					Fn:      f.Fn,
+					Line:    e.Line,
+					Column:  e.Column,
+					Offset:  e.Offset,
+					Message: e.Message,
+				})
+			}
 		}
 	}
 	return res, ""
