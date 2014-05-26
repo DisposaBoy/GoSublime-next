@@ -227,9 +227,9 @@ class Cmd(object):
 					attr[k] = self.exp(attr[k])
 
 		if self.final == 'sh':
-			l = sh.cmd(' '.join(gs.lst(c.cmd, c.args)))
-			c.cmd = l[0]
-			c.args = l[1:]
+			l = sh.cmd(' '.join(gs.lst(self.cmd, self.args)))
+			self.cmd = l[0]
+			self.args = l[1:]
 		else:
 			self.cmd = self.exp(self.cmd)
 			self.args = [self.exp(v) for v in self.args]
