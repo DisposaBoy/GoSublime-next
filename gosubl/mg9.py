@@ -112,12 +112,7 @@ def _tp(s):
 def _mg_exists():
 	return bool(sh.which('margo'))
 
-def build_mg(force=False):
-	if force:
-		pass
-	elif _mg_exists():
-		return 'ok'
-
+def build_mg():
 	gs.notify('GoSublime', 'Installing MarGo')
 
 	gobin = sh.bin_dir()
@@ -188,7 +183,7 @@ def _install(maybe=False):
 	start = time.time()
 
 	gs.set_attr(_inst_name(), 'busy')
-	m_out = build_mg()
+	m_out = 'ok' if _mg_exists() else build_mg()
 	gs.set_attr(_inst_name(), 'done')
 
 	if m_out == 'ok':
