@@ -124,9 +124,10 @@ def build_mg():
 		'GOPATH': gopath,
 	}
 
-	# do a cleanup just-in-case there are old packages lying around... we don't really care if it fails
-	clean = sh.Command(['go', 'clean', '-i', 'gosubli.me/...'])
-	clean.wd = wd
+	# do a cleanup just-in-case there are old packages built by other other versions of the Go compiler lying around...
+	# we don't really care if it fails
+	clean = sh.Command(['go', 'clean', '-i', './...'])
+	clean.wd = gopath
 	clean.env = env
 	clean.run()
 
