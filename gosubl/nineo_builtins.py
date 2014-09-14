@@ -1,5 +1,6 @@
 from . import about
 from . import gs
+from . import gsq
 from . import mg9
 from . import nineo
 from . import vu
@@ -171,3 +172,14 @@ def bi_share(c):
 				c.fail('no url received')
 
 	mg9.share(vv.src(), f)
+
+def bi_gs__build_margo(c):
+	def f():
+		out = mg9.build_mg()
+		if out == 'ok':
+			mg9.killSrv()
+			c.done('ok')
+		else:
+			c.fail(out)
+
+	gsq.do('GoSublime', f, msg='Rebuilding MarGo')

@@ -278,6 +278,7 @@ def env(m={}):
 	e = os.environ.copy()
 	e.update(_env_ext)
 	e['GS_TMPDIR'] = gs.TMPDIR
+	e['MARGOPATH'] = gs.dist_path()
 	e.update(m)
 
 	gp = []

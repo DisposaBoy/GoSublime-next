@@ -14,6 +14,7 @@ import (
 	_ "gosubli.me/mg/meth/ping"
 	_ "gosubli.me/mg/meth/share"
 	_ "gosubli.me/mg/meth/synchk"
+	_ "gosubli.me/x" // support user extension
 	"os"
 )
 

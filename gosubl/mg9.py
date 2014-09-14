@@ -84,6 +84,7 @@ def sanity_check(env={}, error_log=False):
 		('go.version', sh.GO_VERSION),
 		('GOROOT', '%s' % env.get('GOROOT', ns)),
 		('GOPATH', '%s' % env.get('GOPATH', ns)),
+		('MARGOPATH', '%s' % env.get('MARGOPATH', ns)),
 		('GOBIN', env.get('GOBIN', ns)),
 		('cfg.shell', str(gs.lst(cfg.shell))),
 		('env.shell', env.get('SHELL', '')),
@@ -116,7 +117,7 @@ def build_mg():
 	gs.notify('GoSublime', 'Installing MarGo')
 
 	gobin = sh.bin_dir()
-	gopath = gs.dist_path()
+	gopath = sh.getenv('MARGOPATH')
 	wd = gobin
 	env = {
 		'CGO_ENABLED': '0',
@@ -126,13 +127,18 @@ def build_mg():
 
 	# do a cleanup just-in-case there are old packages built by other other versions of the Go compiler lying around...
 	# we don't really care if it fails
-	clean = sh.Command(['go', 'clean', '-i', './...'])
-	clean.wd = gopath
-	clean.env = env
-	clean.run()
+	for p in gopath.split(os.pathsep):
+		if p:
+			pat = './gosubli.me/...'
+			if p == gs.dist_path():
+				pat = './...'
+			clean = sh.Command(['go', 'clean', '-i', '-x', pat])
+			clean.wd = p
+			clean.env = {'GOPATH': p}
+			clean.run()
 
 	f = gs.setting('_build_flags') or ['-v', '-x']
-	args = gs.lst('go', 'build', f, '-o', sh.exe('margo'), 'gosubli.me/margo')
+	args = gs.lst('go', 'build', '-tags', 'gosublime', f, '-o', sh.exe('margo'), 'gosubli.me/margo')
 
 	build = sh.Command(args)
 	build.wd = wd
