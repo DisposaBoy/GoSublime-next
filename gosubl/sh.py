@@ -280,7 +280,6 @@ def env(m={}):
 	e['GS_TMPDIR'] = gs.TMPDIR
 	e.update(m)
 
-	roots = [os.path.normpath(s) for s in gs.lst(e.get('GOPATH', '').split(psep), e.get('GOROOT', ''))]
 	gp = []
 	for d in cfg.folders:
 		if os.path.isdir(os.path.join(d, 'src')):
