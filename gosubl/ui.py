@@ -161,7 +161,7 @@ class TaskMgr(Drawer):
 		if not d or not d.cancel:
 			return False
 
-		if sublime.ok_cancel_dialog('Are you sure you want to cancel` task #%s?\n\n%s' % (d.key, d.text)):
+		if sublime.ok_cancel_dialog('Are you sure you want to cancel task #%s?\n\n%s' % (d.key, d.text)):
 			d.cancel()
 
 		return True
