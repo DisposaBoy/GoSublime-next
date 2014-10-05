@@ -1,4 +1,5 @@
-from gosubl import gs
+from . import gs
+from . import ui
 import sublime
 import threading
 
@@ -15,7 +16,7 @@ class Launcher(threading.Thread):
 		try:
 			self.f()
 		except Exception:
-			gs.notice(self.domain, gs.traceback())
+			gs.trace(self.domain)
 
 class Runner(threading.Thread):
 	def __init__(self, domain, f, msg='', set_status=False, cancel=None):
@@ -28,13 +29,13 @@ class Runner(threading.Thread):
 		self.cancel = cancel
 
 	def run(self):
-		tid = gs.begin(self.domain, self.msg, self.set_status, self.cancel)
+		t = ui.task(self.domain, self.msg, cancel=self.cancel, set_status=self.set_status)
 		try:
 			self.f()
 		except Exception:
-			gs.notice(self.domain, gs.traceback())
+			ui.trace(self.domain)
 		finally:
-			gs.end(tid)
+			t.end()
 
 class GsQ(threading.Thread):
 	def __init__(self, domain):
@@ -46,23 +47,22 @@ class GsQ(threading.Thread):
 	def run(self):
 		while True:
 			try:
-				f, msg, set_status = self.q.get()
-				tid = gs.begin(self.domain, msg, set_status)
-
+				t = ui.task(self.domain, msg, set_status=set_status)
 				try:
 					f()
 				except Exception:
-					gs.notice(self.domain, gs.traceback())
+					ui.trace(self.domain)
+				finally:
+					t.end()
 			except:
 				pass
 
-			gs.end(tid)
 
 	def dispatch(self, f, msg, set_status=False):
 		try:
 			self.q.put((f, msg, set_status))
 		except Exception:
-			gs.notice(self.domain, traceback())
+			gs.trace(self.domain)
 
 try:
 	m

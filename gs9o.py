@@ -5,6 +5,7 @@ from gosubl import kv
 from gosubl import mg9
 from gosubl import nineo
 from gosubl import sh
+from gosubl import ui
 from gosubl import vu
 import datetime
 import glob
@@ -65,7 +66,6 @@ DEFAULT_CL = [(s, s+' ') for s in DEFAULT_COMMANDS]
 MIDDOT = u' \u00B7 '
 
 stash = {}
-tid_alias = {}
 
 class Sess(nineo.Sess):
 	def error(self, s):
@@ -363,15 +363,15 @@ def act_on_path(view, path):
 		try:
 			if not URL_SCHEME_PAT.match(path):
 				path = 'http://%s' % path
-			gs.notify(DOMAIN, 'open url: %s' % path)
+			ui.note(DOMAIN, 'open url: %s' % path)
 			webbrowser.open_new_tab(path)
 			return True
 		except Exception:
-			gs.error_traceback(DOMAIN)
+			ui.trace(DOMAIN)
 
 		return False
 
-	gs.notify(DOMAIN, "Invalid path `%s'" % path)
+	ui.note(DOMAIN, "Invalid path `%s'" % path)
 	return False
 
 
@@ -396,7 +396,7 @@ def _exec(view, edit, save_hist=False):
 	try:
 		os.chdir(wd)
 	except Exception:
-		gs.error_traceback(DOMAIN)
+		ui.trace(DOMAIN)
 
 	ln = view.substr(line).split('#', 1)
 	if len(ln) == 2:
@@ -586,10 +586,9 @@ def cmd_tskill(view, edit, args, wd, rkey):
 		return
 
 	l = []
-	for tid in args:
-		tid = tid.lstrip('#')
-		tid = tid_alias.get('%s-%s' % (tid, wd), tid)
-		l.append('kill %s: %s' % (tid, ('yes' if gs.cancel_task(tid) else 'no')))
+	for k in args:
+		k = k.lstrip('#')
+		l.append('task %s canceled: %s' % (k, ('yes' if ui.taskd.cancel(k) else 'no')))
 
 	push_output(view, rkey, '\n'.join(l))
 

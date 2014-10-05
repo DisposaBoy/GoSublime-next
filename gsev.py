@@ -1,6 +1,7 @@
-from gosubl import ev
 from gosubl import cfg
+from gosubl import ev
 from gosubl import gs
+from gosubl import ui
 import gstest
 import sublime_plugin
 
@@ -16,6 +17,7 @@ class EV(sublime_plugin.EventListener):
 		ev.sublime_event('on_close', view)
 
 	def on_activated(self, view):
+		ui.status.refresh(view=view)
 		ev.sublime_event('on_activated', view)
 
 	def on_new(self, view):

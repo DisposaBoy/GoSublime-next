@@ -22,6 +22,7 @@ except Exception:
 def plugin_loaded():
 	from gosubl import about
 	from gosubl import cfg
+	from gosubl import ui
 	from gosubl import vu
 	from gosubl import sh
 	from gosubl import ev
@@ -50,6 +51,7 @@ def plugin_loaded():
 
 	mods = [
 		('cfg', cfg),
+		('ui', ui),
 		('vu', vu),
 		('gs', gs),
 		('sh', sh),

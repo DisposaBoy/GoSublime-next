@@ -1,6 +1,7 @@
 from gosubl import gs
 from gosubl import gspatch
 from gosubl import mg9
+from gosubl import ui
 from gosubl import vu
 from os.path import dirname, basename, relpath
 import re
@@ -54,7 +55,7 @@ class GsPaletteCommand(sublime_plugin.WindowCommand):
 			if pcb:
 				self.last_activate_palette = palette
 			else:
-				gs.notice(DOMAIN, 'Invalid palette `%s`' % palette)
+				ui.error(DOMAIN, 'Invalid palette `%s`' % palette)
 				palette = ''
 
 		if not direct and len(self.bookmarks) > 0:
@@ -130,7 +131,7 @@ class GsPaletteCommand(sublime_plugin.WindowCommand):
 			r = view.find(pat, 0)
 
 		if not r:
-			gs.notice(DOMAIN, "cannot find import declarations")
+			ui.error(DOMAIN, "cannot find import declarations")
 			return
 
 		pt = r.end() - offset
@@ -147,7 +148,7 @@ class GsPaletteCommand(sublime_plugin.WindowCommand):
 		src = view.substr(sublime.Region(0, view.size()))
 		def f(im, err):
 			if err:
-				gs.notice(DOMAIN, err)
+				ui.error(DOMAIN, err)
 				return
 
 			delete_imports = []
@@ -203,7 +204,7 @@ class GsPaletteCommand(sublime_plugin.WindowCommand):
 		def f(res, err):
 			added = 0
 			if err:
-				gs.notify('GsDeclarations', err)
+				ui.note('GsDeclarations', err)
 			else:
 				decls = res.get('file_decls', [])
 				for i, v in enumerate(decls):
@@ -230,7 +231,7 @@ def toggle_import(a):
 	)
 
 	if err:
-		gs.notice(DOMAIN, err)
+		ui.error(DOMAIN, err)
 	else:
 		src = im.get('src', '')
 		line_ref = im.get('lineRef', 0)

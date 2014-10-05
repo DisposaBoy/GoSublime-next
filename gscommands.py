@@ -3,6 +3,7 @@ from gosubl import gs
 from gosubl import gspatch
 from gosubl import hl
 from gosubl import mg9
+from gosubl import ui
 from gosubl import vu
 import datetime
 import os
@@ -114,7 +115,7 @@ class GsNewGoFileCommand(sublime_plugin.WindowCommand):
 						pkg_name = name
 						break
 		except Exception:
-			gs.error_traceback('GsNewGoFile')
+			ui.trace('GsNewGoFile')
 
 		self.window.new_file().run_command('gs_create_new_go_file', {
 			'pkg_name': pkg_name,
@@ -132,32 +133,7 @@ class GsCreateNewGoFileCommand(sublime_plugin.TextCommand):
 
 class GsShowTasksCommand(sublime_plugin.WindowCommand):
 	def run(self):
-		ents = []
-		now = datetime.datetime.now()
-		m = {}
-		try:
-			tasks = gs.task_list()
-			if tasks:
-				for tid, t in tasks:
-					cancel_text = ''
-					if t['cancel']:
-						cancel_text = ' (cancel task)'
-						m[len(ents)] = tid
-
-					ents.append([
-						'#%s %s%s' % (tid, t['domain'], cancel_text),
-						t['message'],
-						'started: %s' % t['start'],
-						'elapsed: %s' % (now - t['start']),
-					])
-			else:
-				ents = [['', 'There are no active tasks']]
-		except:
-			ents = [['', 'Failed to gather active tasks']]
-
-		def cb(i, _):
-			gs.cancel_task(m.get(i, ''))
-
+		ents, cb = ui.task_ents()
 		gs.show_quick_panel(ents, cb)
 
 class GsOpenHomePathCommand(sublime_plugin.WindowCommand):
@@ -227,7 +203,9 @@ class GsPatchImportsCommand(sublime_plugin.TextCommand):
 		view = self.view
 		dirty, err = gspatch.merge(view, pos, content, edit)
 		if err:
-			gs.notice_undo(DOMAIN, err, view, dirty)
+			ui.error(DOMAIN, err)
+			if dirty:
+				sublime.set_timeout(lambda: view.run_command('undo'), 0)
 		elif dirty:
 			k = 'last_import_path.%s' % vu.V(view).vfn()
 			if added_path:

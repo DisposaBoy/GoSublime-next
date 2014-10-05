@@ -6,6 +6,7 @@ from . import hl
 from . import kv
 from . import mg9
 from . import sh
+from . import ui
 from . import vu
 import base64
 import copy
@@ -371,7 +372,7 @@ class Cmd(object):
 				else:
 					fn = bnm
 
-			if fn and fn != '<stdin>':
+			if fn and fn not in ('<stdin>', '-'):
 				fn = gs.abspath(fn, self.wd)
 			else:
 				fn = self.sess.vv.vfn()
@@ -502,7 +503,7 @@ def exec_c(c):
 		'DiscardStderr': c.discard_stderr,
 	}
 
-	tid = gs.begin(
+	t = ui.task(
 		DOMAIN,
 		'[ %s ] # %s %s' % (gs.simple_fn(c.wd), c.cmd, c.args),
 		set_status=False,
@@ -519,9 +520,9 @@ def exec_c(c):
 			else:
 				c.resume(res.get('Ok'))
 		except Exception:
-			gs.print_traceback()
+			ui.trace(DOMAIN)
 		finally:
-			gs.end(tid)
+			t.end()
 
 	mg9.acall('exec', c.exec_opts, f)
 

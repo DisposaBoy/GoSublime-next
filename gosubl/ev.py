@@ -1,6 +1,7 @@
 from . import cfg
 from . import gs
 from . import kv
+from . import ui
 from . import vu
 import sublime
 import threading
@@ -22,7 +23,7 @@ class Event(object):
 			try:
 				f(*args, **kwargs)
 			except Exception:
-				gs.print_traceback()
+				ui.trace(DOMAIN)
 
 		return self
 
@@ -37,7 +38,7 @@ class Event(object):
 			try:
 				self.post_add(self, f)
 			except Exception:
-				gs.print_traceback()
+				ui.trace(DOMAIN)
 
 		return self
 

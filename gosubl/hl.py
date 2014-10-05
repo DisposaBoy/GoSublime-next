@@ -2,6 +2,7 @@ from . import cfg
 from . import ev
 from . import gs
 from . import kv
+from . import ui
 from . import vu
 from os.path import relpath, dirname, normpath, exists
 import re
@@ -197,7 +198,7 @@ def show_messages(view):
 
 		gs.show_quick_panel(items, cb)
 	else:
-		gs.notify(DOMAIN, 'No messages to display')
+		ui.note(DOMAIN, 'No messages to display')
 
 
 def gs_init(m={}):

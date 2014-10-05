@@ -2,6 +2,7 @@ from gosubl import gs
 from gosubl import gsq
 from gosubl import kv
 from gosubl import mg9
+from gosubl import ui
 from gosubl import vu
 import os
 import re
@@ -29,15 +30,14 @@ class GsPosdefCommand(sublime_plugin.TextCommand):
 		pt = len(src[:pt].encode("utf-8"))
 		def f(res, err):
 			if err:
-				gs.notify(DOMAIN, err)
-				gs.println(DOMAIN, err)
+				ui.error(DOMAIN, err)
 				return
 
 			fn = res.get('Fn')
 			row = res.get('Line', -1) - 1
 			col = res.get('Col', 0) - 1
 			if not fn or row < 0:
-				gs.notify(DOMAIN, "no definition found")
+				ui.note(DOMAIN, "no definition found")
 				return
 
 			gs.println('opening %s:%s:%s' % (fn, row, col))
@@ -107,7 +107,7 @@ class GsBrowseDeclarationsCommand(sublime_plugin.WindowCommand):
 		else:
 			def f(res, err):
 				if err:
-					gs.notice(DOMAIN, err)
+					ui.error(DOMAIN, err)
 					return
 
 				ents, m = handle_pkgdirs_res(res)
@@ -137,7 +137,7 @@ class GsBrowseDeclarationsCommand(sublime_plugin.WindowCommand):
 
 		def f(res, err):
 			if err:
-				gs.notify(DOMAIN, err)
+				ui.note(DOMAIN, err)
 				return
 
 			decls = res.get('file_decls', [])
@@ -186,7 +186,7 @@ class GsBrowsePackagesCommand(sublime_plugin.WindowCommand):
 	def run(self):
 		def f(res, err):
 			if err:
-				gs.notice(DOMAIN, err)
+				ui.error(DOMAIN, err)
 				return
 
 			ents, m = handle_pkgdirs_res(res)
@@ -224,7 +224,7 @@ def show_pkgfiles(dirname, o=None):
 			m[name] = fn
 			ents.append(name)
 	except Exception as ex:
-		gs.notice(DOMAIN, 'Error: %s' % ex)
+		ui.error(DOMAIN, 'Error: %s' % ex)
 
 	if ents:
 		ents.sort(key = lambda a: a.lower())

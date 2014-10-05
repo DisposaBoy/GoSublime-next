@@ -20,7 +20,6 @@ import sys
 import tempfile
 import threading
 import time
-import traceback as tbck
 
 try:
 	import Queue as queue
@@ -30,6 +29,9 @@ except ImportError:
 PY3K = (sys.version_info[0] == 3)
 ST3 = sublime.version().startswith('3')
 ST2 = sublime.version().startswith('2')
+
+DEVNULL = open(os.devnull, 'w')
+LOGFILE = DEVNULL
 
 penc = locale.getpreferredencoding()
 try_encodings = ['utf-8']
@@ -176,7 +178,7 @@ def do(domain, f, timeout=0):
 			try:
 				f()
 			except Exception:
-				error_traceback(domain)
+				ui.trace(domain)
 
 		if ST3:
 			sublime.set_timeout_async(cb, timeout)
@@ -242,43 +244,6 @@ def log(*a):
 		LOGFILE.flush()
 	except Exception:
 		pass
-
-def notify(domain, txt):
-	txt = "%s: %s" % (domain, txt)
-	status_message(txt)
-
-def notice(domain, txt):
-	error(domain, txt)
-
-def error(domain, txt):
-	txt = "%s: %s" % (domain, txt)
-	log(txt)
-	status_message(txt)
-
-def print_traceback():
-	println(traceback(NAME))
-
-def error_traceback(domain, status_txt=''):
-	tb = traceback().strip()
-	if status_txt:
-		prefix = '%s\n' % status_txt
-	else:
-		prefix = ''
-		i = tb.rfind('\n')
-		if i > 0:
-			status_txt = tb[i:].strip()
-		else:
-			status_txt = tb
-
-	log("%s: %s%s" % (domain, prefix, tb))
-	status_message("%s: %s" % (domain, status_txt))
-
-def notice_undo(domain, txt, view, should_undo):
-	def cb():
-		if should_undo:
-			view.run_command('undo')
-		notice(domain, txt)
-	sublime.set_timeout(cb, 0)
 
 def show_output(domain, s, print_output=True, syntax_file='', replace=True, merge_domain=False, scroll_end=False, overlay=True):
 	def cb(domain, s, print_output, syntax_file):
@@ -366,96 +331,6 @@ def sync_settings():
 	_settings.update(mirror_settings(settings_obj()))
 	cfg.folders = sublime.active_window().folders()
 
-def sm_cb():
-	global sm_text
-	global sm_set_text
-	global sm_frame
-
-	with sm_lck:
-		ntasks = len(sm_tasks)
-		tm = sm_tm
-		s = sm_text
-		if s:
-			delta = (datetime.datetime.now() - tm)
-			if delta.seconds >= 10:
-				sm_text = ''
-
-	if ntasks > 0:
-		if s:
-			s = u'%s, %s' % (sm_frames[sm_frame], s)
-		else:
-			s = u'%s' % sm_frames[sm_frame]
-
-		if ntasks > 1:
-			s = '%d %s' % (ntasks, s)
-
-		sm_frame = (sm_frame + 1) % len(sm_frames)
-
-	if s != sm_set_text:
-		sm_set_text = s
-		st2_status_message(s)
-
-	sched_sm_cb()
-
-
-def sched_sm_cb():
-	sublime.set_timeout(sm_cb, 250)
-
-def status_message(s):
-	global sm_text
-	global sm_tm
-
-	with sm_lck:
-		sm_text = s
-		sm_tm = datetime.datetime.now()
-
-def begin(domain, message, set_status=True, cancel=None):
-	global sm_task_counter
-
-	if message and set_status:
-		status_message('%s: %s' % (domain, message))
-
-	with sm_lck:
-		sm_task_counter += 1
-		tid = 't%d' % sm_task_counter
-		sm_tasks[tid] = {
-			'start': datetime.datetime.now(),
-			'domain': domain,
-			'message': message,
-			'cancel': cancel,
-		}
-
-	return tid
-
-def end(task_id):
-	with sm_lck:
-		try:
-			del(sm_tasks[task_id])
-		except:
-			pass
-
-def task(task_id, default=None):
-	with sm_lck:
-		return sm_tasks.get(task_id, default)
-
-def clear_tasks():
-	with sm_lck:
-		sm_tasks = {}
-
-def task_list():
-	with sm_lck:
-		return sorted(sm_tasks.items())
-
-def cancel_task(tid):
-	t = task(tid)
-	if t and t['cancel']:
-		s = 'are you sure you want to end task: #%s %s: %s' % (tid, t['domain'], t['message'])
-		if sublime.ok_cancel_dialog(s):
-			t['cancel']()
-
-		return True
-	return False
-
 def show_quick_panel(items, cb=None):
 	def f():
 		win = sublime.active_window()
@@ -502,12 +377,6 @@ def list_dir_tree(dirname, filter, exclude_prefix=('.', '_'), o=None):
 
 	return walk(dirname, filter, exclude_prefix)
 
-
-def traceback(domain='GoSublime'):
-	return '%s: %s' % (domain, tbck.format_exc())
-
-def show_traceback(domain):
-	show_output(domain, traceback(), replace=False, merge_domain=False)
 
 def maybe_unicode_str(s):
 	try:
@@ -672,29 +541,6 @@ def uid_seq():
 	return ('gs#%x' % n, n)
 
 try:
-	st2_status_message
-except:
-	sm_lck = threading.Lock()
-	sm_task_counter = 0
-	sm_tasks = {}
-	sm_frame = 0
-	sm_frames = (
-		u'\u25D2',
-		u'\u25D1',
-		u'\u25D3',
-		u'\u25D0'
-	)
-	sm_tm = datetime.datetime.now()
-	sm_text = ''
-	sm_set_text = ''
-
-	st2_status_message = sublime.status_message
-	sublime.status_message = status_message
-
-	DEVNULL = open(os.devnull, 'w')
-	LOGFILE = DEVNULL
-
-try:
 	gs9o
 except Exception:
 	gs9o = {}
@@ -705,9 +551,7 @@ def gs_init(m={}):
 		LOGFILE = open(home_path('log.txt'), 'a+')
 	except Exception as ex:
 		LOGFILE = DEVNULL
-		notice(NAME, 'Cannot create log file. Remote(margo) and persistent logging will be disabled. Error: %s' % ex)
-
-	sched_sm_cb()
+		ui.error(NAME, 'Cannot create log file. Remote(margo) and persistent logging will be disabled. Error: %s' % ex)
 
 	settings_obj().clear_on_change("GoSublime.settings")
 	settings_obj().add_on_change("GoSublime.settings", sync_settings)

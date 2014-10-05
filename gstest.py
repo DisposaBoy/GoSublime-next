@@ -1,5 +1,6 @@
 from gosubl import gs
 from gosubl import mg9
+from gosubl import ui
 from gosubl import vu
 import os
 import re
@@ -17,7 +18,7 @@ class GsTestCommand(sublime_plugin.WindowCommand):
 	def run(self):
 		def f(res, err):
 			if err:
-				gs.notify(DOMAIN, err)
+				ui.note(DOMAIN, err)
 				return
 
 			mats = {}

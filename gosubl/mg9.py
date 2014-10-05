@@ -4,6 +4,7 @@ from . import ev
 from . import gs
 from . import gsq
 from . import sh
+from . import ui
 from . import vu
 import atexit
 import base64
@@ -17,7 +18,7 @@ import subprocess
 import threading
 import time
 
-DOMAIN = 'MarGo'
+DOMAIN = 'GoSublime.mg9'
 REQUEST_PREFIX = '%s.rqst.' % DOMAIN
 PROC_ATTR_NAME = 'mg9.proc'
 TAG = about.VERSION
@@ -25,7 +26,7 @@ INSTALL_VERSION = about.VERSION
 
 def gs_init(m={}):
 	atexit.register(killSrv)
-	gsq.do('GoSublime', _install, msg='Installing MarGo', set_status=False)
+	gsq.do(DOMAIN, _install, msg='Installing MarGo', set_status=True)
 
 class Request(object):
 	def __init__(self, f, method='', token=''):
@@ -114,8 +115,6 @@ def _mg_exists():
 	return bool(sh.which('margo'))
 
 def build_mg():
-	gs.notify('GoSublime', 'Installing MarGo')
-
 	gobin = sh.bin_dir()
 	gopath = sh.getenv('MARGOPATH')
 	wd = gobin
@@ -165,7 +164,7 @@ def build_mg():
 		return 'ok'
 
 	err_prefix = 'MarGo build failed'
-	gs.error(DOMAIN, '%s\n%s' % (err_prefix, m_out))
+	ui.error(DOMAIN, '%s\n%s' % (err_prefix, m_out))
 
 	sl = [
 		('GoSublime error', '\n'.join((
@@ -195,8 +194,6 @@ def _install(maybe=False):
 
 	if m_out == 'ok':
 		ev.margo_ready()
-		gs.notify('GoSublime', 'ready')
-
 		if maybe:
 			return
 
@@ -223,7 +220,7 @@ def _check_env(e):
 		])
 
 		cb = lambda ok: gs.show_output(DOMAIN, missing_message, merge_domain=True, print_output=False)
-		gs.error(DOMAIN, missing_message)
+		ui.error(DOMAIN, missing_message)
 		vu.open(gs.dist_path('USAGE.md')).focus(pat='^Quirks', cb=cb)
 
 def _cleanup():
@@ -242,13 +239,13 @@ def _cleanup():
 		pass
 
 def calltip(fn, src, pos, quiet, f):
-	tid = ''
+	t = None
 	if not quiet:
-		tid = gs.begin(DOMAIN, 'Fetching calltips')
+		t = ui.task(DOMAIN, 'Fetching calltips')
 
 	def cb(res, err):
-		if tid:
-			gs.end(tid)
+		if t:
+			t.end()
 
 		res = gs.dval(res.get('Candidates'), [])
 		f(res, err)
@@ -294,9 +291,9 @@ def fmt(fn, src):
 	return res.get('Src', ''), err
 
 def import_paths(fn, src, f):
-	tid = gs.begin(DOMAIN, 'Fetching import paths')
+	t = ui.task(DOMAIN, 'Fetching import paths')
 	def cb(res, err):
-		gs.end(tid)
+		t.end()
 		f(res, err)
 
 	acall('import_paths', {
@@ -317,9 +314,9 @@ def pkg_name(fn, src):
 	return res.get('name'), err
 
 def pkg_dirs(f):
-	tid = gs.begin(DOMAIN, 'Fetching pkg dirs')
+	t = ui.task(DOMAIN, 'Fetching pkg dirs')
 	def cb(res, err):
-		gs.end(tid)
+		t.end()
 		f(res, err)
 
 	acall('pkg_dirs', {
@@ -327,9 +324,9 @@ def pkg_dirs(f):
 	}, cb)
 
 def a_posdef(fn, pos, f):
-	tid = gs.begin(DOMAIN, '')
+	t = ui.task(DOMAIN, 'posdef')
 	def cb(res, err):
-		gs.end(tid)
+		t.end()
 		f(res, err)
 
 	m = sh.env()
@@ -344,9 +341,9 @@ def a_posdef(fn, pos, f):
 	}, cb)
 
 def a_pkgpaths(exclude, f):
-	tid = gs.begin(DOMAIN, '')
+	t = ui.task(DOMAIN, 'Fetching pkg paths')
 	def cb(res, err):
-		gs.end(tid)
+		t.end()
 		f(res, err)
 
 	m = sh.env()
@@ -360,9 +357,9 @@ def a_pkgpaths(exclude, f):
 	}, cb)
 
 def declarations(fn, src, pkg_dir, f):
-	tid = gs.begin(DOMAIN, 'Fetching declarations')
+	t = ui.task(DOMAIN, 'Fetching declarations')
 	def cb(res, err):
-		gs.end(tid)
+		t.end()
 		f(res, err)
 
 	return acall('declarations', {
@@ -382,9 +379,9 @@ def imports(fn, src, toggle):
 	})
 
 def doc(fn, src, offset, f):
-	tid = gs.begin(DOMAIN, 'Fetching doc info')
+	t = ui.task(DOMAIN, 'Fetching doc info')
 	def cb(res, err):
-		gs.end(tid)
+		t.end()
 		f(res, err)
 
 	acall('doc', {
@@ -431,7 +428,7 @@ def expand_jdata(v):
 				v = gs.ustr(base64.b64decode(v[7:]))
 			except Exception:
 				v = ''
-				gs.error_traceback(DOMAIN)
+				ui.trace(DOMAIN)
 	return v
 
 def _recv():
@@ -451,7 +448,7 @@ def _recv():
 					gs.del_attr(k)
 					if req and req.f:
 						if tag != TAG:
-							gs.notice(DOMAIN, "\n".join([
+							ui.error(DOMAIN, "\n".join([
 								"GoSublime/MarGo appears to be out-of-sync.",
 								"Maybe restart Sublime Text.",
 								"Received tag `%s', expected tag `%s'. " % (tag, TAG),
@@ -485,12 +482,12 @@ def _recv():
 										dat = json.load(f) or {}
 								except Exception:
 									dat = {}
-									gs.error_traceback(DOMAIN)
+									ui.trace(DOMAIN)
 								finally:
 									try:
 										os.remove(oob_fn)
 									except Exception:
-										gs.error_traceback(DOMAIN)
+										ui.trace(DOMAIN)
 							else:
 								dat = r.get('data', {})
 
@@ -500,13 +497,13 @@ def _recv():
 								req.tm = time.time()
 								gs.set_attr(k, req)
 						except Exception:
-							gs.error_traceback(DOMAIN)
+							ui.trace(DOMAIN)
 					else:
 						ev.debug(DOMAIN, 'Ignoring margo: token: %s' % token)
 			except Exception:
-				gs.print_traceback()
+				ui.trace(DOMAIN)
 		except Exception:
-			gs.print_traceback()
+			ui.trace(DOMAIN)
 			break
 
 def _send():
@@ -584,23 +581,23 @@ def _send():
 				except Exception as ex:
 					_cb_err(cb, 'Cannot talk to MarGo: %s' % err)
 					killSrv()
-					gs.print_traceback()
+					ui.trace(DOMAIN)
 
 			except Exception:
 				killSrv()
-				gs.print_traceback()
+				ui.trace(DOMAIN)
 		except Exception:
-			gs.print_traceback()
+			ui.trace(DOMAIN)
 			break
 
 def _call(cb, res, err):
 	try:
 		cb(res, err)
 	except Exception:
-		gs.error_traceback(DOMAIN)
+		ui.trace(DOMAIN)
 
 def _cb_err(cb, err):
-	gs.error(DOMAIN, err)
+	ui.error(DOMAIN, err)
 	_call(cb, {}, err)
 
 
@@ -613,7 +610,7 @@ def _read_stdout(proc):
 
 			gs.mg9_recv_q.put(gs.ustr(ln))
 	except Exception:
-		gs.print_traceback()
+		ui.trace(DOMAIN)
 
 		proc.stdout.close()
 		proc.wait()
@@ -650,14 +647,33 @@ def on_mg_msg(res, err):
 	msg = res.get('message', '')
 	if msg:
 		print('GoSublime: MarGo: %s' % msg)
-		gs.notify('MarGo', msg)
+		ui.note('MarGo', msg)
 
 	return True
 
 def on_ignore(res, err):
 	return True
 
+def mg_status(res, _):
+	k = res.get('key', '?')
+	o = res.get('order', k)
+	d = ui.status.drawer(k, order=o)
+	d.set_text(res.get('text', ''))
+
+	return True
+
+def mg_open(res, _):
+	def f():
+		vu.open(res.get('fn'))
+
+	gs.do(DOMAIN, f)
+
+	return True
+
+
 on('margo.message', on_mg_msg)
 on('margo.poll', on_ignore)
 on('margo.hello', on_ignore)
 on('margo.bye-ni', on_ignore)
+on('margo.status', mg_status)
+on('margo.open', mg_open)
