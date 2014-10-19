@@ -655,10 +655,16 @@ def on_ignore(res, err):
 	return True
 
 def mg_status(res, _):
-	k = res.get('key', '?')
-	o = res.get('order', k)
-	d = ui.status.drawer(k, order=o)
-	d.set_text(res.get('text', ''))
+	k = res.get('Key', '?')
+	s = res.get('Text', '')
+	dmn = 'MarGo'
+
+	if k == 'margo.error':
+		ui.error(dmn, s)
+	elif k == 'margo.note':
+		ui.note(dmn, s)
+	else:
+		ui.status.drawer(k).set_text(s)
 
 	return True
 
