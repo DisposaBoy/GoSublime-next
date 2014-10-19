@@ -62,46 +62,6 @@ class GsFmtPromptSaveAsCommand(sublime_plugin.TextCommand):
 		self.view.run_command("gs_fmt")
 		sublime.set_timeout(lambda: self.view.run_command("prompt_save_as"), 0)
 
-class GsGotoRowColCommand(sublime_plugin.TextCommand):
-	def run(self, edit, row, col=0):
-		pt = self.view.text_point(row, col)
-		r = sublime.Region(pt, pt)
-		st = self.view.settings()
-		highlight_line = st.get('highlight_line')
-		inverse_caret_state = st.get('inverse_caret_state')
-		g = None
-
-		self.view.sel().clear()
-		self.view.sel().add(r)
-		self.view.show(pt)
-
-		def curs():
-			if vu.rowcol(self.view) == (row, col):
-				return True
-			return False
-
-		def x(t=300):
-			gs.do(DOMAIN, lambda: next(g, None), t)
-
-		def f():
-			st.set('inverse_caret_state', False)
-			hl = highlight_line
-			for _ in range(5):
-				if not curs():
-					break
-
-				hl = not hl
-				st.set('highlight_line', hl)
-				x()
-				yield
-
-			st.set('highlight_line', highlight_line)
-			st.set('inverse_caret_state', inverse_caret_state)
-			curs()
-
-		g = f()
-		x(0)
-
 class GsNewGoFileCommand(sublime_plugin.WindowCommand):
 	def run(self):
 		pkg_name = 'main'
