@@ -8,6 +8,10 @@ const (
 	OpenBg = OpenFlag(1 << iota)
 )
 
+var (
+	openChan = mg.Chan("margo.open")
+)
+
 type OpenFlag int
 
 type OpenOpts struct {
@@ -20,7 +24,7 @@ func Open(fn string) {
 }
 
 func OpenFile(fn string, f OpenFlag) {
-	mg.OpenChan.Send(struct {
+	openChan.Send(struct {
 		Fn string
 		Bg bool
 	}{
