@@ -138,27 +138,46 @@ class V(object):
 		})
 		return True
 
-	def focus(self, row=0, col=0, pat='^package ', cb=None):
-		win = self.window()
-		view = self.view()
-		if None in (win, view):
+	def focus(self, row=0, col=0, pat='^package ', cb=None, bg=False):
+		if not self.has_view():
 			if cb:
 				cb(False)
 			return
 
 		if self.v.is_loading():
-			sublime.set_timeout(lambda: self.focus(row=row, col=col, pat=pat, cb=cb), 100)
+			sublime.set_timeout(lambda: self.focus(row=row, col=col, pat=pat, cb=cb, bg=bg), 100)
 			return
 
-		win.focus_view(view)
+		view = self.view()
+
 		if row <= 0 and col <= 0 and pat:
 			r = view.find(pat, 0)
 			if r:
 				row, col = view.rowcol(r.begin())
 
-		view.run_command("gs_goto_row_col", { "row": row, "col": col })
 		if cb:
 			cb(True)
+
+		if not bg and self.has_window():
+			self.window().focus_view(view)
+
+		r = sublime.Region(view.text_point(row, col))
+		k = 'GoSublime.goto-row-col-bookmark'
+		rl = [r]
+		view.sel().clear()
+		view.sel().add(r)
+		view.show(r)
+
+		def cb(n):
+			if n % 2 == 0:
+				view.add_regions(k, rl, 'comment', 'bookmark', sublime.HIDDEN)
+			else:
+				view.erase_regions(k)
+
+			if n <= 4:
+				sublime.set_timeout(lambda: cb(n + 1), 600)
+
+		cb(0)
 
 def ve_replace(view, edit, begin, end, s):
 	view.replace(edit, sublime.Region(begin, end), s)
@@ -200,15 +219,28 @@ def active(win=None, view=None):
 
 	return V(view)
 
-def open(fn='', id=-1, view=None, win=None):
+def open(fn='', id=-1, view=None, win=None, row=0, col=0, pat='', cb=None, bg=False):
+	if win is None:
+		win = sublime.active_window()
+
 	vv, loc = find_loc(fn=fn, id=id, view=view, win=win)
-	if not vv.has_view() and isfile(loc.fn):
-		if win is None:
-			win = sublime.active_window()
-		vv = V(win.open_file(loc.fn), win=win)
+	fn = loc.fn
+	if loc.row > row or loc.col > col:
+		row, col = loc.row, loc.col
+
+	if not vv.has_view() and fn and isfile(fn):
+		if bg:
+			av = win.active_view()
+			vv = V(win.open_file(fn), win=win)
+			if av is not None:
+				win.focus_view(av)
+		else:
+			vv = V(win.open_file('%s:%d:%d' % (fn, row+1, col+1), sublime.ENCODED_POSITION), win=win)
 
 	if vv.has_view():
-		vv.focus(loc.row, loc.col)
+		vv.focus(row=row, col=col, pat=pat, cb=cb, bg=bg)
+	elif cb:
+		cb(False)
 
 	return vv
 
