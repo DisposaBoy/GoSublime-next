@@ -670,7 +670,13 @@ def mg_status(res, _):
 
 def mg_open(res, _):
 	def f():
-		vu.open(res.get('fn'))
+		vu.open(
+			fn=res.get('Fn', ''),
+			bg=res.get('Bg', False),
+			row=res.get('Row', 0),
+			col=res.get('Col', 0),
+			pat=res.get('Pat', '')
+		)
 
 	gs.do(DOMAIN, f)
 
