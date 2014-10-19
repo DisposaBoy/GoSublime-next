@@ -41,7 +41,7 @@ class GsPosdefCommand(sublime_plugin.TextCommand):
 				return
 
 			gs.println('opening %s:%s:%s' % (fn, row, col))
-			vu.open(fn=fn).focus(row=row, col=col)
+			vu.open(fn=fn, row=row, col=col)
 
 		mg9.a_posdef(view.file_name(), pt, f)
 
@@ -75,7 +75,7 @@ class GsDocCommand(sublime_plugin.TextCommand):
 						col = d.get('col', 0)
 						if fn:
 							gs.println('opening %s:%s:%s' % (fn, row, col))
-							vu.open(fn=fn).focus(row=row, col=col)
+							vu.open(fn=fn, row=row, col=col)
 							return
 					self.show_output("%s: cannot find definition" % DOMAIN)
 				elif mode == "hint":
@@ -163,7 +163,7 @@ class GsBrowseDeclarationsCommand(sublime_plugin.WindowCommand):
 			def cb(i, win):
 				if i >= 0:
 					d = decls[i]
-					vu.open(fn=d['fn'], win=win).focus(row=d['row'], col=d['col'])
+					vu.open(fn=d['fn'], win=win, row=d['row'], col=d['col'])
 
 			if ents:
 				gs.show_quick_panel(ents, cb)

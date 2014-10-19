@@ -221,7 +221,7 @@ def _check_env(e):
 
 		cb = lambda ok: gs.show_output(DOMAIN, missing_message, merge_domain=True, print_output=False)
 		ui.error(DOMAIN, missing_message)
-		vu.open(gs.dist_path('USAGE.md')).focus(pat='^Quirks', cb=cb)
+		vu.open(fn=gs.dist_path('USAGE.md'), pat='^Quirks', cb=cb)
 
 def _cleanup():
 	try:

@@ -110,7 +110,7 @@ class GsPaletteCommand(sublime_plugin.WindowCommand):
 			bks.append(loc)
 
 	def goto(self, loc):
-		vu.open(fn=loc.fn).focus(row=loc.row, col=loc.col)
+		vu.open(fn=loc.fn, row=loc.row, col=loc.col)
 
 	def jump_to_imports(self):
 		view = gs.active_valid_go_view()

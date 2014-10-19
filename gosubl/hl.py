@@ -194,7 +194,7 @@ def show_messages(view):
 			p = gotos.get(i)
 			if p:
 				fn, row, col = p
-				vu.open(fn).focus(row=row, col=col)
+				vu.open(fn, row=row, col=col)
 
 		gs.show_quick_panel(items, cb)
 	else:
