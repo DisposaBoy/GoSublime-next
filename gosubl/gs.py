@@ -156,10 +156,11 @@ def temp_dir(subdir=''):
 
 def temp_file(suffix='', prefix='', delete=True):
 	try:
-		f = tempfile.NamedTemporaryFile(suffix=suffix, prefix=prefix, dir=temp_dir(), delete=delete)
+		dir, _ = temp_dir()
+		f = tempfile.NamedTemporaryFile(suffix=suffix, prefix=prefix, dir=dir, delete=delete)
+		return (f, '')
 	except Exception as ex:
 		return (None, 'Error: %s' % ex)
-	return (f, '')
 
 def basedir_or_cwd(fn):
 	if fn and not fn.startswith('gs.view://'):
