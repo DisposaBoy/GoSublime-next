@@ -1,6 +1,82 @@
 import threading
 import traceback
 
+class P(object):
+	def __init__(self, k, v):
+		self.k = k
+		self.v = v
+
+class L(object):
+	def __init__(self):
+		self.lck = threading.Lock()
+		self.lst = []
+
+	def get(self, k, df=None):
+		v, _ = self.gets(k, df=df)
+		return v
+
+	def gets(self, k, df=None):
+		with self.lck:
+			for p in self.lst:
+				if p.k == k:
+					return (p.v, False)
+
+			if df:
+				try:
+					x = df()
+					if store:
+						self.lst.append(P(k, x[1]))
+
+					return x
+				except Exception:
+					traceback.print_exc()
+
+			return (None, False)
+
+	def put(self, k, v):
+		with self.lck:
+			for p in self.lst:
+				if p.k == k:
+					v, p.v = p.v, v
+					return v
+
+			self.lst.append(P(k, v))
+			return None
+
+	def delete(self, k):
+		with self.lck:
+			pos = -1
+			v = None
+			for i, p in enumerate(self.lst):
+				if p.k == k:
+					pos = i
+					v = p.v
+					break
+
+			if pos >= 0:
+				del self.lst[pos]
+
+			return v
+
+	def sort(self, key=None, reverse=False):
+		with self.lck:
+			if not key:
+				key = lambda p: p.k
+
+			self.lst.sort(key=key, reverse=reverse)
+
+	def keys(self):
+		with self.lck:
+			return [p.k for p in self.lst]
+
+	def values(self):
+		with self.lck:
+			return [p.v for p in self.lst]
+
+	def __len__(self):
+		with self.lck:
+			return len(self.lst)
+
 class M(object):
 	def __init__(self):
 		self.lck = threading.Lock()
