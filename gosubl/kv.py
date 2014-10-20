@@ -23,11 +23,11 @@ class L(object):
 
 			if df:
 				try:
-					x = df()
+					v, store = df()
 					if store:
-						self.lst.append(P(k, x[1]))
+						self.lst.append(P(k, v))
 
-					return x
+					return (v, store)
 				except Exception:
 					traceback.print_exc()
 
