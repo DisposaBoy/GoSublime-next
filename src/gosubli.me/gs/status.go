@@ -6,8 +6,8 @@ import (
 
 var (
 	statusChan  = mg.Chan("margo.status")
-	errorDrawer = Drawer("mg.error")
-	noteDrawer  = Drawer("mg.note")
+	errorDrawer = Drawer("margo.error")
+	noteDrawer  = Drawer("margo.note")
 )
 
 type Drawer string
