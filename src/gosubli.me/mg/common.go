@@ -188,7 +188,7 @@ func rootDirs(env map[string]string) []string {
 	} else if fn := os.Getenv("GOROOT"); fn != "" {
 		gorootBase = fn
 	}
-	goroot := filepath.Join(gorootBase, "src", "pkg")
+	goroot := filepath.Join(gorootBase, SrcPkg)
 
 	dirsSeen := map[string]bool{}
 	for _, fn := range filepath.SplitList(gopath) {
@@ -300,7 +300,7 @@ func SrcDirs(env map[string]string) []string {
 	g, p := RootPaths(env)
 	l := make([]string, 0, len(p)+1)
 	if g != "" {
-		l = append(l, filepath.Join(g, "src", "pkg"))
+		l = append(l, filepath.Join(g, SrcPkg))
 	}
 	for _, s := range p {
 		l = append(l, filepath.Join(s, "src"))

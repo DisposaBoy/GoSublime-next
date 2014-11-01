@@ -42,7 +42,7 @@ func mPkgPathsRes(env map[string]string, exclude []string, wantPkgNames bool) ma
 		}()
 	}
 
-	proc(filepath.Join(goroot, "src", "pkg"))
+	proc(filepath.Join(goroot, SrcPkg))
 	for _, p := range gopaths {
 		proc(filepath.Join(p, "src"))
 	}
