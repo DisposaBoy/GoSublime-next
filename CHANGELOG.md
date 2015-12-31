@@ -7,6 +7,9 @@ GoSublime Changes
 
 Note: you may need to restart Sublime Text after GoSublime updates
 
+## 15.12.31-1
+	* update gocode
+
 ## 14.03.28-1
 	* Please be aware that the undocumented `_dev` setting has been set to `true` by default.
 	  It should ideally *not* be changed. The side-effect is that the internal GS
