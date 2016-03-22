@@ -346,6 +346,7 @@ def env(m={}):
 	e.update({
 		'PWD': wd,
 		'_wd': wd,
+		'_dir': os.path.dirname(cfg.active_fn),
 		'_fn': cfg.active_fn,
 		'_vfn': cfg.active_vfn,
 		'_nm': cfg.active_fn.replace('\\', '/').split('/')[-1],

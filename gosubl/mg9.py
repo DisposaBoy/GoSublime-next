@@ -13,6 +13,7 @@ import json
 import os
 import re
 import shutil
+import string
 import sublime
 import subprocess
 import threading
@@ -285,8 +286,10 @@ def fmt(fn, src):
 		'Src': src or '',
 	}
 	if cfg.fmt_cmd:
-		a['Cmd'] = cfg.fmt_cmd[0]
-		a['Args'] = cfg.fmt_cmd[1:]
+		env = sh.env()
+		cmd = [string.Template(s).safe_substitute(env) for s in cfg.fmt_cmd]
+		a['Cmd'] = cmd[0]
+		a['Args'] = cmd[1:]
 	res, err = bcall('fmt', a)
 	return res.get('Src', ''), err
 
