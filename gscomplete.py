@@ -106,11 +106,15 @@ def resolve_snippets(ctx):
 	return list(cl)
 
 class GoSublime(sublime_plugin.EventListener):
+	INTERFACES = []
 	gocode_set = False
+	current_interface = {'name': '', 'funcs': []}
+	not_in_scope = False
 	def on_query_completions(self, view, prefix, locations):
 		pos = locations[0]
 		scopes = view.scope_name(pos).split()
-		if ('source.go' not in scopes) or (gs.setting('gscomplete_enabled', False) is not True):
+		self.not_in_scope = ('source.go' not in scopes) or (gs.setting('gscomplete_enabled', False) is not True)
+		if self.not_in_scope:
 			return []
 
 		if view.score_selector(pos, 'comment.build-constraint.go') > 0:
@@ -161,6 +165,13 @@ class GoSublime(sublime_plugin.EventListener):
 		if not pkgname:
 			return (resolve_snippets(ctx), AC_OPTS) if cfg.autocomplete_snippets else ([], AC_OPTS)
 
+		iface_name = view.substr(view.line(sublime.Region(pos -1 , pos)))[:-1]
+		if iface_name.rfind('.') != -1:
+			iface_name = iface_name[iface_name.rfind('.') + 1:]
+
+		if iface_name != GoSublime.current_interface['name']:
+			GoSublime.current_interface = {'name': iface_name, 'funcs': []}
+
 		nc = view.substr(sublime.Region(pos, pos+1))
 		cl = self.complete(vv.fn() or '<stdin>', offset, src, nc.isalpha() or nc == "(")
 
@@ -191,6 +202,12 @@ class GoSublime(sublime_plugin.EventListener):
 
 		gs.show_quick_panel(sl, f)
 
+	def on_text_command(self, view, command_name, args):
+		if self.not_in_scope or command_name != 'commit_completion':
+			return
+		view.run_command('run_macro_file', {"file": "res://Packages/Default/Delete Line.sublime-macro"})
+		GoSublime.current_interface = {'name': '', 'funcs': [], 'view': None}
+
 	def complete(self, fn, offset, src, func_name_only):
 		comps = []
 		autocomplete_tests = gs.setting('autocomplete_tests', False)
@@ -211,6 +228,7 @@ class GoSublime(sublime_plugin.EventListener):
 			except Exception as ex:
 				ui.error(DOMAIN, 'Cannot filter completions: %s' % ex)
 
+		in_iface = GoSublime.current_interface['name'] in GoSublime.INTERFACES and src[offset-1:offset] == '.'
 		for ent in ents:
 			if name_fx and name_fx.search(ent['name']):
 				continue
@@ -220,6 +238,15 @@ class GoSublime(sublime_plugin.EventListener):
 			nm = ent['name']
 			is_func = (cn == 'func')
 			is_func_type = (cn == 'type' and tn.startswith('func('))
+			
+			if cn == 'type' and tn == 'interface' and nm not in GoSublime.INTERFACES:
+				GoSublime.INTERFACES.append(nm)
+
+			if in_iface:
+				tmpl = '//Implementing %s·%s\nfunc (${1:this} ${2:*struct_name}) %s%s {\n\t$0\n}\n'
+				if cn == 'func' and tn != 'built-in':
+					sig = tmpl % (GoSublime.current_interface['name'], nm, nm, tn[4:])
+					GoSublime.current_interface['funcs'].append(sig)
 
 			if is_func:
 				if nm in ('main', 'init'):
@@ -269,6 +296,12 @@ class GoSublime(sublime_plugin.EventListener):
 					'%s\t%s %s' % (nm, tn, self.typeclass_prefix(cn, tn)),
 					nm,
 				))
+		if len(GoSublime.current_interface['funcs']) > 0 :
+			comps.insert(0,('Implement Interface','\n'.join(GoSublime.current_interface['funcs']) + '\n'))
+		else:
+			self.not_in_scope = True
+			# GoSublime.current_interface = []
+
 		return comps
 
 	def typeclass_prefix(self, typeclass, typename):
